@@ -18,13 +18,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.     
 #
 ##############################################################################
+try:
+    from pychart import *
 
-from pychart import *
-
-colorline = [color.T(r=((r+3) % 11)/10.0,
-                     g=((g+6) % 11)/10.0,
-                     b=((b+9) % 11)/10.0)
-             for r in range(11) for g in range(11) for b in range(11)]
+    colorline = [color.T(r=((r+3) % 11)/10.0,
+                         g=((g+6) % 11)/10.0,
+                         b=((b+9) % 11)/10.0)
+                 for r in range(11) for g in range(11) for b in range(11)]
+except ImportError:
+    pass
 
 def choice_colors(n):
     if n:

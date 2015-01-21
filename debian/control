@@ -31,7 +31,6 @@ Depends:
  python-psutil,
  python-psycopg2,
  python-pybabel,
- python-pychart,
  python-pydot,
  python-pyparsing,
  python-pypdf,

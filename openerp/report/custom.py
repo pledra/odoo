@@ -30,7 +30,11 @@ import render
 from interface import report_int
 import common
 from openerp.osv.orm import BaseModel
-from pychart import *
+try:
+    from pychart import *
+    theme.use_color = 1
+except ImportError:
+    pass
 import misc
 import cStringIO
 from lxml import etree
@@ -44,9 +48,6 @@ class external_pdf(render.render):
         self.output_type='pdf'
     def _render(self):
         return self.pdf
-
-theme.use_color = 1
-
 
 #TODO: devrait heriter de report_rml a la place de report_int 
 # -> pourrait overrider que create_xml a la place de tout create
