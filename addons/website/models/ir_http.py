@@ -75,7 +75,16 @@ class ir_http(orm.AbstractModel):
                 except ImportError:
                     self.geo_ip_resolver = False
             if self.geo_ip_resolver and request.httprequest.remote_addr:
-                record = self.geo_ip_resolver.record_by_addr(request.httprequest.remote_addr) or {}
+                ip = request.httprequest.remote_addr
+                if ip == "127.0.0.1":
+                    # If in local, try to get public IP
+                    try:
+                        import urllib2
+                        site = urllib2.urlopen("http://checkip.dyndns.org/").read()
+                        ip = re.findall('([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)', site)[0]
+                    except:
+                        pass
+                record = self.geo_ip_resolver.record_by_addr(ip) or {}
             request.session['geoip'] = record
 
         if request.website_enabled:

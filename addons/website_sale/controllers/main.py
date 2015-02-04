@@ -107,15 +107,39 @@ class QueryURL(object):
 def get_pricelist():
     cr, uid, context, pool = request.cr, request.uid, request.context, request.registry
     sale_order = context.get('sale_order')
+    print '\033[94m'
+    pricelist = False
     if sale_order:
+        print "$$$ PL by sale order"
         pricelist = sale_order.pricelist_id
-    else:
+    elif request.website.user_id.id != uid:
         partner = pool['res.users'].browse(cr, SUPERUSER_ID, uid, context=context).partner_id
         pricelist = partner.property_product_pricelist
+        print "$$$ PL by partner"
+
+    if not pricelist:
+        if request.session.get('current_pricelist_id'):
+            print "$$$ PL by session already"
+            pricelist = pool['product.pricelist'].browse(cr, SUPERUSER_ID, request.session['current_pricelist_id'], context=context)
+        else:
+            pcs = request.website.sale_get_pricelists_available()
+            if pcs:
+                print "$$$ PL by first available"
+                pricelist = pcs[0].pricelist_id
+            else:
+                print "$$$ PL by public pricelist"
+                #public price liste
+                partner = pool['res.users'].browse(cr, SUPERUSER_ID, uid, context=context).partner_id
+                pricelist = partner.property_product_pricelist
+
+    print "[GPL] SETTING PRICELIST TO %s" % pricelist
+    print "\033[0m"
+    request.context['current_pricelist'] = pricelist
+    request.session['current_pricelist_id'] = pricelist.id
     return pricelist
 
-class website_sale(http.Controller):
 
+class website_sale(http.Controller):
     def get_pricelist(self):
         return get_pricelist()
 
@@ -306,8 +330,15 @@ class website_sale(http.Controller):
     @http.route(['/shop/pricelist'], type='http', auth="public", website=True)
     def pricelist(self, promo, **post):
         cr, uid, context = request.cr, request.uid, request.context
-        request.website.sale_get_order(code=promo, context=context)
+        order = request.website.sale_get_order(code=promo, context=context)
+        request.session['current_pricelist_id'] = order.pricelist_id.id
         return request.redirect("/shop/cart")
+
+    @http.route(['/shop/change_pricelist/<model("product.pricelist"):pl_id>'], type='http', auth="public", website=True)
+    def pricelist_change(self, pl_id, **post):
+        request.session['current_pricelist_id'] = pl_id.id
+        request.website.sale_get_order(force_pricelist=pl_id.id, context=request.context)
+        return request.redirect(request.httprequest.referrer or '/shop')
 
     @http.route(['/shop/cart'], type='http', auth="public", website=True)
     def cart(self, **post):

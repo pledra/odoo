@@ -23,6 +23,26 @@
   </xpath>
 </template>
 
+<template id="pricelist_selector" inherit_id="website.layout" name="Header Shop Change Pricelist">
+  <xpath expr="//header//ul[@id='top_menu']/li" position="before">
+      <t t-set="website_sale_pricelists" t-value="website.sale_get_pricelists_available()"/>
+      <li t-att-class="'' if website_sale_pricelists and len(website_sale_pricelists)>1 and 'dropdown' else 'hidden'">
+        <t t-set="curr_pl" t-value="website.sale_get_current_pricelist()"/>
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><t t-esc="curr_pl and ('%s [%s]' % (curr_pl.name, curr_pl.id)) or 'Extra'" />
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu" role="menu">
+          <li t-foreach="website_sale_pricelists" t-as="pl" >
+            <t t-esc='pl'/>
+            <a t-att-href="'/shop/change_pricelist/%s' % pl.pricelist_id.id"><span class='js_change_pricelist' t-att-data-pricelist_id="pl.pricelist_id.id" t-esc="pl.pricelist_id.name"/></a>
+          </li>
+
+
+        </ul>
+      </li>
+  </xpath>
+</template>
+
 <template id="header" inherit_id="website.layout" name="Header Shop My Cart Link">
   <xpath expr="//header//ul[@id='top_menu']/li" position="before">
       <t t-set="website_sale_order" t-value="website.sale_get_order()"/>
@@ -773,7 +793,7 @@
       </p>
       <form t-if="website_sale_order and website_sale_order.website_order_line" action="/shop/pricelist" method="post" class="mb32">
           <div class="input-group">
-              <input name="promo" class='form-control' type="text" placeholder="code..." t-att-value="website_sale_order.pricelist_id.code or ''"/>
+              <input name="promo" class='form-control' type="text" placeholder="code..." t-att-value="request.session.get('sale_order_code_pricelist_id') or ''"/>
               <div class="input-group-btn">
                   <a class="btn btn-default a-submit">Apply</a>
               </div>

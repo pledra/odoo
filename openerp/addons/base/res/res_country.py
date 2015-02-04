@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 ##############################################################################
-#    
+#
 #    OpenERP, Open Source Management Solution
 #    Copyright (C) 2004-2009 Tiny SPRL (<http://tiny.be>).
 #
@@ -15,10 +15,11 @@
 #    GNU Affero General Public License for more details.
 #
 #    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.     
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
 
+import re
 from openerp.osv import fields, osv
 
 def location_name_search(self, cr, user, name='', args=None, operator='ilike',
@@ -42,6 +43,7 @@ def location_name_search(self, cr, user, name='', args=None, operator='ilike',
 class Country(osv.osv):
     _name = 'res.country'
     _description = 'Country'
+
     _columns = {
         'name': fields.char('Country Name',
             help='The full name of the country.', required=True, translate=True),
@@ -55,9 +57,11 @@ addresses belonging to this country.\n\nYou can use the python-style string pate
             \n%(state_code)s: the code of the state
             \n%(country_name)s: the name of the country
             \n%(country_code)s: the code of the country"""),
+
         'currency_id': fields.many2one('res.currency', 'Currency'),
         'image': fields.binary("Image"),
-        'country_group_ids': fields.many2many('res.country.group', 'res_country_res_country_group_rel', 'res_country_id', 'res_country_group_id', string='Country Groups'),
+        'country_group_ids': fields.many2many('res.country.group', 'res_country_res_country_group_rel', 'res_country_id', 'res_country_group_id',
+                                              string='Country Groups'),
     }
     _sql_constraints = [
         ('name_uniq', 'unique (name)',
@@ -68,7 +72,7 @@ addresses belonging to this country.\n\nYou can use the python-style string pate
     _defaults = {
         'address_format': "%(street)s\n%(street2)s\n%(city)s %(state_code)s %(zip)s\n%(country_name)s",
     }
-    _order='name'
+    _order = 'name'
 
     name_search = location_name_search
 
@@ -83,6 +87,12 @@ addresses belonging to this country.\n\nYou can use the python-style string pate
             vals['code'] = vals['code'].upper()
         return super(Country, self).write(cursor, user, ids, vals,
                 context=context)
+
+    def _getAddressFields(self, cr, uid, ids, name, arg, context=None):
+        res = {}
+        for country in self.browse(cr, uid, ids, context=context):
+            res[country.id] = re.findall('\((.+?)\)', country.address_format)
+        return res
 
 
 class CountryGroup(osv.osv):
