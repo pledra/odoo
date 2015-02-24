@@ -1,49 +1,31 @@
 # -*- coding: utf-8 -*-
-###############################################################################
-#
-#    OpenERP, Open Source Management Solution
-#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
-import time
+from openerp import api, fields, models
 
-from openerp.osv import fields, osv
 
-class account_analytic_default(osv.osv):
+class AccountAnalyticDefault(models.Model):
+
     _name = "account.analytic.default"
     _description = "Analytic Distribution"
     _rec_name = "analytic_id"
     _order = "sequence"
-    _columns = {
-        'sequence': fields.integer('Sequence', help="Gives the sequence order when displaying a list of analytic distribution"),
-        'analytic_id': fields.many2one('account.analytic.account', 'Analytic Account'),
-        'product_id': fields.many2one('product.product', 'Product', ondelete='cascade', help="Select a product which will use analytic account specified in analytic default (e.g. create new customer invoice or Sales order if we select this product, it will automatically take this as an analytic account)"),
-        'partner_id': fields.many2one('res.partner', 'Partner', ondelete='cascade', help="Select a partner which will use analytic account specified in analytic default (e.g. create new customer invoice or Sales order if we select this partner, it will automatically take this as an analytic account)"),
-        'user_id': fields.many2one('res.users', 'User', ondelete='cascade', help="Select a user which will use analytic account specified in analytic default."),
-        'company_id': fields.many2one('res.company', 'Company', ondelete='cascade', help="Select a company which will use analytic account specified in analytic default (e.g. create new customer invoice or Sales order if we select this company, it will automatically take this as an analytic account)"),
-        'date_start': fields.date('Start Date', help="Default start date for this Analytic Account."),
-        'date_stop': fields.date('End Date', help="Default end date for this Analytic Account."),
-    }
 
-    def account_get(self, cr, uid, product_id=None, partner_id=None, user_id=None, date=None, company_id=None, context=None):
+
+    sequence = fields.Integer(default=0, help="Gives the sequence order when displaying a list of analytic distribution")
+    analytic_id = fields.Many2one('account.analytic.account', string='Analytic Account')
+    product_id = fields.Many2one('product.product', string='Product', ondelete='cascade', help="Select a product which will use analytic account specified in analytic default (e.g. create new customer invoice or Sales order if we select this product, it will automatically take this as an analytic account)")
+    partner_id = fields.Many2one('res.partner', string='Partner', ondelete='cascade', help="Select a partner which will use analytic account specified in analytic default (e.g. create new customer invoice or Sales order if we select this partner, it will automatically take this as an analytic account)")
+    user_id = fields.Many2one('res.users', string='User', ondelete='cascade', help="Select a user which will use analytic account specified in analytic default.")
+    company_id = fields.Many2one('res.company', string='Company', ondelete='cascade', help="Select a company which will use analytic account specified in analytic default (e.g. create new customer invoice or Sales order if we select this company, it will automatically take this as an analytic account)")
+    date_start = fields.Date(string='Start Date', help="Default start date for this Analytic Account.")
+    date_stop = fields.Date(string='End Date', help="Default end date for this Analytic Account.")
+
+    @api.model
+    def account_get(self, product_id=None, partner_id=None, user_id=None, date=None, company_id=None):
         domain = []
         if product_id:
             domain += ['|', ('product_id', '=', product_id)]
-        domain += [('product_id','=', False)]
+        domain += [('product_id', '=', False)]
         if partner_id:
             domain += ['|', ('partner_id', '=', partner_id)]
         domain += [('partner_id', '=', False)]
@@ -51,14 +33,14 @@ class account_analytic_default(osv.osv):
             domain += ['|', ('company_id', '=', company_id)]
         domain += [('company_id', '=', False)]
         if user_id:
-            domain += ['|',('user_id', '=', user_id)]
-        domain += [('user_id','=', False)]
+            domain += ['|', ('user_id', '=', user_id)]
+        domain += [('user_id', '=', False)]
         if date:
             domain += ['|', ('date_start', '<=', date), ('date_start', '=', False)]
             domain += ['|', ('date_stop', '>=', date), ('date_stop', '=', False)]
         best_index = -1
         res = False
-        for rec in self.browse(cr, uid, self.search(cr, uid, domain, context=context), context=context):
+        for rec in self.search(domain):
             index = 0
             if rec.product_id: index += 1
             if rec.partner_id: index += 1
@@ -72,83 +54,62 @@ class account_analytic_default(osv.osv):
         return res
 
 
-class account_invoice_line(osv.osv):
+class account_invoice_line(models.Model):
     _inherit = "account.invoice.line"
     _description = "Invoice Line"
 
-    def product_id_change(self, cr, uid, ids, product, uom_id, qty=0, name='', type='out_invoice', partner_id=False, fposition_id=False, price_unit=False, currency_id=False, company_id=None, context=None):
-        res_prod = super(account_invoice_line, self).product_id_change(cr, uid, ids, product, uom_id, qty, name, type, partner_id, fposition_id, price_unit, currency_id=currency_id, company_id=company_id, context=context)
-        rec = self.pool.get('account.analytic.default').account_get(cr, uid, product, partner_id, uid, time.strftime('%Y-%m-%d'), company_id=company_id, context=context)
-        if rec:
-            res_prod['value'].update({'account_analytic_id': rec.analytic_id.id})
-        else:
-            res_prod['value'].update({'account_analytic_id': False})
+    @api.multi
+    def product_id_change(self, product, uom_id, qty=0, name='', type='out_invoice', partner_id=False, fposition_id=False, price_unit=False, currency_id=False, company_id=None):
+        res_prod = super(account_invoice_line, self).product_id_change(product, uom_id, qty, name, type, partner_id, fposition_id, price_unit, currency_id=currency_id, company_id=company_id)
+        rec = self.env['account.analytic.default'].account_get(product, partner_id, self.env.uid, fields.Date.context_today(self), company_id)
+        res_prod['value']['account_analytic_id'] = rec and rec.analytic_id.id
         return res_prod
 
 
-
-class stock_picking(osv.osv):
-    _inherit = "stock.picking"
-
-    def _get_account_analytic_invoice(self, cursor, user, picking, move_line):
-        partner_id = picking.partner_id and picking.partner_id.id or False
-        rec = self.pool.get('account.analytic.default').account_get(cursor, user, move_line.product_id.id, partner_id, user, time.strftime('%Y-%m-%d'))
-
-        if rec:
-            return rec.analytic_id.id
-
-        return super(stock_picking, self)._get_account_analytic_invoice(cursor, user, picking, move_line)
-
-
-class sale_order_line(osv.osv):
+class sale_order_line(models.Model):
     _inherit = "sale.order.line"
 
-    # Method overridden to set the analytic account by default on criterion match
-    def invoice_line_create(self, cr, uid, ids, context=None):
-        create_ids = super(sale_order_line, self).invoice_line_create(cr, uid, ids, context=context)
-        if not ids:
+    @api.multi
+    def invoice_line_create(self):
+        create_ids = super(sale_order_line, self).invoice_line_create()
+        if not self.ids:
             return create_ids
-        sale_line = self.browse(cr, uid, ids[0], context=context)
-        inv_line_obj = self.pool.get('account.invoice.line')
-        anal_def_obj = self.pool.get('account.analytic.default')
-
-        for line in inv_line_obj.browse(cr, uid, create_ids, context=context):
-            rec = anal_def_obj.account_get(cr, uid, line.product_id.id, sale_line.order_id.partner_id.id, sale_line.order_id.user_id.id, time.strftime('%Y-%m-%d'), context=context)
-
+        for line in self.env['account.invoice.line'].browse(create_ids):
+            rec = self.env['account.analytic.default'].account_get(line.product_id.id, self.order_id.partner_id.id, self.order_id.user_id.id, fields.Date.context_today(self), self.order_id.company_id.id)
             if rec:
-                inv_line_obj.write(cr, uid, [line.id], {'account_analytic_id': rec.analytic_id.id}, context=context)
+                line.write({'account_analytic_id': rec.analytic_id.id})
         return create_ids
-class product_product(osv.Model):
+
+
+class product_product(models.Model):
     _inherit = 'product.product'
-    def _rules_count(self, cr, uid, ids, field_name, arg, context=None):
-        Analytic = self.pool['account.analytic.default']
-        return {
-            product_id: Analytic.search_count(cr, uid, [('product_id', '=', product_id)], context=context)
-            for product_id in ids
-        }
-    _columns = {
-        'rules_count': fields.function(_rules_count, string='# Analytic Rules', type='integer'),
-    }
 
-class product_template(osv.Model):
+    @api.multi
+    @api.depends('rules_count')
+    def _rules_count(self):
+        AccountAnalyticDefault = self.env['account.analytic.default']
+        for record in self:
+            record.rules_count = AccountAnalyticDefault.search_count([('product_id', '=', record.id)])
+
+    rules_count = fields.Integer(compute='_rules_count', string='# Analytic Rules')
+
+
+class product_template(models.Model):
     _inherit = 'product.template'
-    
-    def _rules_count(self, cr, uid, ids, field_name, arg, context=None):
-        Analytic = self.pool['account.analytic.default']
-        res = {}
-        for product_tmpl_id in self.browse(cr, uid, ids, context=context):
-            res[product_tmpl_id.id] = sum([p.rules_count for p in product_tmpl_id.product_variant_ids])
-        return res
 
-    _columns = {
-        'rules_count': fields.function(_rules_count, string='# Analytic Rules', type='integer'),
-    }
+    @api.multi
+    @api.depends('product_variant_ids.rules_count')
+    def _rules_count(self):
+        for product_tmpl_id in self:
+            product_tmpl_id.rules_count = sum([p.rules_count for p in product_tmpl_id.product_variant_ids])
 
+    rules_count = fields.Integer(compute='_rules_count', string='# Analytic Rules')
 
-    def action_view_rules(self, cr, uid, ids, context=None):
-        products = self._get_products(cr, uid, ids, context=context)
-        result = self._get_act_window_dict(cr, uid, 'account_analytic_default.action_product_default_list', context=context)
-        result['domain'] = "[('product_id','in',[" + ','.join(map(str, products)) + "])]"
-        # Remove context so it is not going to filter on product_id with active_id of template
+    @api.multi
+    def action_view_rules(self):
+        products = self._get_products()
+        result = self._get_act_window_dict('account_analytic_default.action_product_default_list')
+        result['domain'] = "[('product_id', 'in', [" + ','.join(map(str, products)) + "])]"
         result['context'] = "{}"
+        # Remove context so it is not going to filter on product_id with active_id of template
         return result
