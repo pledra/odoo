@@ -1684,7 +1684,7 @@ instance.web.form.compute_domain = function(expr, fields) {
                 _t("Unknown field %s in domain %s"),
                 ex[0], JSON.stringify(expr)));
         }
-        var field_value = field.get_value ? field.get_value() : field.value;
+        var field_value = field.get('value');
         var op = ex[1];
         var val = ex[2];
 
