@@ -12,7 +12,7 @@ class hr_department(models.Model):
     @api.multi
     def _compute_leave_count(self):
         Holiday = self.env['hr.holidays']
-        today_date = datetime.datetime.utcnow().date()
+        today_date = fields.Datetime.utc_today_date(self) # get the today day in UTC timezone
         today_start = today_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT) # get the midnight of the current utc day
         today_end = (today_date + relativedelta(hours=23, minutes=59, seconds=59)).strftime(DEFAULT_SERVER_DATETIME_FORMAT)
 
