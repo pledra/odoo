@@ -115,6 +115,15 @@ class AccountReportContextCommon(models.TransientModel):
             else:
                 context.comparison = True
 
+    @api.model
+    def _get_footnotes(self, type, target_id):
+        footnotes = self.footnotes.filtered(lambda s: s.type == type and s.target_id == target_id)
+        result = {}
+        for footnote in footnotes:
+            result.update({footnote.column: footnote.number})
+        return result
+
+    fold_field = ''
     date_from = fields.Date("Start date")
     date_to = fields.Date("End date")
     all_entries = fields.Boolean('Use all entries (not only posted ones)', default=False, required=True)
@@ -134,6 +143,14 @@ class AccountReportContextCommon(models.TransientModel):
     footnotes_manager_id = fields.Many2one('account.report.footnotes.manager', string='Footnotes Manager', required=True, ondelete='cascade')
 
     @api.multi
+    def remove_line(self, line_id):
+        self.write({self.fold_field: [(3, line_id)]})
+
+    @api.multi
+    def add_line(self, line_id):
+        self.write({self.fold_field: [(4, line_id)]})
+
+    @api.multi
     def edit_summary(self, text):
         self.write({'summary': text})
 
@@ -151,14 +168,6 @@ class AccountReportContextCommon(models.TransientModel):
     @api.model
     def get_companies(self):
         return self.env['res.company'].search([])
-
-    @api.multi
-    def remove_line(self, line_id):
-        raise Warning(_('remove_line not implemented'))
-
-    @api.multi
-    def add_line(self, line_id):
-        raise Warning(_('add_line not implemented'))
 
     def get_columns_names(self):
         raise Warning(_('get_columns_names not implemented'))

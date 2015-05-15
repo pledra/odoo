@@ -130,6 +130,7 @@ class ReportAccountFinancialReport(models.Model):
             cash_basis=self.report_type == 'date_range_cash' or context_id.cash_basis,
             strict_range=self.report_type == 'date_range_extended',
             aged_balance=self.report_type == 'date_range_extended',
+            context=context_id
         ).get_lines(self, context_id, currency_table, linesDicts)
         return res
 
@@ -218,13 +219,6 @@ class AccountFinancialReportLine(models.Model):
         else:
             return 'n/a'
 
-    def _get_footnotes(self, type, target_id, context):
-        footnotes = context.footnotes.filtered(lambda s: s.type == type and s.target_id == target_id)
-        result = {}
-        for footnote in footnotes:
-            result.update({footnote.column: footnote.number})
-        return result
-
     def _split_formulas(self):
         result = {}
         if self.formulas:
@@ -275,7 +269,7 @@ class AccountFinancialReportLine(models.Model):
                 sql = "SELECT \"account_move_line\"." + groupby + "%s FROM \"account_move_line\" WHERE %s GROUP BY \"account_move_line\".company_currency_id,\"account_move_line\"." + groupby
             else:
                 groupby = self.groupby or 'id'
-                select = ',COALESCE(SUM(\"account_move_line\".debit-\"account_move_line\".credit), 0),SUM(\"account_move_line\".amount_residual),\"account_move_line\".company_currency_id'
+                select = ',COALESCE(SUM(\"account_move_line\".debit-\"account_move_line\".credit), 0),SUM(\"account_move_line\".amount_residual)'
                 if financial_report.debit_credit and debit_credit:
                     select += ',SUM(\"account_move_line\".debit),SUM(\"account_move_line\".credit)'
                 if self.env.context.get('cash_basis'):
@@ -320,6 +314,28 @@ class AccountFinancialReportLine(models.Model):
                 res[domain_id].append(period.get(domain_id, {'balance': 0})['balance'])
         return res
 
+    def _divide_line(self, line):
+        line1 = {
+            'id': line['id'],
+            'name': line['name'],
+            'type': 'line',
+            'level': line['level'],
+            'footnotes': line['footnotes'],
+            'columns': ['' for k in line['columns']],
+            'unfoldable': line['unfoldable'],
+            'unfolded': line['unfolded'],
+        }
+        line2 = {
+            'id': line['id'],
+            'name': line['name'] + ' Total',
+            'type': 'total',
+            'level': line['level'],
+            'footnotes': self.env.context['context']._get_footnotes('total', line['id']),
+            'columns': line['columns'],
+            'unfoldable': False,
+        }
+        return [line1, line2]
+
     @api.multi
     def get_lines(self, financial_report, context, currency_table, linesDicts):
         final_result_table = []
@@ -339,6 +355,7 @@ class AccountFinancialReportLine(models.Model):
                 if line.special_date_changer == 'to_beginning_of_period':
                     date_tmp = datetime.strptime(period[0], "%Y-%m-%d") - relativedelta(days=1)
                     period_to = date_tmp.strftime('%Y-%m-%d')
+                    period_from = False
                 r = line.with_context(date_from=period_from, date_to=period_to).eval_formula(financial_report, debit_credit, context, currency_table, linesDicts[k])
                 debit_credit = False
                 res.append(r)
@@ -355,7 +372,7 @@ class AccountFinancialReportLine(models.Model):
                 'name': line.name,
                 'type': 'line',
                 'level': line.level,
-                'footnotes': line._get_footnotes('line', line.id, context),
+                'footnotes': context._get_footnotes('line', line.id),
                 'columns': res['line'],
                 'unfoldable': len(domain_ids) > 1 and line.show_domain != 'always',
                 'unfolded': line in context.unfolded_lines or line.show_domain == 'always',
@@ -372,10 +389,19 @@ class AccountFinancialReportLine(models.Model):
                         'name': line._get_gb_name(domain_id),
                         'level': line.level + 2,
                         'type': groupby,
-                        'footnotes': line._get_footnotes(groupby, domain_id, context),
+                        'footnotes': context._get_footnotes(groupby, domain_id),
                         'columns': res[domain_id],
                     }
                     lines.append(vals)
+                if domain_ids:
+                    lines.append({
+                        'id': line.id,
+                        'name': line.name + ' Total',
+                        'type': 'domain-total',
+                        'level': 1,
+                        'footnotes': context._get_footnotes('domain-total', line.id),
+                        'columns': list(lines[0]['columns']),
+                    })
 
             for vals in lines:
                 if financial_report.report_type == 'date_range_extended':
@@ -389,14 +415,20 @@ class AccountFinancialReportLine(models.Model):
                 if not line.formulas:
                     vals['columns'] = ['' for k in vals['columns']]
 
-            new_lines = line.children_ids.get_lines(financial_report, context, currency_table, linesDicts)
-
-            result = []
-            if line.level > 0:
-                result += lines
-            result += new_lines
-            if line.level <= 0:
-                result += lines
+            if len(lines) == 1:
+                new_lines = line.children_ids.get_lines(financial_report, context, currency_table, linesDicts)
+                if new_lines:
+                    divided_lines = self._divide_line(lines[0])
+                    result = [divided_lines[0]] + new_lines + [divided_lines[1]]
+                else:
+                    result = []
+                    if line.level > 0:
+                        result += lines
+                    result += new_lines
+                    if line.level <= 0:
+                        result += lines
+            else:
+                result = lines
             final_result_table += result
 
         return final_result_table
@@ -410,6 +442,7 @@ class AccountFinancialReportContext(models.TransientModel):
     def get_report_obj(self):
         return self.report_id
 
+    fold_field = 'unfolded_lines'
     report_id = fields.Many2one('account.financial.report', 'Linked financial report', help='Only if financial report')
     unfolded_lines = fields.Many2many('account.financial.report.line', 'context_to_line', string='Unfolded lines')
 
@@ -428,14 +461,6 @@ class AccountFinancialReportContext(models.TransientModel):
                 'date_filter': 'this_year'
             })
         return res
-
-    @api.multi
-    def remove_line(self, line_id):
-        self.write({'unfolded_lines': [(3, line_id)]})
-
-    @api.multi
-    def add_line(self, line_id):
-        self.write({'unfolded_lines': [(4, line_id)]})
 
     def get_balance_date(self):
         if self.report_id.report_type == 'no_date_range':

@@ -220,6 +220,7 @@ var ReportWidget = Widget.extend({
         var active_id = $(e.target).parents('tr').find('td.oe-account-foldable').data('id');
         $(e.target).parents('tr').find('td.oe-account-foldable').attr('class', 'oe-account-unfoldable ' + active_id)
         $(e.target).parents('tr').find('span.oe-account-foldable').replaceWith(QWeb.render("unfoldable", {lineId: active_id}));
+        $(e.target).parents('tr').toggleClass('oe-account-unfolded');
         return new Model(this.context_by_reportname[report_name]).call('remove_line', [[parseInt(context_id)], parseInt(active_id)]);
     },
     unfold: function(e) {
@@ -274,6 +275,7 @@ var ReportWidget = Widget.extend({
             }
             $(e.target).parents('tr').find('td.oe-account-unfoldable').attr('class', 'oe-account-foldable ' + active_id)
             $(e.target).parents('tr').find('span.oe-account-unfoldable').replaceWith(QWeb.render("foldable", {lineId: active_id}));
+            $(e.target).parents('tr').toggleClass('oe-account-unfolded');
         });
     },
 });

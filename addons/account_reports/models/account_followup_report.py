@@ -65,7 +65,7 @@ class report_account_followup_report(models.AbstractModel):
                     'id': aml.id,
                     'name': aml.move_id.name,
                     'type': is_payment and 'payment' or 'unreconciled_aml',
-                    'footnotes': self._get_footnotes('unreconciled_aml', aml.id, context_id),
+                    'footnotes': {},
                     'unfoldable': False,
                     'columns': [aml.date, date_due, aml.invoice.reference] + (not public and [aml.expected_pay_date and (aml.expected_pay_date, aml.internal_note) or ('', ''), aml.blocked] or []) + [amount],
                     'blocked': aml.blocked,
@@ -76,7 +76,7 @@ class report_account_followup_report(models.AbstractModel):
                 'id': line_num,
                 'name': total >= 0 and _('Due Total') or '',
                 'type': 'line',
-                'footnotes': self._get_footnotes('line', 0, context_id),
+                'footnotes': {},
                 'unfoldable': False,
                 'level': 0,
                 'columns': ['', '', ''] + (not public and ['', ''] or []) + [total],
@@ -88,20 +88,12 @@ class report_account_followup_report(models.AbstractModel):
                     'id': line_num,
                     'name': _('Overdue Total'),
                     'type': 'line',
-                    'footnotes': self._get_footnotes('line', 1, context_id),
+                    'footnotes': {},
                     'unfoldable': False,
                     'level': 0,
                     'columns': ['', '', ''] + (not public and ['', ''] or []) + [total_issued],
                 })
         return lines
-
-    @api.model
-    def _get_footnotes(self, type, target_id, context_id):
-        footnotes = context_id.footnotes.filtered(lambda s: s.type == type and s.target_id == target_id)
-        result = {}
-        for footnote in footnotes:
-            result.update({footnote.column: footnote.number})
-        return result
 
     @api.model
     def get_title(self):
@@ -200,14 +192,6 @@ class account_report_context_followup(models.TransientModel):
 
     def get_report_obj(self):
         return self.env['account.followup.report']
-
-    @api.multi
-    def remove_line(self, line_id):
-        return
-
-    @api.multi
-    def add_line(self, line_id):
-        return
 
     def get_columns_names(self):
         if self.env.context.get('public'):

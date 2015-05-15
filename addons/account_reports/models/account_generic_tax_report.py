@@ -104,7 +104,7 @@ class report_account_generic_tax_report(models.AbstractModel):
                     'id': line_id,
                     'name': tp == 'sale' and _('Sale') or _('Purchase'),
                     'type': 'line',
-                    'footnotes': self._get_footnotes('line', tp),
+                    'footnotes': self.env.context['context_id']._get_footnotes('line', tp),
                     'unfoldable': False,
                     'columns': ['' for k in range(0, (len(context['periods']) + 1) * 2)],
                     'level': 1,
@@ -115,7 +115,7 @@ class report_account_generic_tax_report(models.AbstractModel):
                         'id': tax['obj'].id,
                         'name': tax['obj'].name + ' (' + str(tax['obj'].amount) + ')',
                         'type': 'tax_id',
-                        'footnotes': self._get_footnotes('tax_id', tax['obj'].id),
+                        'footnotes': self.env.context['context_id']._get_footnotes('tax_id', tax['obj'].id),
                         'unfoldable': False,
                         'columns': sum([[period['net'] * sign, period['tax'] * sign] for period in tax['periods']], []),
                         'level': 1,
@@ -125,21 +125,13 @@ class report_account_generic_tax_report(models.AbstractModel):
                             'id': child['obj'].id,
                             'name': '   ' + child['obj'].name + ' (' + str(child['obj'].amount) + ')',
                             'type': 'tax_id',
-                            'footnotes': self._get_footnotes('tax_id', child['obj'].id),
+                            'footnotes': self.env.context['context_id']._get_footnotes('tax_id', child['obj'].id),
                             'unfoldable': False,
                             'columns': sum([[period['net'] * sign, period['tax'] * sign] for period in child['periods']], []),
                             'level': 2,
                         })
             line_id += 1
         return lines
-
-    @api.model
-    def _get_footnotes(self, type, target_id):
-        footnotes = self.env.context['context_id'].footnotes.filtered(lambda s: s.type == type and s.target_id == target_id)
-        result = {}
-        for footnote in footnotes:
-            result.update({footnote.column: footnote.number})
-        return result
 
     @api.model
     def get_title(self):
@@ -165,14 +157,6 @@ class AccountReportContextTax(models.TransientModel):
 
     def get_report_obj(self):
         return self.env['account.generic.tax.report']
-
-    @api.multi
-    def remove_line(self, line_id):
-        return
-
-    @api.multi
-    def add_line(self, line_id):
-        return
 
     def get_columns_names(self):
         columns = [_('Net') + '<br/>' + self.get_full_date_names(self.date_to, self.date_from), _('Tax')]

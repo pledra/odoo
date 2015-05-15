@@ -66,6 +66,7 @@ class report_account_general_ledger(models.AbstractModel):
             account = self.env['account.account'].browse(account_id)
             accounts[account] = result
             if not context.get('print_mode'):
+                #  fetch the 81 first amls. The report only displays the first 80 amls. We will use the 81st to know if there are more than 80 in which case a link to the list view must be displayed.
                 accounts[account]['lines'] = self.env['account.move.line'].search(domain, order='date', limit=81)
             else:
                 accounts[account]['lines'] = self.env['account.move.line'].search(domain, order='date')
@@ -88,7 +89,7 @@ class report_account_general_ledger(models.AbstractModel):
                 'id': account.id,
                 'type': 'line',
                 'name': account.code + " " + account.name,
-                'footnotes': self._get_footnotes('line', account.id),
+                'footnotes': self.env.context['context_id']._get_footnotes('line', account.id),
                 'columns': ['', '', '', amount_currency, formatLang(self.env, debit, currency_obj=currency_id), formatLang(self.env, credit, currency_obj=currency_id), formatLang(self.env, balance, currency_obj=currency_id)],
                 'level': 2,
                 'unfoldable': True,
@@ -126,7 +127,7 @@ class report_account_general_ledger(models.AbstractModel):
                         'move_id': line.move_id.id,
                         'action': line.get_model_id_and_name(),
                         'name': line.move_id.name if line.move_id.name else '/',
-                        'footnotes': self._get_footnotes('move_line_id', line.id),
+                        'footnotes': self.env.context['context_id']._get_footnotes('move_line_id', line.id),
                         'columns': [line.date, name, line.partner_id.name, currency, formatLang(self.env, line_debit, currency_obj=currency_id), formatLang(self.env, line_credit, currency_obj=currency_id), formatLang(self.env, progress, currency_obj=currency_id)],
                         'level': 1,
                     })
@@ -139,15 +140,23 @@ class report_account_general_ledger(models.AbstractModel):
                     'id': account.id,
                     'type': 'initial_balance',
                     'name': 'Initial Balance',
-                    'footnotes': self._get_footnotes('initial_balance', account.id),
+                    'footnotes': self.env.context['context_id']._get_footnotes('initial_balance', account.id),
                     'columns': ['', '', '', initial_currency, formatLang(self.env, initial_debit, currency_obj=currency_id), formatLang(self.env, initial_credit, currency_obj=currency_id), formatLang(self.env, initial_balance, currency_obj=currency_id)],
                     'level': 1,
                 }]
+                domain_lines.append({
+                    'id': account.id,
+                    'type': 'domain-total',
+                    'name': 'Total',
+                    'footnotes': self.env.context['context_id']._get_footnotes('domain-total', account.id),
+                    'columns': ['', '', '', amount_currency, formatLang(self.env, debit, currency_obj=currency_id), formatLang(self.env, credit, currency_obj=currency_id), formatLang(self.env, balance, currency_obj=currency_id)],
+                    'level': 1,
+                })
                 if too_many:
                     domain_lines.append({
                         'id': account.id,
                         'type': 'too_many',
-                        'name': 'There are more than 80 items in this list, click here to see all of them',
+                        'name': _('There are more than 80 items in this list, click here to see all of them'),
                         'footnotes': [],
                         'colspan': 8,
                         'columns': [],
@@ -155,14 +164,6 @@ class report_account_general_ledger(models.AbstractModel):
                     })
                 lines += domain_lines
         return lines
-
-    @api.model
-    def _get_footnotes(self, type, target_id):
-        footnotes = self.env.context['context_id'].footnotes.filtered(lambda s: s.type == type and s.target_id == target_id)
-        result = {}
-        for footnote in footnotes:
-            result.update({footnote.column: footnote.number})
-        return result
 
     @api.model
     def get_title(self):
@@ -185,18 +186,11 @@ class account_context_general_ledger(models.TransientModel):
     _description = "A particular context for the general ledger"
     _inherit = "account.report.context.common"
 
+    fold_field = 'unfolded_accounts'
     unfolded_accounts = fields.Many2many('account.account', 'context_to_account', string='Unfolded lines')
 
     def get_report_obj(self):
         return self.env['account.general.ledger']
-
-    @api.multi
-    def remove_line(self, line_id):
-        self.write({'unfolded_accounts': [(3, line_id)]})
-
-    @api.multi
-    def add_line(self, line_id):
-        self.write({'unfolded_accounts': [(4, line_id)]})
 
     def get_columns_names(self):
         return [_("Date"), _("Communication"), _("Partner"), _("Currency"), _("Debit"), _("Credit"), _("Balance")]

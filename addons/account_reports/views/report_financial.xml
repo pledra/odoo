@@ -24,12 +24,12 @@
     </t>
     <t t-set="trclass" t-value="'defaultStyle'"/>
     <t t-set="style" t-value="'margin-left: ' + str(40 + ((a.get('level', 3) - 3) * 10)) + 'px'"/>
-    <t t-if="a.get('level') == 0 and a['type'] == 'line'"><t t-set="trclass" t-value="'oe-account-level0'"/></t>
-    <t t-if="a.get('level') == 1 and a['type'] == 'line'"><t t-set="trclass" t-value="'oe-account-level1'"/></t>
-    <t t-if="a.get('level') == 2 and a['type'] == 'line'"><t t-set="style" t-value="'font-weight: bold; margin-left: 20px;'"/><t t-set="trclass" t-value="'oe-account-level2'"/></t>
+    <t t-if="a.get('level') == 0 and a['type'] in ['line', 'total']"><t t-set="trclass" t-value="'oe-account-level0'"/></t>
+    <t t-if="a.get('level') == 1 and a['type'] in ['line', 'total']"><t t-set="trclass" t-value="'oe-account-level1'"/></t>
+    <t t-if="a.get('level') == 2 and a['type'] in ['line', 'total']"><t t-set="style" t-value="'font-weight: bold; margin-left: 20px;'"/><t t-set="trclass" t-value="'oe-account-level2'"/></t>
     <t t-if="not a.get('level') &gt; 1"><t t-set="style" t-value="'font-weight: bold;'"/></t>
     <t t-set="domainClass" t-value="'oe-account-domain-line-2'"/>
-    <t t-if="a['type'] != 'line'">
+    <t t-if="a['type'] not in ['line', 'total']">
         <t t-set="style" t-value="'font-style: italic;'"/>
         <t t-if="a.get('level', False)">
             <t t-if="a['level'] == 1">
@@ -41,7 +41,7 @@
         </t>
     </t>
     <t t-set="column" t-value="0" />
-    <tr t-att-data-type="a['type']" t-att-data-id="a['id']" t-att-class="trclass + ' ' + a['type']" id='tr-line'>
+    <tr t-att-data-type="a['type']" t-att-data-id="a['id']" t-att-class="trclass + ' ' + a['type'] + ' ' + ((a.get('unfoldable') and a.get('unfolded')) and 'oe-account-unfolded' or '')" id='tr-line'>
         <t t-set="tdclass" t-value="''" />
         <t t-if="a.get('unfoldable') and a.get('unfolded')"><t t-set="tdclass" t-value="'oe-account-foldable'" /></t>
         <t t-if="a.get('unfoldable') and not a.get('unfolded')"><t t-set="tdclass" t-value="'oe-account-unfoldable'" /></t>
@@ -55,7 +55,7 @@
                 </t>
             </t>
             <t t-if="mode == 'print' and a['type'] != 'line'"><span t-att-data-id="a.get('id')" t-att-class="a.get('type') + ' ' + domainClass"><t t-esc="a.get('name')"/></span><t t-call="account_reports.report_financial_footnote_sup" /></t>
-            <t t-if="a['type'] not in ['account_id', 'line', 'tax_id', 'unreconciled_aml', 'bank_statement_id', 'partner_id', 'move_line_id', 'too_many', 'payment'] and mode != 'print'"><span t-att-data-id="a.get('id')" t-att-class="a.get('type') + ' ' + domainClass"><span style="color: black;"><i class="fa fa-fw fa-pencil-square"></i></span><t t-esc="a.get('name')"/><t t-call="account_reports.report_financial_footnote_sup" /></span></t>
+            <t t-if="a['type'] not in ['account_id', 'line', 'tax_id', 'unreconciled_aml', 'bank_statement_id', 'partner_id', 'move_line_id', 'too_many', 'payment', 'total'] and mode != 'print'"><span t-att-data-id="a.get('id')" t-att-class="a.get('type') + ' ' + domainClass"><span style="color: black;"><i class="fa fa-fw fa-pencil-square"></i></span><t t-esc="a.get('name')"/><t t-call="account_reports.report_financial_footnote_sup" /></span></t>
             <a t-if="a['type'] == 'partner_id' and mode != 'print' and report.get_title() != 'Aged Payable'">
                 <span t-att-data-active-id="a.get('id')" data-action-name="account_reports.action_account_followup" t-att-class="'oe-account-web-action ' + domainClass"><span style="color: black;"><i class="fa fa-fw fa-pencil-square"></i></span><t t-esc="a.get('name')"/><t t-call="account_reports.report_financial_footnote_sup" /></span>
             </a>
@@ -85,7 +85,7 @@
                     <li role="presentation"><a role="menuitem" tabindex="-1" class="oe-account-add-footnote">Annotate</a></li>
                 </ul>
             </div>
-            <t t-if="a['type'] == 'line'">
+            <t t-if="a['type'] in ['line', 'total']">
                 <span t-att-style="style" >
                     <span style="color: black;"><i class="fa fa-fw fa-pencil-square"></i></span>
                     <a t-if="a.get('action_id')" data-force-context='true' t-att-data-action-id="a.get('action_id')" class="oe-account-web-action">

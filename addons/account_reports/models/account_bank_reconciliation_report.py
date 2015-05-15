@@ -42,7 +42,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
             'id': self.line_number,
             'type': 'line',
             'name': title,
-            'footnotes': self._get_footnotes('line', self.line_number),
+            'footnotes': self.env.context['context_id']._get_footnotes('line', self.line_number),
             'columns': [self.env.context['date_from'], '', amount],
             'level': 0,
         }
@@ -53,7 +53,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
             'id': self.line_number,
             'type': 'line',
             'name': title,
-            'footnotes': self._get_footnotes('line', self.line_number),
+            'footnotes': self.env.context['context_id']._get_footnotes('line', self.line_number),
             'columns': [self.env.context['date_from'], '', ''],
             'level': 1,
         }
@@ -64,7 +64,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
             'id': self.line_number,
             'type': 'line',
             'name': '',
-            'footnotes': self._get_footnotes('line', self.line_number),
+            'footnotes': self.env.context['context_id']._get_footnotes('line', self.line_number),
             'columns': [self.env.context['date_from'], "", _("Total : ") + str(amount)],
             'level': 2,
         }
@@ -76,7 +76,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
             'statement_id': line.statement_id.id,
             'type': 'bank_statement_id',
             'name': line.name,
-            'footnotes': self._get_footnotes('bank_statement_id', self.line_number),
+            'footnotes': self.env.context['context_id']._get_footnotes('bank_statement_id', self.line_number),
             'columns': [line.date, line.ref, amount],
             'level': 3,
         }
@@ -133,7 +133,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
                     'type': 'move_line_id',
                     'action': line.get_model_id_and_name(),
                     'name': line.name,
-                    'footnotes': self._get_footnotes('move_line_id', self.line_number),
+                    'footnotes': self.env.context['context_id']._get_footnotes('move_line_id', self.line_number),
                     'columns': [line.date, line.ref, line.balance],
                     'level': 3,
                 })
@@ -143,14 +143,6 @@ class account_bank_reconciliation_report(models.AbstractModel):
         # Final
         lines.append(self.add_title_line(_("Statement Balance"), start_amount + outstanding_plus_tot + outstanding_less_tot + unrec_tot))
         return lines
-
-    @api.model
-    def _get_footnotes(self, type, target_id):
-        footnotes = self.env.context['context_id'].footnotes.filtered(lambda s: s.type == type and s.target_id == target_id)
-        result = {}
-        for footnote in footnotes:
-            result.update({footnote.column: footnote.number})
-        return result
 
     @api.model
     def get_title(self):
