@@ -5,14 +5,10 @@
             <field name="model">account.journal</field>
             <field name="inherit_id" ref="account.account_journal_dashboard_kanban_view" />
             <field name="arch" type="xml">
-                <xpath expr="//tbody[@class='journal_actions_tbody']" position="inside">
-                    <t t-if="journal_type == 'bank'">
-                        <tr>
-                            <td></td>
-                            <td><a type="object" name="open_action_batch_deposit">Batch Deposit</a></td>
-                            <td></td>
-                        </tr>
-                    </t>
+                <xpath expr="//div[contains(@class, 'o_kanban_manage_new')]" position="inside">
+                    <div t-if="journal_type == 'bank'">
+                        <a type="object" name="open_action_batch_deposit">Batch Deposit</a>
+                    </div>
                 </xpath>
             </field>
         </record>
