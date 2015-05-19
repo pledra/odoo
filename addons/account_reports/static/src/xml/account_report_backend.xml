@@ -56,13 +56,13 @@
                     <span class="caret"/>
                 </button>
                 <ul class="dropdown-menu filters-menu" role="menu">
-                    <t t-if="report_type == 'no_date_range'">
+                    <t t-if="report_type == 'no_date_range' or report_type == 'bank_reconciliation'">
                         <li title="Today" data-value="today" t-att-class="'oe-account-one-filter ' + (context.date_filter == 'today' and 'selected' or '')"><a>Today</a></li>
                         <li title="End of Last Month" data-value="last_month" t-att-class="'oe-account-one-filter ' + (context.date_filter == 'last_month' and 'selected' or '')"><a>End of Last Month</a></li>
                         <li title="End of Last Quarter" data-value="last_quarter" t-att-class="'oe-account-one-filter ' + (context.date_filter == 'last_quarter' and 'selected' or '')"><a>End of Last Quarter</a></li>
                         <li title="End of Last Financial Year" data-value="last_year" t-att-class="'oe-account-one-filter ' + (context.date_filter == 'last_year' and 'selected' or '')"><a>End of Last Financial Year</a></li>
                     </t>
-                    <t t-if="report_type != 'no_date_range'">
+                    <t t-if="report_type != 'no_date_range' and report_type != 'bank_reconciliation'">
                         <li title="This Month" data-value="this_month" t-att-class="'oe-account-one-filter ' + (context.date_filter == 'this_month' and 'selected' or '')"><a>This Month</a></li>
                         <li title="This Financial Year" data-value="this_year" t-att-class="'oe-account-one-filter ' + (context.date_filter == 'this_year' and 'selected' or '')"><a>This Financial Year</a></li>
                         <li class="divider"></li>
@@ -73,15 +73,15 @@
                     <li class="divider"></li>
                     <li t-att-class="'oe-account-use-custom ' + (context.date_filter == 'custom' and 'open-menu' or 'closed-menu')"><a>Custom</a></li>
                     <li class="oe-account-custom-dates" data-value='custom' style='margin-left: 10px; margin-right: 10px;'>
-                        <label class="custom-date" t-if="report_type != 'no_date_range'" for="date_from">Start Date :</label>
+                        <label class="custom-date" t-if="report_type != 'no_date_range' and report_type != 'bank_reconciliation'" for="date_from">Start Date :</label>
                         <div t-if="report_type != 'no_date_range'" class="form-group custom-date" style='display: inline;'>
                             <div class='input-group date oe-account-datetimepicker' t-att-data-default-value="context.date_from">
                             <input type='text' class="form-control" name="date_from" />
                             <span class="input-group-addon"><span class="fa fa-calendar"></span></span>
                             </div>
                         </div>
-                        <label class="custom-date" for="date_to" t-if="report_type != 'no_date_range'">End Date :</label>
-                        <label class="custom-date" for="date_to" t-if="report_type == 'no_date_range'">Date :</label>
+                        <label class="custom-date" for="date_to" t-if="report_type != 'no_date_range' and report_type != 'bank_reconciliation'">End Date :</label>
+                        <label class="custom-date" for="date_to" t-if="report_type == 'no_date_range' or report_type == 'bank_reconciliation'">Date :</label>
                         <div class="form-group custom-date" style='display: inline;'>
                             <div class='input-group date oe-account-datetimepicker' t-att-data-default-value="context.date_to">
                             <input type='text' class="form-control" name="date_to" />
@@ -92,7 +92,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="btn-group btn-group-sm oe-account-date-filter-cmp" t-if="report_type != 'no_comparison'">
+            <div class="btn-group btn-group-sm oe-account-date-filter-cmp" t-if="report_type != 'no_comparison' and report_type != 'bank_reconciliation'">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                     <span class="fa fa-bar-chart"/> Comparison:
                     <t t-esc="context.date_filter_cmp == 'no_comparison' and 'None' or context.date_filter_cmp == 'previous_period' and 'Previous Periods' or context.date_filter_cmp == 'same_last_year' and 'Same Last Year' or context.date_filter == 'custom' and 'Custom'" />
@@ -136,13 +136,15 @@
                     </li>
                 </ul>
             </div>
-            <div class="btn-group btn-group-sm oe-account-date-filter-bool">
+            <div class="btn-group btn-group-sm oe-account-date-filter-bool" t-if="report_type != 'bank_reconciliation'">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                    <span class="fa fa-filter"/> Options <span class="caret"/>
+                    <span class="fa fa-filter"/> Options:
+                    <t t-esc="context.cash_basis and 'Cash Basis' or 'Accrual Basis'"/>,
+                    <t t-esc="context.all_entries and 'With Draft Entries' or 'Posted Entries Only'"/> <span class="caret"/>
                 </button>
                 <ul class="dropdown-menu filters-menu" role="menu">
-                    <li title="Include unposted entries" data-value="all_entries" t-att-class="'oe-account-one-filter-bool ' + (context.all_entries and 'selected' or '')"><a>Include Unposted Entries</a></li>
                     <li title="Cash Basis Method" data-value="cash_basis" t-att-class="'oe-account-one-filter-bool ' + (context.cash_basis and 'selected' or '')"><a>Cash Basis Method</a></li>
+                    <li title="Include unposted entries" data-value="all_entries" t-att-class="'oe-account-one-filter-bool ' + (context.all_entries and 'selected' or '')"><a>Include Unposted Entries</a></li>
                 </ul>
             </div>
         </div>

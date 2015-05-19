@@ -20,6 +20,7 @@
 ##############################################################################
 
 from openerp import models, fields, api, _
+from openerp.tools.misc import formatLang
 
 
 class account_bank_reconciliation_report(models.AbstractModel):
@@ -31,10 +32,23 @@ class account_bank_reconciliation_report(models.AbstractModel):
     @api.model
     def get_lines(self, context_id, line_id=None):
         return self.with_context(
-            date_from=context_id.date_from,
+            date_to=context_id.date_to,
             journal_id=context_id.journal_id,
             context_id=context_id,
         )._lines()
+
+    def _format(self, value, total=False):
+        if self.env.context.get('no_format'):
+            return round(value, 1)
+        currency_id = self.env.user.company_id.currency_id
+        if currency_id.is_zero(value):
+            # don't print -0.0 in reports
+            value = abs(value)
+        add_plus = False
+        if value > 0 and total:
+            add_plus = True
+        res = formatLang(self.env, value, currency_obj=currency_id)
+        return add_plus and '+' + res or res
 
     def add_title_line(self, title, amount):
         self.line_number += 1
@@ -43,7 +57,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
             'type': 'line',
             'name': title,
             'footnotes': self.env.context['context_id']._get_footnotes('line', self.line_number),
-            'columns': [self.env.context['date_from'], '', amount],
+            'columns': [self.env.context['date_to'], '', self._format(amount, total=True)],
             'level': 0,
         }
 
@@ -54,7 +68,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
             'type': 'line',
             'name': title,
             'footnotes': self.env.context['context_id']._get_footnotes('line', self.line_number),
-            'columns': [self.env.context['date_from'], '', ''],
+            'columns': ['', '', ''],
             'level': 1,
         }
 
@@ -65,7 +79,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
             'type': 'line',
             'name': '',
             'footnotes': self.env.context['context_id']._get_footnotes('line', self.line_number),
-            'columns': [self.env.context['date_from'], "", _("Total : ") + str(amount)],
+            'columns': ["", "", self._format(amount, total=True)],
             'level': 2,
         }
 
@@ -77,8 +91,8 @@ class account_bank_reconciliation_report(models.AbstractModel):
             'type': 'bank_statement_id',
             'name': line.name,
             'footnotes': self.env.context['context_id']._get_footnotes('bank_statement_id', self.line_number),
-            'columns': [line.date, line.ref, amount],
-            'level': 3,
+            'columns': [line.date, line.ref, self._format(amount)],
+            'level': 1,
         }
 
     @api.model
@@ -87,13 +101,13 @@ class account_bank_reconciliation_report(models.AbstractModel):
         #Start amount
         account_ids = list(set([self.env.context['journal_id'].default_debit_account_id.id, self.env.context['journal_id'].default_credit_account_id.id]))
         lines_already_accounted = self.env['account.move.line'].search([('account_id', 'in', account_ids),
-                                                                        ('date', '<=', self.env.context['date_from'])])
+                                                                        ('date', '<=', self.env.context['date_to'])])
         start_amount = sum([line.balance for line in lines_already_accounted])
-        lines.append(self.add_title_line(_("Balance in Odoo"), start_amount))
+        lines.append(self.add_title_line(_("Current Balance"), start_amount))
 
         # Outstanding plus
         not_reconcile_plus = self.env['account.bank.statement.line'].search([('statement_id.journal_id', '=', self.env.context['journal_id'].id),
-                                                                             ('date', '<=', self.env.context['date_from']),
+                                                                             ('date', '<=', self.env.context['date_to']),
                                                                              ('journal_entry_ids', '=', False),
                                                                              ('amount', '>', 0)])
         outstanding_plus_tot = 0
@@ -106,7 +120,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
 
         # Outstanding less
         not_reconcile_less = self.env['account.bank.statement.line'].search([('statement_id.journal_id', '=', self.env.context['journal_id'].id),
-                                                                             ('date', '<=', self.env.context['date_from']),
+                                                                             ('date', '<=', self.env.context['date_to']),
                                                                              ('journal_entry_ids', '=', False),
                                                                              ('amount', '<', 0)])
         outstanding_less_tot = 0
@@ -121,7 +135,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
         move_lines = self.env['account.move.line'].search([('move_id.journal_id', '=', self.env.context['journal_id'].id),
                                                            ('move_id.statement_line_id', '=', False),
                                                            ('user_type.type', '!=', 'liquidity'),
-                                                           ('date', '<=', self.env.context['date_from'])])
+                                                           ('date', '<=', self.env.context['date_to'])])
         unrec_tot = 0
         if move_lines:
             lines.append(self.add_subtitle_line(_("Plus Un-Reconciled Bank Statement Lines")))
@@ -134,7 +148,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
                     'action': line.get_model_id_and_name(),
                     'name': line.name,
                     'footnotes': self.env.context['context_id']._get_footnotes('move_line_id', self.line_number),
-                    'columns': [line.date, line.ref, line.balance],
+                    'columns': [line.date, line.ref, self._format(line.balance)],
                     'level': 3,
                 })
                 unrec_tot += line.balance

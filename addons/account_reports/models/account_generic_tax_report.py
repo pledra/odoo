@@ -21,11 +21,21 @@
 
 from openerp import models, api
 from openerp.tools.translate import _
+from openerp.tools.misc import formatLang
 
 
 class report_account_generic_tax_report(models.AbstractModel):
     _name = "account.generic.tax.report"
     _description = "Generic Tax Report"
+
+    def _format(self, value):
+        if self.env.context.get('no_format'):
+            return round(value, 1)
+        currency_id = self.env.user.company_id.currency_id
+        if currency_id.is_zero(value):
+            # don't print -0.0 in reports
+            value = abs(value)
+        return formatLang(self.env, value, currency_obj=currency_id)
 
     @api.model
     def get_lines(self, context_id, line_id=None):
@@ -117,7 +127,7 @@ class report_account_generic_tax_report(models.AbstractModel):
                         'type': 'tax_id',
                         'footnotes': self.env.context['context_id']._get_footnotes('tax_id', tax['obj'].id),
                         'unfoldable': False,
-                        'columns': sum([[period['net'] * sign, period['tax'] * sign] for period in tax['periods']], []),
+                        'columns': sum([[self._format(period['net'] * sign), self._format(period['tax'] * sign)] for period in tax['periods']], []),
                         'level': 1,
                     })
                     for child in tax.get('children', []):
@@ -127,7 +137,7 @@ class report_account_generic_tax_report(models.AbstractModel):
                             'type': 'tax_id',
                             'footnotes': self.env.context['context_id']._get_footnotes('tax_id', child['obj'].id),
                             'unfoldable': False,
-                            'columns': sum([[period['net'] * sign, period['tax'] * sign] for period in child['periods']], []),
+                            'columns': sum([[self._format(period['net'] * sign), self._format(period['tax'] * sign)] for period in child['periods']], []),
                             'level': 2,
                         })
             line_id += 1

@@ -119,7 +119,8 @@ class account_report_context_followup_all(models.TransientModel):
     @api.depends('valuenow', 'valuemax')
     def _compute_percentage(self):
         for progressbar in self:
-            progressbar.percentage = 100 * progressbar.valuenow / progressbar.valuemax
+            if progressbar.valuemax > 0:
+                progressbar.percentage = 100 * progressbar.valuenow / progressbar.valuemax
 
     valuenow = fields.Integer('current amount of invoices done', default=0)
     valuemax = fields.Integer('total amount of invoices to do')

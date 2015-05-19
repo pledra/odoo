@@ -3,7 +3,6 @@ odoo.define('account.ReportWidget', function (require) {
 
 var core = require('web.core');
 var Widget = require('web.Widget');
-var formats = require('web.formats');
 var Model = require('web.Model');
 var Session = require('web.session');
 var time = require('web.time');
@@ -12,6 +11,8 @@ var QWeb = core.qweb;
 
 var ReportWidget = Widget.extend({
     events: {
+        "click a[data-toggle='dropdown']": 'toggleDropdown',
+        'click': 'hideDropdown',
         'click .fa-pencil-square': 'clickPencil',
         'click .fa-pencil': 'clickPencil',
         'click .oe-account-foldable': 'fold',
@@ -33,6 +34,14 @@ var ReportWidget = Widget.extend({
         'click .oe-account-add-footnote': 'footnoteFromDropdown',
         'click .oe-account-to-graph': 'displayMoveLinesByAccountGraph',
     },
+    hideDropdown: function(e) {
+        $('.dropdown-menu').hide();
+    },
+    toggleDropdown: function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        $(e.target).parents('.dropdown').find('.dropdown-menu').toggle();
+    },
     saveFootNote: function(e) {
         self = this;
         var report_name = $(e.target).parents('#footnoteModal').siblings("div.page").attr("data-report-name");
@@ -40,7 +49,7 @@ var ReportWidget = Widget.extend({
         var note = $("#note").val().replace(/\r?\n/g, '<br />').replace(/\s+/g, ' ');
         var contextModel = new Model(this.context_by_reportname[report_name]);
         return contextModel.call('get_next_footnote_number', [[parseInt(context_id)]]).then(function (footNoteSeqNum) {
-            self.curFootNoteTarget.parents('a').after(QWeb.render("supFootNoteSeqNum", {footNoteSeqNum: footNoteSeqNum}));
+            self.curFootNoteTarget.after(QWeb.render("supFootNoteSeqNum", {footNoteSeqNum: footNoteSeqNum}));
             return contextModel.query(['footnotes_manager_id'])
             .filter([['id', '=', context_id]]).first().then(function (context) {
                 new Model('account.report.footnotes.manager').call('add_footnote', [[parseInt(context.footnotes_manager_id[0])], $("#type").val(), $("#target_id").val(), $("#column").val(), footNoteSeqNum, note]);
@@ -93,7 +102,7 @@ var ReportWidget = Widget.extend({
         e.stopPropagation();
         e.preventDefault();
         self = this;
-        self.curFootNoteTarget = $(e.target).parents("div.dropdown").find("span.account_id");
+        self.curFootNoteTarget = $(e.target).parents("div.dropdown").find("a");
         var type = $(e.target).parents('tr').data('type');
         var target_id = $(e.target).parents('tr').data('id');
         var column = $(e.target).parents('td').index();
