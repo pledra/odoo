@@ -103,7 +103,30 @@ class account_bank_reconciliation_report(models.AbstractModel):
         lines_already_accounted = self.env['account.move.line'].search([('account_id', 'in', account_ids),
                                                                         ('date', '<=', self.env.context['date_to'])])
         start_amount = sum([line.balance for line in lines_already_accounted])
-        lines.append(self.add_title_line(_("Current Balance"), start_amount))
+        lines.append(self.add_title_line(_("Current Balance in Odoo"), start_amount))
+
+        # Un-reconcilied bank statement lines
+        move_lines = self.env['account.move.line'].search([('move_id.journal_id', '=', self.env.context['journal_id'].id),
+                                                           ('move_id.statement_line_id', '=', False),
+                                                           ('user_type.type', '!=', 'liquidity'),
+                                                           ('date', '<=', self.env.context['date_to'])])
+        unrec_tot = 0
+        if move_lines:
+            lines.append(self.add_subtitle_line(_("Less Un-Reconciled Bank Statement Lines")))
+            for line in move_lines:
+                self.line_number += 1
+                lines.append({
+                    'id': self.line_number,
+                    'move_id': line.move_id.id,
+                    'type': 'move_line_id',
+                    'action': line.get_model_id_and_name(),
+                    'name': line.name,
+                    'footnotes': self.env.context['context_id']._get_footnotes('move_line_id', self.line_number),
+                    'columns': [line.date, line.ref, self._format(line.balance)],
+                    'level': 3,
+                })
+                unrec_tot += line.balance
+            lines.append(self.add_total_line(unrec_tot))
 
         # Outstanding plus
         not_reconcile_plus = self.env['account.bank.statement.line'].search([('statement_id.journal_id', '=', self.env.context['journal_id'].id),
@@ -131,31 +154,16 @@ class account_bank_reconciliation_report(models.AbstractModel):
                 outstanding_less_tot += line.amount
             lines.append(self.add_total_line(outstanding_less_tot))
 
-        # Un-reconcilied bank statement lines
-        move_lines = self.env['account.move.line'].search([('move_id.journal_id', '=', self.env.context['journal_id'].id),
-                                                           ('move_id.statement_line_id', '=', False),
-                                                           ('user_type.type', '!=', 'liquidity'),
-                                                           ('date', '<=', self.env.context['date_to'])])
-        unrec_tot = 0
-        if move_lines:
-            lines.append(self.add_subtitle_line(_("Plus Un-Reconciled Bank Statement Lines")))
-            for line in move_lines:
-                self.line_number += 1
-                lines.append({
-                    'id': self.line_number,
-                    'move_id': line.move_id.id,
-                    'type': 'move_line_id',
-                    'action': line.get_model_id_and_name(),
-                    'name': line.name,
-                    'footnotes': self.env.context['context_id']._get_footnotes('move_line_id', self.line_number),
-                    'columns': [line.date, line.ref, self._format(line.balance)],
-                    'level': 3,
-                })
-                unrec_tot += line.balance
-            lines.append(self.add_total_line(unrec_tot))
-
         # Final
-        lines.append(self.add_title_line(_("Statement Balance"), start_amount + outstanding_plus_tot + outstanding_less_tot + unrec_tot))
+        computed_stmt_balance = start_amount + outstanding_plus_tot + outstanding_less_tot + unrec_tot
+        last_statement = self.env['account.bank.statement'].search([('journal_id', '=', self.env.context['journal_id'].id),
+                                       ('date', '<=', self.env.context['date_to'])], order="date desc, id desc", limit=1)
+        real_last_stmt_balance = last_statement.balance_end
+        if computed_stmt_balance != real_last_stmt_balance:
+            lines.append(self.add_title_line(_("Computed Last Statement Balance"), computed_stmt_balance))
+            lines.append(self.add_title_line(_("Real Last Statement Balance"), real_last_stmt_balance))
+        else:
+            lines.append(self.add_title_line(_("Last Statement Balance"), computed_stmt_balance))
         return lines
 
     @api.model
