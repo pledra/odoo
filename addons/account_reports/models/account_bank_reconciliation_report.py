@@ -37,18 +37,15 @@ class account_bank_reconciliation_report(models.AbstractModel):
             context_id=context_id,
         )._lines()
 
-    def _format(self, value, total=False):
+    def _format(self, value):
         if self.env.context.get('no_format'):
             return round(value, 1)
         currency_id = self.env.user.company_id.currency_id
         if currency_id.is_zero(value):
             # don't print -0.0 in reports
             value = abs(value)
-        add_plus = False
-        if value > 0 and total:
-            add_plus = True
         res = formatLang(self.env, value, currency_obj=currency_id)
-        return add_plus and '+' + res or res
+        return res
 
     def add_title_line(self, title, amount):
         self.line_number += 1
@@ -57,18 +54,18 @@ class account_bank_reconciliation_report(models.AbstractModel):
             'type': 'line',
             'name': title,
             'footnotes': self.env.context['context_id']._get_footnotes('line', self.line_number),
-            'columns': [self.env.context['date_to'], '', self._format(amount, total=True)],
+            'columns': [self.env.context['date_to'], '', self._format(amount)],
             'level': 0,
         }
 
-    def add_subtitle_line(self, title):
+    def add_subtitle_line(self, title, amount=None):
         self.line_number += 1
         return {
             'id': self.line_number,
             'type': 'line',
             'name': title,
             'footnotes': self.env.context['context_id']._get_footnotes('line', self.line_number),
-            'columns': ['', '', ''],
+            'columns': ['', '', amount and self._format(amount) or ''],
             'level': 1,
         }
 
@@ -79,7 +76,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
             'type': 'line',
             'name': '',
             'footnotes': self.env.context['context_id']._get_footnotes('line', self.line_number),
-            'columns': ["", "", self._format(amount, total=True)],
+            'columns': ["", "", self._format(amount)],
             'level': 2,
         }
 
@@ -112,10 +109,10 @@ class account_bank_reconciliation_report(models.AbstractModel):
                                                            ('date', '<=', self.env.context['date_to'])])
         unrec_tot = 0
         if move_lines:
-            lines.append(self.add_subtitle_line(_("Less Un-Reconciled Bank Statement Lines")))
+            tmp_lines = []
             for line in move_lines:
                 self.line_number += 1
-                lines.append({
+                tmp_lines.append({
                     'id': self.line_number,
                     'move_id': line.move_id.id,
                     'type': 'move_line_id',
@@ -126,6 +123,12 @@ class account_bank_reconciliation_report(models.AbstractModel):
                     'level': 3,
                 })
                 unrec_tot += line.balance
+            if unrec_tot > 0:
+                title = _("Plus Un-Reconciled Bank Statement Lines")
+            else:
+                title = _("Less Un-Reconciled Bank Statement Lines")
+            lines.append(self.add_subtitle_line(title))
+            lines += tmp_lines
             lines.append(self.add_total_line(unrec_tot))
 
         # Outstanding plus
@@ -160,10 +163,12 @@ class account_bank_reconciliation_report(models.AbstractModel):
                                        ('date', '<=', self.env.context['date_to'])], order="date desc, id desc", limit=1)
         real_last_stmt_balance = last_statement.balance_end
         if computed_stmt_balance != real_last_stmt_balance:
-            lines.append(self.add_title_line(_("Computed Last Statement Balance"), computed_stmt_balance))
-            lines.append(self.add_title_line(_("Real Last Statement Balance"), real_last_stmt_balance))
-        else:
-            lines.append(self.add_title_line(_("Last Statement Balance"), computed_stmt_balance))
+            if real_last_stmt_balance - computed_stmt_balance > 0:
+                title = _("Plus Unencoded Statements")
+            else:
+                title = _("Less Unencoded Statements")
+            lines.append(self.add_subtitle_line(title, real_last_stmt_balance - computed_stmt_balance))
+        lines.append(self.add_title_line(_("Last Statement Balance"), real_last_stmt_balance))
         return lines
 
     @api.model
