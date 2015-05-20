@@ -120,7 +120,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
                     'name': line.name,
                     'footnotes': self.env.context['context_id']._get_footnotes('move_line_id', self.line_number),
                     'columns': [line.date, line.ref, self._format(line.balance)],
-                    'level': 3,
+                    'level': 1,
                 })
                 unrec_tot += line.balance
             if unrec_tot > 0:

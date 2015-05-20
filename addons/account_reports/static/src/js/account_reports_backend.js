@@ -297,29 +297,29 @@ var account_report_generic = IFrameWidget.extend(ControlPanelMixin, {
                     target: 'current'
                 });
             }
+            if (!_.isUndefined(force_context)) {
+                var context = {
+                    date_filter: this.context.date_filter,
+                    date_filter_cmp: this.context.date_filter_cmp,
+                    date_from: self.report_type != 'no_date_range' ? this.context.date_from : 'none',
+                    date_to: this.context.date_to,
+                    periods_number: this.context.periods_number,
+                    date_from_cmp: this.context.date_from_cmp,
+                    date_to_cmp: this.context.date_to_cmp,
+                    cash_basis: this.context.cash_basis,
+                    all_entries: this.context.all_entries,
+                };
+                additional_context.context = context;
+                additional_context.force_context = true;
+            }
             if (action_name && !action_id) {
-                if (!_.isUndefined(force_context)) {
-                    var context = {
-                        date_filter: this.context.date_filter,
-                        date_filter_cmp: this.context.date_filter_cmp,
-                        date_from: self.report_type != 'no_date_range' ? this.context.date_from : 'none',
-                        date_to: this.context.date_to,
-                        periods_number: this.context.periods_number,
-                        date_from_cmp: this.context.date_from_cmp,
-                        date_to_cmp: this.context.date_to_cmp,
-                        cash_basis: this.context.cash_basis,
-                        all_entries: this.context.all_entries,
-                    };
-                    additional_context.context = context;
-                    additional_context.force_context = true;
-                }
                 var dataModel = new Model('ir.model.data');
                 var res = action_name.split('.')
                 return dataModel.call('get_object_reference', [res[0], res[1]]).then(function (result) {
                     return self.do_action(result[1], {additional_context: additional_context});
                 });
             }
-            this.do_action(action_id, {additional_context: context});
+            this.do_action(action_id, {additional_context: additional_context});
         }
     },
     onChangeCmpDateFilter: function(event, fromDateFilter) {
