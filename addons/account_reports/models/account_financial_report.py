@@ -211,7 +211,7 @@ class AccountFinancialReportLine(models.Model):
 
     def _build_cmp(self, balance, comp):
         if comp != 0:
-            res = round((balance-comp)/comp * 100, 1)
+            res = round((balance - comp) / comp * 100, 1)
             if (res > 0) != self.green_on_positive:
                 return (str(res) + '%', 'color: red;')
             else:
@@ -327,7 +327,7 @@ class AccountFinancialReportLine(models.Model):
         }
         line2 = {
             'id': line['id'],
-            'name': line['name'] + ' Total',
+            'name': line['name'] + ' ' + _('Total'),
             'type': 'total',
             'level': line['level'],
             'footnotes': self.env.context['context']._get_footnotes('total', line['id']),
