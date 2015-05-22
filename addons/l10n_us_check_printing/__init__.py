@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import account_journal
+import res_company
 import account_payment
+
+import report

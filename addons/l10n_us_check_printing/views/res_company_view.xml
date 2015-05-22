@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_res_company_form_inherited" model="ir.ui.view">
+            <field name="name">res.company.form.inherited</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <group name="account_grp" position="after">
+                    <group name="us_check_writing" string="US Check Writing">
+                        <field name="us_check_layout"/>
+                        <field name="us_check_multi_stub"/>
+                        <field name="us_check_credit_section"/>
+                        <field name="us_check_margin_top"/>
+                        <field name="us_check_margin_left"/>
+                    </group>
+                </group>
+            </field>
+        </record>
+    </data>
+</openerp>
