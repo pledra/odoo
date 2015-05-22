@@ -35,7 +35,7 @@ class ReportAccountFinancialReport(models.Model):
                                     ('date_range_extended', "Based on date ranges with 'older' and 'total' columns and last 3 months"),
                                     ('no_date_range', 'Based on a single date'),
                                     ('date_range_cash', 'Bases on date ranges and cash basis method')],
-                                   string='Not a date range report', default=False, required=True,
+                                   string='Analysis Periods', default=False, required=True,
                                    help='For report like the balance sheet that do not work with date ranges')
     company_id = fields.Many2one('res.company', string='Company')
     menuitem_created = fields.Boolean(default=False)
@@ -46,8 +46,8 @@ class AccountFinancialReportLine(models.Model):
     _description = "Account Report Line"
     _order = "sequence"
 
-    name = fields.Char('Line Name')
-    code = fields.Char('Line Code')
+    name = fields.Char('Section Name')
+    code = fields.Char('Code')
     financial_report_id = fields.Many2one('account.financial.report', 'Financial Report')
     parent_id = fields.Many2one('account.financial.report.line', string='Parent')
     children_ids = fields.One2many('account.financial.report.line', 'parent_id', string='Children')
@@ -57,7 +57,7 @@ class AccountFinancialReportLine(models.Model):
     formulas = fields.Char()
     groupby = fields.Char(default=False)
     figure_type = fields.Selection([('float', 'Float'), ('percents', 'Percents'), ('no_unit', 'No Unit')],
-                                   'Type of the figure', default='float', required=True)
+                                   'Type', default='float', required=True)
     green_on_positive = fields.Boolean('Is growth good when positive', default=True)
     level = fields.Integer(required=True)
     special_date_changer = fields.Selection([('from_beginning', 'From the beginning'), ('to_beginning_of_period', 'At the beginning of the period'), ('normal', 'Use given dates')], default='normal')
