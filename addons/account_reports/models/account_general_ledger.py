@@ -39,6 +39,7 @@ class report_account_general_ledger(models.AbstractModel):
             'target_move': context_id.all_entries and 'all' or 'posted',
             'cash_basis': context_id.cash_basis,
             'context_id': context_id,
+            'company_ids': context_id.company_ids.ids,
         })
         return self.with_context(new_context)._lines(line_id)
 
@@ -55,7 +56,7 @@ class report_account_general_ledger(models.AbstractModel):
         results = self.env.cr.fetchall()
         results = dict([(k[0], {'balance': k[1], 'amount_currency': k[2], 'debit': k[3], 'credit': k[4]}) for k in results])
         context = self.env.context
-        base_domain = [('date', '<=', context['date_to'])]
+        base_domain = [('date', '<=', context['date_to']), ('company_id', 'in', self.env.context['company_ids'])]
         if context['date_from_aml']:
             base_domain.append(('date', '>=', context['date_from_aml']))
         if context['target_move'] == 'posted':
@@ -188,9 +189,16 @@ class account_context_general_ledger(models.TransientModel):
 
     fold_field = 'unfolded_accounts'
     unfolded_accounts = fields.Many2many('account.account', 'context_to_account', string='Unfolded lines')
+    multi_company = fields.Boolean('Allow multi-company', compute='_get_multi_company', store=True)
+    company_ids = fields.Many2many('res.company', relation='account_gl_report_context_company', default=lambda s: [(6, 0, [s.env.user.company_id.id])])
+    available_company_ids = fields.Many2many('res.company', relation='account_gl_context_available_company', default=lambda s: [(6, 0, s.env.user.company_ids.ids)])
 
     def get_report_obj(self):
         return self.env['account.general.ledger']
+
+    @api.multi
+    def get_available_company_ids_and_names(self):
+        return [[c.id, c.name] for c in self.available_company_ids]
 
     def get_columns_names(self):
         return [_("Date"), _("Communication"), _("Partner"), _("Currency"), _("Debit"), _("Credit"), _("Balance")]

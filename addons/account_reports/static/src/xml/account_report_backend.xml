@@ -148,5 +148,15 @@
                 </ul>
             </div>
         </div>
+        <div class="o_dropdown oe-account-date-filter-multi-company" t-if="context.multi_company">
+            <a type="button" class="dropdown-toggle" data-toggle="dropdown">
+                <span class="fa fa-filter"/> Companies: <span class="caret"/>
+            </a>
+            <ul class="dropdown-menu o-filters-menu" role="menu">
+                <t t-foreach="context.available_companies" t-as="c">
+                    <li t-att-title="c[1]" t-att-data-value="c[0]" t-att-class="'oe-account-one-company ' + ((context.company_ids.indexOf(c[0]) !== -1) and 'selected' or '')"><a><t t-esc='c[1]'/></a></li>
+                </t>
+            </ul>
+        </div>
     </t>
 </templates>

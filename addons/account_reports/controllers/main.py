@@ -55,6 +55,10 @@ class FinancialReportController(http.Controller):
         if kw:
             update = {}
             for field in kw:
+                if field.startswith('add_'):
+                    update[field[4:]] = [(4, int(kw[field]))]
+                if field.startswith('remove_'):
+                    update[field[7:]] = [(3, int(kw[field]))]
                 if context_id._fields.get(field) and kw[field] != 'undefined':
                     if kw[field] == 'false':
                         kw[field] = False

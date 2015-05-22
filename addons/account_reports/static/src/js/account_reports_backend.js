@@ -79,7 +79,7 @@ var account_report_generic = IFrameWidget.extend(ControlPanelMixin, {
         if (self.report_id) {
             domain.push(['report_id', '=', parseInt(self.report_id)]);
         }
-        var select = ['id', 'date_filter', 'date_filter_cmp', 'company_id', 'date_from', 'date_to', 'periods_number', 'date_from_cmp', 'date_to_cmp', 'cash_basis', 'all_entries']
+        var select = ['id', 'date_filter', 'date_filter_cmp', 'company_id', 'date_from', 'date_to', 'periods_number', 'date_from_cmp', 'date_to_cmp', 'cash_basis', 'all_entries', 'company_ids', 'multi_company']
         if (this.report_model == 'account.followup.report' && this.base_url.search('all') > -1) {
             select = ['id', 'valuenow', 'valuemax', 'percentage', 'partner_filter']
         }
@@ -90,14 +90,17 @@ var account_report_generic = IFrameWidget.extend(ControlPanelMixin, {
                 return new Model('res.company').query(['fiscalyear_last_day', 'fiscalyear_last_month'])
                 .filter([['id', '=', user.company_id[0]]]).first().then(function (fy) {
                     return new Model('account.financial.report.xml.export').call('is_xml_export_available', [self.report_model, self.report_id]).then(function (xml_export) {
-                        self.xml_export = xml_export
-                        self.fy = fy;
-                        self.context_id = context.id;
-                        self.context = context;
-                        self.render_buttons();
-                        self.render_searchview_buttons()
-                        self.render_searchview()
-                        self.update_cp();
+                        return self.context_model.call('get_available_company_ids_and_names', [context.id]).then(function (available_companies) {
+                            self.xml_export = xml_export;
+                            self.fy = fy;
+                            self.context_id = context.id;
+                            self.context = context;
+                            self.context.available_companies = available_companies;
+                            self.render_buttons();
+                            self.render_searchview_buttons()
+                            self.render_searchview()
+                            self.update_cp();
+                        });
                     });
                 });
             });
@@ -241,6 +244,17 @@ var account_report_generic = IFrameWidget.extend(ControlPanelMixin, {
         this.$searchview_buttons.find('.oe-account-one-filter-bool').bind('click', function (event) {
             self.$el.attr({src: self.base_url + '?' + $(event.target).parents('li').data('value') + '=' + !$(event.target).parents('li').hasClass('selected')});
         });
+        if (this.context.multi_company) {
+            this.$searchview_buttons.find('.oe-account-one-company').bind('click', function (event) {
+                var value = $(event.target).parents('li').data('value');
+                if(self.context.company_ids.indexOf(value) === -1){
+                    self.$el.attr({src: self.base_url + '?add_company_ids=' + value});
+                }
+                else {
+                    self.$el.attr({src: self.base_url + '?remove_company_ids=' + value});
+                }
+            });
+        }
         this.$searchview_buttons.find('li').bind('click', function (event) {event.stopImmediatePropagation();});
         var l10n = core._t.database.parameters;
         var $datetimepickers = this.$searchview_buttons.find('.oe-account-datetimepicker');

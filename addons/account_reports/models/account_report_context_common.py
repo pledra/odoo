@@ -127,8 +127,6 @@ class AccountReportContextCommon(models.TransientModel):
     date_from = fields.Date("Start date")
     date_to = fields.Date("End date")
     all_entries = fields.Boolean('Use all entries (not only posted ones)', default=False, required=True)
-    multi_company = fields.Boolean('Allow multi-company', compute='_get_multi_company', store=True)
-    company_id = fields.Many2one('res.company', 'Company', default=lambda s: s.env.user.company_id)
     date_filter = fields.Char('Date filter used', default=None)
     next_footnote_number = fields.Integer(default=1, required=True)
     summary = fields.Char(default='')
@@ -141,6 +139,11 @@ class AccountReportContextCommon(models.TransientModel):
     date_filter_cmp = fields.Char('Comparison date filter used', default='no_comparison')
     periods_number = fields.Integer('Number of periods', default=1)
     footnotes_manager_id = fields.Many2one('account.report.footnotes.manager', string='Footnotes Manager', required=True, ondelete='cascade')
+    multi_company = fields.Boolean('Allow multi-company', default=False, store=True)
+
+    @api.multi
+    def get_available_company_ids_and_names(self):
+        return []
 
     @api.multi
     def remove_line(self, line_id):
@@ -166,8 +169,8 @@ class AccountReportContextCommon(models.TransientModel):
         return
 
     @api.model
-    def get_companies(self):
-        return self.env['res.company'].search([])
+    def get_available_companies(self):
+        return self.env.user.company_ids
 
     def get_columns_names(self):
         raise Warning(_('get_columns_names not implemented'))

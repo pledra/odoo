@@ -34,6 +34,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
         return self.with_context(
             date_to=context_id.date_to,
             journal_id=context_id.journal_id,
+            company_ids=context_id.company_ids.ids,
             context_id=context_id,
         )._lines()
 
@@ -98,7 +99,8 @@ class account_bank_reconciliation_report(models.AbstractModel):
         #Start amount
         account_ids = list(set([self.env.context['journal_id'].default_debit_account_id.id, self.env.context['journal_id'].default_credit_account_id.id]))
         lines_already_accounted = self.env['account.move.line'].search([('account_id', 'in', account_ids),
-                                                                        ('date', '<=', self.env.context['date_to'])])
+                                                                        ('date', '<=', self.env.context['date_to']),
+                                                                        ('company_id', 'in', self.env.context['company_ids'])])
         start_amount = sum([line.balance for line in lines_already_accounted])
         lines.append(self.add_title_line(_("Current Balance in Odoo"), start_amount))
 
@@ -106,7 +108,8 @@ class account_bank_reconciliation_report(models.AbstractModel):
         move_lines = self.env['account.move.line'].search([('move_id.journal_id', '=', self.env.context['journal_id'].id),
                                                            ('move_id.statement_line_id', '=', False),
                                                            ('user_type.type', '!=', 'liquidity'),
-                                                           ('date', '<=', self.env.context['date_to'])])
+                                                           ('date', '<=', self.env.context['date_to']),
+                                                           ('company_id', 'in', self.env.context['company_ids'])])
         unrec_tot = 0
         if move_lines:
             tmp_lines = []
@@ -135,7 +138,8 @@ class account_bank_reconciliation_report(models.AbstractModel):
         not_reconcile_plus = self.env['account.bank.statement.line'].search([('statement_id.journal_id', '=', self.env.context['journal_id'].id),
                                                                              ('date', '<=', self.env.context['date_to']),
                                                                              ('journal_entry_ids', '=', False),
-                                                                             ('amount', '>', 0)])
+                                                                             ('amount', '>', 0),
+                                                                             ('company_id', 'in', self.env.context['company_ids'])])
         outstanding_plus_tot = 0
         if not_reconcile_plus:
             lines.append(self.add_subtitle_line(_("Plus Outstanding Payment")))
@@ -148,7 +152,8 @@ class account_bank_reconciliation_report(models.AbstractModel):
         not_reconcile_less = self.env['account.bank.statement.line'].search([('statement_id.journal_id', '=', self.env.context['journal_id'].id),
                                                                              ('date', '<=', self.env.context['date_to']),
                                                                              ('journal_entry_ids', '=', False),
-                                                                             ('amount', '<', 0)])
+                                                                             ('amount', '<', 0),
+                                                                             ('company_id', 'in', self.env.context['company_ids'])])
         outstanding_less_tot = 0
         if not_reconcile_less:
             lines.append(self.add_subtitle_line(_("Less Outstanding Receipt")))
@@ -160,7 +165,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
         # Final
         computed_stmt_balance = start_amount + outstanding_plus_tot + outstanding_less_tot + unrec_tot
         last_statement = self.env['account.bank.statement'].search([('journal_id', '=', self.env.context['journal_id'].id),
-                                       ('date', '<=', self.env.context['date_to'])], order="date desc, id desc", limit=1)
+                                       ('date', '<=', self.env.context['date_to'])],('company_id', 'in', self.env.context['company_ids']), order="date desc, id desc", limit=1)
         real_last_stmt_balance = last_statement.balance_end
         if computed_stmt_balance != real_last_stmt_balance:
             if real_last_stmt_balance - computed_stmt_balance > 0:
@@ -198,6 +203,13 @@ class account_report_context_bank_reconciliation(models.TransientModel):
 
     journal_id = fields.Many2one('account.journal', string=_("Bank account"))
     journals = fields.One2many('account.journal', string=_("Bank Accounts"), compute=_get_bank_journals)
+    multi_company = fields.Boolean('Allow multi-company', compute='_get_multi_company', store=True)
+    company_ids = fields.Many2many('res.company', relation='account_br_report_context_company', default=lambda s: [(6, 0, [s.env.user.company_id.id])])
+    available_company_ids = fields.Many2many('res.company', relation='account_br_report_context_available_company', default=lambda s: [(6, 0, s.env.user.company_ids.ids)])    
+
+    @api.multi
+    def get_available_company_ids_and_names(self):
+        return [[c.id, c.name] for c in self.available_company_ids]
 
     def get_report_obj(self):
         return self.env['account.bank.reconciliation.report']
