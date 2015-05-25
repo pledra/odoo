@@ -111,10 +111,10 @@
             <field name="model">account.batch.deposit</field>
             <field name="arch" type="xml">
                 <tree colors="grey:state == 'reconciled' ; blue:state == 'draft'">
-                    <field name="journal_id"/>
                     <field name="name"/>
-                    <field name="amount"/>
+                    <field name="journal_id"/>
                     <field name="date"/>
+                    <field name="amount"/>
                     <field name="state"/>
                     <field name="currency_id" invisible="1"/>
                 </tree>
