@@ -122,12 +122,19 @@ class account_report_context_followup_all(models.TransientModel):
             if progressbar.valuemax > 0:
                 progressbar.percentage = 100 * progressbar.valuenow / progressbar.valuemax
 
+    @api.depends('valuenow')  # Doesn't directly depend on valuenow but when valuenow is updated it means that this should change
+    def _compute_pages(self):
+        for context in self:
+            partners = self.env['res.partner'].get_partners_in_need_of_action() - context.skipped_partners_ids
+            context.last_page = len(partners) / 15
+
     valuenow = fields.Integer('current amount of invoices done', default=0)
     valuemax = fields.Integer('total amount of invoices to do')
     percentage = fields.Integer(compute='_compute_percentage')
     started = fields.Datetime('Starting time', default=lambda self: fields.datetime.now())
     partner_filter = fields.Selection([('all', 'All partners with overdue invoices'), ('action', 'All partners in need of action')], string='Partner Filter', default='action')
     skipped_partners_ids = fields.Many2many('res.partner', 'account_fup_report_skipped_partners', string='Skipped partners')
+    last_page = fields.Integer('number of pages', compute='_compute_pages')
 
     def skip_partner(self, partner):
         self.write({'skipped_partners_ids': [(4, partner.id)]})

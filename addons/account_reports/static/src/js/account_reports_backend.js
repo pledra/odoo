@@ -48,7 +48,6 @@ var account_report_generic = IFrameWidget.extend(ControlPanelMixin, {
             return new Model('account.report.context.common').call('get_context_name_by_report_model_json').then(function (result) {
                 self.context_model = new Model(JSON.parse(result)[self.report_model]);
                 if (self.report_model == 'account.followup.report' && self.base_url.search('all') > -1) {
-                    self.context_model = new Model('account.report.context.followup.all');
                     self.page = 1;
                 }
             });
@@ -79,11 +78,13 @@ var account_report_generic = IFrameWidget.extend(ControlPanelMixin, {
         if (self.report_id) {
             domain.push(['report_id', '=', parseInt(self.report_id)]);
         }
+        var fetched_context_model = self.context_model; // used if the context model that is used to fetch the required information for the control panel is not the same that the normal context model.
         var select = ['id', 'date_filter', 'date_filter_cmp', 'company_id', 'date_from', 'date_to', 'periods_number', 'date_from_cmp', 'date_to_cmp', 'cash_basis', 'all_entries', 'company_ids', 'multi_company']
         if (this.report_model == 'account.followup.report' && this.base_url.search('all') > -1) {
-            select = ['id', 'valuenow', 'valuemax', 'percentage', 'partner_filter']
+            fetched_context_model = new Model('account.report.context.followup.all');
+            select = ['id', 'valuenow', 'valuemax', 'percentage', 'partner_filter', 'last_page']
         }
-        return self.context_model.query(select)
+        return fetched_context_model.query(select)
         .filter(domain).first().then(function (context) {
             return new Model('res.users').query(['company_id'])
             .filter([['id', '=', self.session.uid]]).first().then(function (user) {
@@ -163,7 +164,7 @@ var account_report_generic = IFrameWidget.extend(ControlPanelMixin, {
                         self.$el.attr({src: '/account/followup_report/all/page/' + (self.page - 1)});
                         self.page--;
                     }
-                    if ($(event.target).data('pager-action') == 'next') {
+                    if (self.page < self.context.last_page && $(event.target).data('pager-action') == 'next') {
                         self.$el.attr({src: '/account/followup_report/all/page/' + (self.page + 1)});
                         self.page++;
                     }
