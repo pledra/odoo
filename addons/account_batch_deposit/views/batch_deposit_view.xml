@@ -110,7 +110,7 @@
             <field name="name">account.batch.deposit.tree</field>
             <field name="model">account.batch.deposit</field>
             <field name="arch" type="xml">
-                <tree colors="grey:state == 'reconciled' ; blue:state == 'draft'">
+                <tree decoration-muted="state == 'reconciled'" decoration-info="state == 'draft'">
                     <field name="name"/>
                     <field name="journal_id"/>
                     <field name="date"/>

@@ -114,7 +114,7 @@
             <field name="name">print.order.tree</field>
             <field name="model">print.order</field>
             <field name="arch" type="xml">
-                <tree string="Print Orders" colors="red:state == 'error';gray:state == 'sent'">
+                <tree string="Print Orders" decoration-danger="state == 'error'" decoration-muted="state == 'sent'">
                     <field name="state"/>
                     <field name="provider_id"/>
                     <field name="partner_id"/>

@@ -54,7 +54,7 @@
             <field name="name">print.document.partner.line.wizard.tree</field>
             <field name="model">print.document.partner.line.wizard</field>
             <field name="arch" type="xml">
-                <tree string="Lines" create="0" colors="red:(is_sendable == False)">
+                <tree string="Lines" create="0" decoration-danger="(is_sendable == False)">
                     <field name="partner_id"/>
                     <field name="is_sendable" invisible="1"/>
                 </tree>

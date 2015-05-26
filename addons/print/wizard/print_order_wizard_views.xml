@@ -54,7 +54,7 @@
             <field name="name">print.order.line.wizard.list</field>
             <field name="model">print.order.line.wizard</field>
             <field name="arch" type="xml">
-                <tree string="Print Order Lines" create="false" editable="bottom" colors="red:(state != 'ok')">
+                <tree string="Print Order Lines" create="false" editable="bottom" decoration-danger="(state != 'ok')">
                     <field name="partner_id" readonly="1" />
                     <field name="last_send_date" readonly="1" />
                     <field name="state"/>

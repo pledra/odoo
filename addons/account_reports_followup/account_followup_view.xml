@@ -131,7 +131,7 @@
             <field name="model">account.move.line</field>
             <field eval="32" name="priority"/>
             <field name="arch" type="xml">
-                <tree colors="red:state == 'draft';black:state == 'validate'" editable="bottom" string="Partner entries">
+                <tree decoration-danger="state == 'draft'" editable="bottom" string="Partner entries">
                     <field name="date"/>
                     <field name="move_id"/>
                     <field name="ref"/>
