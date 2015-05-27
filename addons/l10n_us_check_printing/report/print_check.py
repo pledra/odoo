@@ -53,16 +53,17 @@ class report_print_check(report_sxw.rml_parse):
         multi_stub = payment.company_id.us_check_multi_stub
         credit_section = payment.company_id.us_check_credit_section
 
-        debits = payment.invoice_ids.filtered(lambda r: r.type == 'in_invoice')
-        credits = payment.invoice_ids.filtered(lambda r: r.type == 'in_refund')
+        invoices = payment.invoice_ids.sorted(key=lambda r: r.date_due)
+        debits = invoices.filtered(lambda r: r.type == 'in_invoice')
+        credits = invoices.filtered(lambda r: r.type == 'in_refund')
 
         # Prepare the stub lines
         if not credit_section or not credits:
-            stub_lines = [self.make_stub_line(payment, inv) for inv in payment.invoice_ids]
+            stub_lines = [self.make_stub_line(payment, inv) for inv in invoices]
         else:
-            stub_lines = [{'header': True, 'name': "Invoices"}]
+            stub_lines = [{'header': True, 'name': "Bills"}]
             stub_lines += [self.make_stub_line(payment, inv) for inv in debits]
-            stub_lines += [{'header': True, 'name': "Credits"}]
+            stub_lines += [{'header': True, 'name': "Refunds"}]
             stub_lines += [self.make_stub_line(payment, inv) for inv in credits]
 
         # Crop the stub lines or split them on multiple pages

@@ -19,10 +19,10 @@ class AccountRegisterPayments(models.TransientModel):
         if self.partner_id and len(self.partner_id.bank_ids) > 0:
             self.partner_bank_account_id = self.partner_id.bank_ids[0]
 
-    @api.multi
     def get_payment_vals(self):
         res = super(AccountRegisterPayments, self).get_payment_vals()
-        res.update({'partner_bank_account_id': self.partner_bank_account_id})
+        if self.payment_method == self.env.ref('account_sepa.account_payment_method_sepa_ct'):
+            res.update({'partner_bank_account_id': self.partner_bank_account_id})
         return res
 
 class AccountPayment(models.Model):

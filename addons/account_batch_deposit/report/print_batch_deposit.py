@@ -31,6 +31,9 @@ class report_print_batch_deposit(report_sxw.rml_parse):
             'deposit_name': deposit.name,
             'journal_name': deposit.journal_id.name,
             'payments': payments,
+            'currency': deposit.currency_id,
+            'total_amount': deposit.amount,
+            'footer': deposit.journal_id.company_id.rml_footer,
         } for payments in payment_slices]
 
 class print_batch_deposit(osv.AbstractModel):

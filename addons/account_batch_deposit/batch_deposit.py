@@ -10,7 +10,7 @@ class AccountBatchDeposit(models.Model):
 
     name = fields.Char(required=True, states={'sent': [('readonly', True)]}, copy=False, string='Reference')
     date = fields.Date(required=True, states={'sent': [('readonly', True)]}, copy=False, default=fields.Date.context_today)
-    state = fields.Selection([('draft', 'New'), ('sent', 'Printed'), ('reconciled', 'Reconciled')], readonly=True, default='draft', copy=False)
+    state = fields.Selection([('draft', 'New'), ('sent', 'Deposited'), ('reconciled', 'Reconciled')], readonly=True, default='draft', copy=False)
     journal_id = fields.Many2one('account.journal', string='Bank', domain=[('type', '=', 'bank')], required=True, states={'sent': [('readonly', True)]})
     payment_ids = fields.One2many('account.payment', 'batch_deposit_id', required=True, states={'sent': [('readonly', True)]})
     amount = fields.Monetary(compute='_compute_amount', store=True, readonly=True)

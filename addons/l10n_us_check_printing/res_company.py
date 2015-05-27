@@ -19,7 +19,7 @@ class res_company(models.Model):
     us_check_multi_stub = fields.Boolean('Multi-Pages Check Stub',
         help="This option allows you to print check details (stub) on multiple pages if they don't fit on a single page.")
 
-    us_check_credit_section = fields.Boolean('Display Credits Separately',
+    us_check_credit_section = fields.Boolean('Display Refunds Separately',
         help="Invoices and credits will be displayed in their respective section on the check stubs.")
 
     us_check_margin_top = fields.Float('Top Margin', default=0.25,
