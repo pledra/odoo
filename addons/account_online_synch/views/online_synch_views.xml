@@ -60,22 +60,15 @@
       <field name="model">account.journal</field>
       <field name="inherit_id" ref="account.account_journal_dashboard_kanban_view"/>
       <field name="arch" type="xml">
-	<field name="kanban_dashboard" position="after">
-	  <field name="next_synchronization"/>
-	</field>
-	<xpath expr="//button[@name='import_statement']" position="after">
-	  <button t-if="journal_type == 'bank'" type="object" name="launch_online_wizard" class="btn btn-primary btn-sm">Online synchronization</button>
-	</xpath>
-	<xpath expr="//div[contains(concat(' ', normalize-space(@class), ' '), 'o_kanban_primary_left')]" position="inside">
-	  <div t-if="(online_account != '')" class="row">
-	    <div class="col-xs-6">
-	      <span title="Next synchronization">Next synchronization</span>
-	    </div>
-	    <div class="col-xs-6">
-	      <field name="next_synchronization"/>
-	    </div>
-	  </div>
-	</xpath>
+        <field name="kanban_dashboard" position="after">
+          <field name="next_synchronization"/>
+        </field>
+    	<xpath expr="//button[@name='import_statement']" position="after">
+    	  <button t-if="journal_type == 'bank'" type="object" name="launch_online_wizard" class="btn btn-primary btn-sm">Online synchronization</button>
+    	</xpath>
+    	<xpath expr="//div[contains(@class, 'o_kanban_primary_left')]" position="inside">
+    	  <span t-if="(online_account != '')">Next synchronization: <t t-esc="record.next_synchronization.value"/></span>
+    	</xpath>
       </field>
     </record>
 
