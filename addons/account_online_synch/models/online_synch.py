@@ -130,7 +130,7 @@ class AccountBankStatement(models.Model):
                                                                     ('date', '>=', journal.online_account.last_synch)])
         statement = self.create({
                         'journal_id': journal.id,
-                        'name': "/online/" + datetime.datetime.now().strftime("%Y%m%d-%H%M"),
+                        'name': "WEB/" + datetime.datetime.now().strftime("%Y%m%d-%H%M"),
                     })
         total = 0
         have_line = False
@@ -182,12 +182,7 @@ class AccountBankStatement(models.Model):
         body = _("The synchronization of the journal %s is done.") % journal.name
         journal.online_account.message_post(body=body, subject=subject)
 
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'account.bank.statement',
-            'views': [[False, 'form']],
-            'res_id': statement.id,
-        }
+	return journal.action_open_reconcile()
 
     @api.model
     def _find_partner(self, location):
