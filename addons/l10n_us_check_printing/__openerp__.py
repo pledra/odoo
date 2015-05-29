@@ -27,6 +27,7 @@ Supported formats
         'report/print_check_bottom.xml',
         'views/account_payment_view.xml',
         'views/res_company_view.xml',
+        'wizard/print_pre_numbered_checks.xml'
     ],
     'installable': True,
     'auto_install': True,
