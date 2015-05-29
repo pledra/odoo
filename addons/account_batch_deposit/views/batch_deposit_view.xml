@@ -78,7 +78,7 @@
                                 <label for="amount"/>
                                 <div>
                                     <field name="amount" class="oe_inline" required="1"/>
-                                    <field name="currency_id" groups="base.group_multi_currency" class="oe_inline"/>
+                                    <field name="currency_id" options="{'no_create': True}" groups="base.group_multi_currency" class="oe_inline"/>
                                 </div>
                             </group>
                             <group>
@@ -139,7 +139,7 @@
             </field>
         </record>
 
-        <menuitem string="Batch Deposits" action="action_batch_deposit" id="menu_batch_deposit" parent="account.menu_finance_entries" sequence="7"/>
+        <menuitem string="Batch Deposits" action="action_batch_deposit" id="menu_batch_deposit" parent="account.menu_finance_receivables" sequence="21" groups="account.group_account_user"/>
 
     </data>
 </openerp>

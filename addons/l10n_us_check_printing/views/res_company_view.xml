@@ -10,9 +10,16 @@
                     <group name="us_check_writing" string="US Check Writing">
                         <field name="us_check_layout"/>
                         <field name="us_check_multi_stub"/>
-                        <field name="us_check_credit_section"/>
-                        <field name="us_check_margin_top"/>
-                        <field name="us_check_margin_left"/>
+                        <label for="us_check_margin_top"/>
+                        <div>
+                            <field name="us_check_margin_top" class="oe_inline"/>
+                            <label string="in" class="oe_inline" />
+                        </div>
+                        <label for="us_check_margin_left"/>
+                        <div>
+                            <field name="us_check_margin_left" class="oe_inline"/>
+                            <label string="in" class="oe_inline" />
+                        </div>
                     </group>
                 </group>
             </field>

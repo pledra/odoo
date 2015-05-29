@@ -19,13 +19,13 @@
                     <thead><tr>
                         <th class="text-left">Customer</th>
                         <th class="text-left">Date</th>
-                        <th class="text-left">Check #</th>
+                        <th class="text-left">Memo</th>
                         <th class="text-right">Amount</th>
                     </tr></thead>
                     <tr t-foreach="page['payments']" t-as="payment">
                         <td class="text-left"><t t-esc="payment.partner_id.name"/></td>
                         <td class="text-left"><t t-esc="formatLang(payment.payment_date, date=True)"/></td>
-                        <td class="text-left"></td>
+                        <td class="text-left"><t t-esc="payment.communication"/></td>
                         <td class="text-right"><t t-esc="formatLang(payment.amount, monetary=True, currency_obj=payment.currency_id)"/></td>
                     </tr>
                     <tfoot><tr>

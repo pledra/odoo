@@ -26,8 +26,8 @@ class ResCompany(models.Model):
         help="Identification assigned by an institution (eg. VAT number).")
     sepa_orgid_issr = fields.Char('Issuer', size=35, copy=False,
         help="Entity that assigns the identification (eg. KBE-BCO or Finanzamt Muenchen IV).")
-    sepa_initiating_party_name = fields.Char('Initiating Party', size=70, copy=False, default=lambda self: self.env.user.company_id.name,
-        help="Will appear in SEPA payments as the name of the party initiating the payment.")
+    sepa_initiating_party_name = fields.Char('Your Company Name', size=70, copy=False, default=lambda self: self.env.user.company_id.name,
+        help="Will appear in SEPA payments as the name of the party initiating the payment. Limited to 70 characters.")
 
     @api.one
     @api.constrains('sepa_orgid_id', 'sepa_orgid_issr', 'sepa_initiating_party_name')

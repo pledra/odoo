@@ -23,7 +23,6 @@ class report_print_check(report_sxw.rml_parse):
         """
         stub_pages = self.make_stub_pages(payment)
         multi_stub = payment.company_id.us_check_multi_stub
-        credit_section = payment.company_id.us_check_credit_section
         pages = []
         for i in range(0, stub_pages != None and len(stub_pages) or 1):
             pages.append({
@@ -37,7 +36,6 @@ class report_print_check(report_sxw.rml_parse):
                 'amount_in_word': self.fill_line(payment.check_amount_in_words) if i == 0 else 'VOID',
                 'memo': payment.communication,
                 'stub_cropped': not multi_stub and len(payment.invoice_ids) > INV_LINES_PER_STUB,
-                'credit_section': credit_section,
                 # If the payment does not reference an invoice, there is no stub line to display
                 'stub_lines': stub_pages != None and stub_pages[i],
             })
@@ -51,14 +49,13 @@ class report_print_check(report_sxw.rml_parse):
             return None
 
         multi_stub = payment.company_id.us_check_multi_stub
-        credit_section = payment.company_id.us_check_credit_section
 
         invoices = payment.invoice_ids.sorted(key=lambda r: r.date_due)
         debits = invoices.filtered(lambda r: r.type == 'in_invoice')
         credits = invoices.filtered(lambda r: r.type == 'in_refund')
 
         # Prepare the stub lines
-        if not credit_section or not credits:
+        if not credits:
             stub_lines = [self.make_stub_line(payment, inv) for inv in invoices]
         else:
             stub_lines = [{'header': True, 'name': "Bills"}]
@@ -76,7 +73,7 @@ class report_print_check(report_sxw.rml_parse):
             i = 0
             while i < len(stub_lines):
                 # Make sure we don't start the credit section at the end of a page
-                if len(stub_lines) >= i+INV_LINES_PER_STUB and stub_lines[i+INV_LINES_PER_STUB-1].get('credit_section_separator'):
+                if len(stub_lines) >= i+INV_LINES_PER_STUB and stub_lines[i+INV_LINES_PER_STUB-1].get('header'):
                     num_stub_lines = INV_LINES_PER_STUB-1 or INV_LINES_PER_STUB
                 else:
                     num_stub_lines = INV_LINES_PER_STUB
@@ -90,7 +87,6 @@ class report_print_check(report_sxw.rml_parse):
         """
         invoice_payment_aml = payment.move_line_ids.filtered(lambda r: r.invoice == invoice and r.user_type.type in ('payable', 'receivable'))
         invoice_sign = invoice.type == 'in_refund' and -1 or 1
-        discount = sum(il.price_unit * il.quantity * il.discount / 100 for il in invoice.invoice_line_ids)
         if payment.currency_id != payment.journal_id.company_id.currency_id:
             amount_paid = abs(invoice_payment_aml.amount_currency)
         else:
@@ -100,7 +96,6 @@ class report_print_check(report_sxw.rml_parse):
             'number': invoice.number,
             'amount_total': invoice_sign * invoice.amount_total,
             'amount_residual': invoice_sign * invoice.residual,
-            'discount': discount,
             'amount_paid': invoice_sign * amount_paid,
             'currency': invoice.currency_id,
         }

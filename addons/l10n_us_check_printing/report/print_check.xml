@@ -94,11 +94,10 @@
 
         <table class="table table-bordered table-condensed stub_lines" t-if="page['stub_lines']">
             <thead><tr>
-                <th class="text-left">Due Date</th>
                 <th class="text-left">Description</th>
-                <th class="text-right">Original Amount</th>
-                <th class="text-right">Open Balance</th>
-                <th class="text-right">Discount</th>
+                <th class="text-left">Due Date</th>
+                <th class="text-right">Invoice Amount</th>
+                <th class="text-right">Amount Due</th>
                 <th class="text-right">Payment</th>
             </tr></thead>
             <tbody>
@@ -113,10 +112,6 @@
                         <td class="text-right">
                             <t t-if="int(stub_line['amount_residual']*10**4) != 0"><t t-esc="formatLang(stub_line['amount_residual'], monetary=True, currency_obj=stub_line['currency'])"/></t>
                             <t t-if="int(stub_line['amount_residual']*10**4) == 0">-</t>
-                        </td>
-                        <td class="text-right">
-                            <t t-if="stub_line['discount']"><t t-esc="formatLang(stub_line['discount'], monetary=True, currency_obj=stub_line['currency'])"/></t>
-                            <t t-if="not stub_line['discount']">-</t>
                         </td>
                         <td class="text-right"><t t-esc="formatLang(stub_line['amount_paid'], monetary=True, currency_obj=stub_line['currency'])"/></td>
                     </tr></t>
