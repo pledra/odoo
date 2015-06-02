@@ -16,18 +16,23 @@
 	  <page string="Online synchronization" attrs="{'invisible': [('type', '!=', 'bank')]}">
 	    <button name="launch_online_wizard"
 		    string="Select account"
-		    type="object"/>
+		    type="object"
+                    class="btn-primary"
+		    attrs="{'invisible': [('online_account', '!=', False)]}"/>
+	    <button name="online_synch"
+		    string="Update bank statement"
+		    type="object"
+                    class="btn-primary"
+		    attrs="{'invisible': [('online_account', '=', False)]}"/>
 	    <button name="remove_online_account"
 		    string="Remove account"
 		    type="object"
+                    class="btn-default"
 		    attrs="{'invisible': [('online_account', '=', False)]}"/>
 	    <button name="update_account"
 		    string="Update the connection"
 		    type="object"
-		    attrs="{'invisible': [('online_account', '=', False)]}"/>
-	    <button name="online_synch"
-		    string="Update bank statement"
-		    type="object"
+                    class="btn-default"
 		    attrs="{'invisible': [('online_account', '=', False)]}"/>
 	    <group>
 	      <field name="online_account" readonly="1"/>
@@ -62,12 +67,13 @@
       <field name="arch" type="xml">
         <field name="kanban_dashboard" position="after">
           <field name="next_synchronization"/>
+          <field name="online_account"/>
         </field>
     	<xpath expr="//button[@name='import_statement']" position="after">
     	  <button t-if="journal_type == 'bank'" type="object" name="launch_online_wizard" class="btn btn-primary btn-sm">Online synchronization</button>
     	</xpath>
     	<xpath expr="//div[contains(@class, 'o_kanban_primary_left')]" position="inside">
-    	  <span t-if="(online_account != '')">Next synchronization: <t t-esc="record.next_synchronization.value"/></span>
+    	  <span t-if="(record.online_account.value != '')">Next synchronization: <t t-esc="record.next_synchronization.value"/></span>
     	</xpath>
       </field>
     </record>
