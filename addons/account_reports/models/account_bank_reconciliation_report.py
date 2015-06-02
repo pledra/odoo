@@ -147,7 +147,7 @@ class account_bank_reconciliation_report(models.AbstractModel):
         # Final
         computed_stmt_balance = start_amount + outstanding_plus_tot + outstanding_less_tot + unrec_tot
         last_statement = self.env['account.bank.statement'].search([('journal_id', '=', self.env.context['journal_id'].id),
-                                       ('date', '<=', self.env.context['date_to'])],('company_id', 'in', self.env.context['company_ids']), order="date desc, id desc", limit=1)
+                                       ('date', '<=', self.env.context['date_to']), ('company_id', 'in', self.env.context['company_ids'])], order="date desc, id desc", limit=1)
         real_last_stmt_balance = last_statement.balance_end
         if computed_stmt_balance != real_last_stmt_balance:
             if real_last_stmt_balance - computed_stmt_balance > 0:
