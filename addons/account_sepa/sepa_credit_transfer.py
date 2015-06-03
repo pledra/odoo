@@ -25,6 +25,8 @@ def prepare_SEPA_string(string):
     """ Make string comply with the recomandations of the EPC. See section 1.4 (Character Set) of document
         'sepa credit transfer scheme customer-to-bank implementation guidelines', issued by The European Payment Council.
     """
+    if not string:
+        return ''
     while '//' in string: # No double slash allowed
         string = string.replace('//', '/')
     while string.startswith('/'): # No leading slash allowed
