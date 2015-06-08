@@ -6,7 +6,7 @@
 	  <tr>
 	    <td><t t-esc="selection.question"/></td>
 	    <td>
-	      <select class="choices">
+	      <select class="choices o_form_input o_form_field o_form_required">
 		<t t-foreach="selection.answers" t-as="answer">
 		  <option t-att-value="answer"><t t-esc="answer"/></option>
 		</t>

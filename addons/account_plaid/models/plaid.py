@@ -126,6 +126,7 @@ class PlaidMfaResponseWizard(models.TransientModel):
         if code:
             wizard.code_wizard_id = code
             wizard.institution_wizard_id = code.institution_wizard_id
+            return wizard.send_mfa()
         return wizard.create_wizard()
 
     @api.multi
