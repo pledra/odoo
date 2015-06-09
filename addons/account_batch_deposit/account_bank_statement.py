@@ -18,7 +18,7 @@ class AccountBankStatement(models.Model):
         """ Return a list of dicts containing informations about unreconciled batch deposits """
         batch_deposits = []
 
-        batch_deposits_domain = [('state', '=', 'sent')]
+        batch_deposits_domain = [('state', '!=', 'reconciled')]
         if self:
             # If called on an empty recordset, don't filter on journal
             batch_deposits_domain.append(('journal_id', 'in', tuple(set(self.mapped('journal_id.id')))))

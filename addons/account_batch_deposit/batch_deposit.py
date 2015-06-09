@@ -10,7 +10,7 @@ class AccountBatchDeposit(models.Model):
 
     name = fields.Char(required=True, states={'sent': [('readonly', True)]}, copy=False, string='Reference')
     date = fields.Date(required=True, states={'sent': [('readonly', True)]}, copy=False, default=fields.Date.context_today)
-    state = fields.Selection([('draft', 'New'), ('sent', 'Deposited'), ('reconciled', 'Reconciled')], readonly=True, default='draft', copy=False)
+    state = fields.Selection([('draft', 'New'), ('sent', 'Printed'), ('reconciled', 'Reconciled')], readonly=True, default='draft', copy=False)
     journal_id = fields.Many2one('account.journal', string='Bank', domain=[('type', '=', 'bank')], required=True, states={'sent': [('readonly', True)]})
     payment_ids = fields.One2many('account.payment', 'batch_deposit_id', required=True, states={'sent': [('readonly', True)]})
     amount = fields.Monetary(compute='_compute_amount', store=True, readonly=True)
@@ -50,19 +50,32 @@ class AccountBatchDeposit(models.Model):
     @api.model
     def create(self, vals):
         if not vals.get('name'):
-            journal_id = vals.get('journal_id', self._context.get('default_journal_id', False))
+            journal_id = vals.get('journal_id', self.env.context.get('default_journal_id', False))
             journal = self.env['account.journal'].browse(journal_id)
             vals['name'] = journal.batch_deposit_sequence_id.with_context(ir_sequence_date=vals.get('date')).next_by_id()
-        return super(AccountBatchDeposit, self).create(vals)
+        rec = super(AccountBatchDeposit, self).create(vals)
+        rec.normalize_payments()
+        return rec
+
+    @api.multi
+    def write(self, vals):
+        super(AccountBatchDeposit, self).write(vals)
+        self.normalize_payments()
+
+    @api.one
+    def normalize_payments(self):
+        # Make sure all payments have batch_deposit as payment method (a payment created via the form view of the
+        # payment_ids many2many of the batch deposit form view cannot receive a default_payment_method in context)
+        self.payment_ids.write({'payment_method': self.env.ref('account_batch_deposit.account_payment_method_batch_deposit').id})
+        # Since a batch deposit has no confirmation step (it can be used to select payments in a bank reconciliation
+        # as long as state != reconciled), its payments need to be posted
+        self.payment_ids.filtered(lambda r: r.state == 'draft').post()
 
     @api.multi
     def print_batch_deposit(self):
         for deposit in self:
             if deposit.state != 'draft':
                 continue
-            payments = deposit.payment_ids.filtered(lambda r: r.state == 'draft')
-            payments.post()
-            payments = deposit.payment_ids.filtered(lambda r: r.state == 'posted')
-            payments.write({'state': 'sent', 'payment_reference': deposit.name})
+            deposit.payment_ids.write({'state': 'sent', 'payment_reference': deposit.name})
             deposit.write({'state': 'sent'})
         return self.env['report'].get_action(self, 'account_batch_deposit.print_batch_deposit')
