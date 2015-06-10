@@ -307,21 +307,86 @@ $('.oe_website_sale').each(function () {
         $('input.js_variant_change, select.js_variant_change', this).first().trigger('change');
     });
 
+    $(oe_website_sale).on('change', "#phone_prefix", function (c) {
+        debugger;
+    });
     $(oe_website_sale).on('change', "select[name='country_id']", function () {
         var $select = $("select[name='state_id']");
-        $select.find("option:not(:first)").hide();
-        var nb = $select.find("option[data-country_id="+($(this).val() || 0)+"]").show().size();
-        $select.parent().toggle(nb>1);
-    });
-    $(oe_website_sale).find("select[name='country_id']").change();
+        //Use clickwatch to avoid ajax call when the user uses keyboard to find country
+        clickwatch(function() {
+            if ($("#country_id").val()) {
+                ajax.jsonRpc("/shop/change_country/" + $("#country_id").val(), 'call', {}).then(
+                    function(data) {
+                        // manage phone prefix fields
+                        if (data.prefix != 0) {
+                            debugger;
 
-    $(oe_website_sale).on('change', "select[name='shipping_country_id']", function () {
-        var $select = $("select[name='shipping_state_id']");
-        $select.find("option:not(:first)").hide();
-        var nb = $select.find("option[data-country_id="+($(this).val() || 0)+"]").show().size();
-        $select.parent().toggle(nb>1);
+                            $("#phone_prefix").parent("div").addClass("input-group");
+                            $("#phone_prefix").show();
+                            $("#phone_prefix").text("+ " + data.prefix);
+                        }
+                        else {
+                            $("#phone_prefix").hide();
+                            $("#phone_prefix").parent("div").removeClass("input-group");
+                        }
+
+                        //populate states and display
+                        if (data.states.length) {
+                            var select = $("select[name='state_id']");
+                            select.html('');
+                            _.each(data.states, function(x) { 
+                                var opt = $('<option>').text(x[1])
+                                .attr('value', x[0])
+                                .attr('data-code', x[2]);
+                                select.append(opt);
+                            });
+                            select.parent('div').show('slow');
+                        }
+                        else{
+                            $("select[name='state_id']").val('').parent('div').hide('slow');
+                        }
+
+                        //mange fields order
+                        if (data.fields) {
+                            if ($.inArray('zip', data.fields) > $.inArray('city', data.fields)){
+                                $("#div_zip").before($("#div_city"));
+                            }
+                            else {
+                                $("#div_zip").after($("#div_city"));
+                            }
+                            var all_fields = ["street", "zip", "city", "country_id", "state_id"];
+                            _.each(all_fields, function(f) {
+                                if (!$.inArray(f, data.fields)) {
+                                    $("div_"+f.split('_')[0]).hide();
+                                }
+                                else {
+                                    $("div_"+f.split('_')[0]).show();
+                                }
+                            });
+                        }
+                    }
+                );
+            }
+        }, 500);
     });
-    $(oe_website_sale).find("select[name='shipping_country_id']").change();
+    $("#country_id").change();
+    
+    // $(oe_website_sale).find("select[name='country_id']").change();
+    // $(oe_website_sale).on('change', "select[name='country_id']", function () {
+    //     var $select = $("select[name='state_id']");
+    //     $select.find("option:not(:first)").hide();
+    //     var nb = $select.find("option[data-country_id="+($(this).val() || 0)+"]").show().size();
+    //     $select.parent().toggle(nb>1);
+    // });
+    // $(oe_website_sale).find("select[name='country_id']").change();
+
+    // $(oe_website_sale).on('change', "select[name='shipping_country_id']", function () {
+    //     var $select = $("select[name='shipping_state_id']");
+    //     $select.find("option:not(:first)").hide();
+    //     var nb = $select.find("option[data-country_id="+($(this).val() || 0)+"]").show().size();
+    //     $select.parent().toggle(nb>1);
+    // });
+    // $(oe_website_sale).find("select[name='shipping_country_id']").change();
 });
 });
 

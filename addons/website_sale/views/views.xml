@@ -172,6 +172,23 @@
         </field>
     </record>
 
+    <record model="ir.ui.view" id="inherits_website_sale_res_partner_form">
+        <field name="name">website_sale.res_partner.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='active']" position="before">
+                <field name="is_ecommerce" groups="base.group_no_one"/>
+            </xpath>
+            <xpath expr="//page[@string='Contacts']" position="attributes">
+               <attribute name="attrs">{}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='title']" position="after">
+                <field name="is_ecommerce" groups="base.group_no_one"/>                
+            </xpath>
+        </field>
+    </record>
+
  </data>
 
 </openerp>

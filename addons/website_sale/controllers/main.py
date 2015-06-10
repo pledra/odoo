@@ -360,6 +360,11 @@ class website_sale(http.Controller):
         request.website.sale_get_order(force_create=1)._cart_update(product_id=int(product_id), add_qty=float(add_qty), set_qty=float(set_qty))
         return request.redirect("/shop/cart")
 
+    @http.route(['/shop/change_country/<model("res.country"):country>'], type='json', auth="public", methods=['POST'], website=True)
+    def change_country(self, country, **kw):
+        fields = country.get_address_fields()[0]
+        return dict(fields=fields, states=[(st.id, st.name, st.code) for st in country.state_ids], prefix=country.phone_prefix)
+
     @http.route(['/shop/cart/update_json'], type='json', auth="public", methods=['POST'], website=True)
     def cart_update_json(self, product_id, line_id, add_qty=None, set_qty=None, display=True):
         order = request.website.sale_get_order(force_create=1)
@@ -414,6 +419,7 @@ class website_sale(http.Controller):
         if not order or order.state != 'draft':
             request.session['sale_order_id'] = None
             request.session['sale_transaction_id'] = None
+            print "ORDER STATE KO or NOR"
             return request.redirect('/shop')
 
         # if transaction pending / done: redirect to confirmation
@@ -421,70 +427,67 @@ class website_sale(http.Controller):
         if tx and tx.state != 'draft':
             return request.redirect('/shop/payment/confirmation/%s' % order.id)
 
-    def checkout_values(self, data=None):
+    def checkout_values(self, data=None, type='billing'):
         cr, uid, context, registry = request.cr, request.uid, request.context, request.registry
         orm_partner = registry.get('res.partner')
         orm_user = registry.get('res.users')
         orm_country = registry.get('res.country')
-        state_orm = registry.get('res.country.state')
 
         country_ids = orm_country.search(cr, SUPERUSER_ID, [], context=context)
         countries = orm_country.browse(cr, SUPERUSER_ID, country_ids, context)
-        states_ids = state_orm.search(cr, SUPERUSER_ID, [], context=context)
-        states = state_orm.browse(cr, SUPERUSER_ID, states_ids, context)
-        partner = orm_user.browse(cr, SUPERUSER_ID, request.uid, context).partner_id
+        partner = orm_user.browse(cr, SUPERUSER_ID, uid, context).partner_id
 
         order = None
+        checkout = data or {} # todo, only keep optionnal field
+        error = {}
+        error_message = []
 
-        shipping_id = data and data.get('shipping_id') or None
-        shipping_ids = []
-        checkout = {}
-        if not data:
-            if request.uid != request.website.user_id.id:
-                checkout.update( self.checkout_parse("billing", partner) )
-                shipping_ids = orm_partner.search(cr, SUPERUSER_ID, [("parent_id", "=", partner.id), ('type', "=", 'delivery')], context=context)
-            else:
-                order = request.website.sale_get_order(force_create=1, context=context)
-                if order.partner_id:
-                    domain = [("partner_id", "=", order.partner_id.id)]
-                    user_ids = request.registry['res.users'].search(cr, SUPERUSER_ID, domain, context=dict(context or {}, active_test=False))
-                    if not user_ids or request.website.user_id.id not in user_ids:
-                        checkout.update( self.checkout_parse("billing", order.partner_id) )
-        else:
-            checkout = self.checkout_parse('billing', data)
-            try:
-                shipping_id = int(shipping_id)
-            except (ValueError, TypeError):
-                pass
-            if shipping_id == -1:
-                checkout.update(self.checkout_parse('shipping', data))
+        if request.session.billing_id:
+            checkout['billing'] = orm_partner.browse(cr, SUPERUSER_ID, request.session.billing_id, context=context)
+            #checkout['shipping'] = orm_partner.browse(cr, SUPERUSER_ID, request.session.shipping_id, context=context)
 
-        if shipping_id is None:
-            if not order:
-                order = request.website.sale_get_order(context=context)
-            if order and order.partner_shipping_id:
-                shipping_id = order.partner_shipping_id.id
+        if data:
+            if data.get('existing_address'):
+                data['existing_address'] = int(data['existing_address'])
+            if data.get('existing_address') and data['existing_address'] in [p.id for p in self.get_available_address()]:
+                checkout[type] = orm_partner.browse(cr, SUPERUSER_ID, data['existing_address'], context)
+            elif data.get('other_address') or data.get('first_address'):
+                if data.get('country_id'):  # if not country, we ignore
+                    country = orm_country.browse(cr, uid, int(data.get('country_id')), context=context)
+                    country_fields = country.get_address_fields()[0]
+                    if 'street2' in country_fields:
+                        country_fields.remove('street2')
+                    if 'country_name' in country_fields:
+                        country_fields.remove('country_name')
+                        country_fields.append('country_id')
+                    for field in country_fields + ['name']:
+                        if not data.get(field, '').strip():
+                            error[field] = 'missing'
+                else:
+                    error["country_id"] = 'missing'
 
-        shipping_ids = list(set(shipping_ids) - set([partner.id]))
+                if data.get('email') and not tools.single_email_re.match(data.get('email')):
+                    error["email"] = 'error'
+                    error_message.append(_('Invalid Email! Please enter a valid email address.'))
 
-        if shipping_id == partner.id:
-            shipping_id = 0
-        elif shipping_id > 0 and shipping_id not in shipping_ids:
-            shipping_ids.append(shipping_id)
-        elif shipping_id is None and shipping_ids:
-            shipping_id = shipping_ids[0]
+                # vat validation
+                if data.get("vat") and hasattr(registry["res.partner"], "check_vat"):
+                    if request.website.company_id.vat_check_vies:
+                        # force full VIES online check
+                        check_func = registry["res.partner"].vies_vat_check
+                    else:
+                        # quick and partial off-line checksum validation
+                        check_func = registry["res.partner"].simple_vat_check
+                    vat_country, vat_number = registry["res.partner"]._split_vat(data.get("vat"))
+                    if not check_func(cr, uid, vat_country, vat_number, context=None): # simple_vat_check
+                        error["vat"] = 'error'
 
-        ctx = dict(context, show_address=1)
-        shippings = []
-        if shipping_ids:
-            shippings = shipping_ids and orm_partner.browse(cr, SUPERUSER_ID, list(shipping_ids), ctx) or []
-        if shipping_id > 0:
-            shipping = orm_partner.browse(cr, SUPERUSER_ID, shipping_id, ctx)
-            checkout.update( self.checkout_parse("shipping", shipping) )
+                if [err for err in error.values() if err == 'missing']:
+                    print error
+                    error_message.append(_('Some required fields are empty.'))
 
-        checkout['shipping_id'] = shipping_id
+                checkout["error"], checkout["error_message"] = error, error_message
 
-        # Default search by user country
         if not checkout.get('country_id'):
             country_code = request.session['geoip'].get('country_code')
             if country_code:
@@ -492,199 +495,335 @@ class website_sale(http.Controller):
                 if country_ids:
                     checkout['country_id'] = country_ids[0]
 
-        values = {
+        if checkout.get('country_id'):
+            checkout['country_id'] = int(checkout['country_id'])
+
+        checkout.update({
+            'available_address': self.get_available_address(),
             'countries': countries,
-            'states': states,
+            'error': error,
             'checkout': checkout,
-            'shipping_id': partner.id != shipping_id and shipping_id or 0,
-            'shippings': shippings,
-            'error': {},
             'has_check_vat': hasattr(registry['res.partner'], 'check_vat'),
             'only_services': order and order.only_services or False
-        }
+        })
+        print "ooooooo"
+        print checkout
+        return checkout
 
-        return values
+    # mandatory_billing_fields = ["name", "phone", "email", "street2", "city", "country_id"]
+    # optional_billing_fields = ["street", "state_id", "vat", "vat_subjected", "zip"]
+    # mandatory_shipping_fields = ["name", "phone", "street", "city", "country_id"]
+    # optional_shipping_fields = ["state_id", "zip"]
 
-    mandatory_billing_fields = ["name", "phone", "email", "street2", "city", "country_id"]
-    optional_billing_fields = ["street", "state_id", "vat", "vat_subjected", "zip"]
-    mandatory_shipping_fields = ["name", "phone", "street", "city", "country_id"]
-    optional_shipping_fields = ["state_id", "zip"]
+    # def checkout_form_save(self, checkout):
+    #     cr, uid, context, registry = request.cr, request.uid, request.context, request.registry
 
-    def checkout_parse(self, address_type, data, remove_prefix=False):
-        """ data is a dict OR a partner browse record
-        """
-        # set mandatory and optional fields
-        assert address_type in ('billing', 'shipping')
-        if address_type == 'billing':
-            all_fields = self.mandatory_billing_fields + self.optional_billing_fields
-            prefix = ''
-        else:
-            all_fields = self.mandatory_shipping_fields + self.optional_shipping_fields
-            prefix = 'shipping_'
+    #     order = request.website.sale_get_order(force_create=1, context=context)
 
-        # set data
-        if isinstance(data, dict):
-            query = dict((prefix + field_name, data[prefix + field_name])
-                for field_name in all_fields if data.get(prefix + field_name))
-        else:
-            query = dict((prefix + field_name, getattr(data, field_name))
-                for field_name in all_fields if getattr(data, field_name))
-            if address_type == 'billing' and data.parent_id:
-                query[prefix + 'street'] = data.parent_id.name
+    #     orm_partner = registry.get('res.partner')
+    #     orm_user = registry.get('res.users')
+    #     order_obj = request.registry.get('sale.order')
 
-        if query.get(prefix + 'state_id'):
-            query[prefix + 'state_id'] = int(query[prefix + 'state_id'])
-        if query.get(prefix + 'country_id'):
-            query[prefix + 'country_id'] = int(query[prefix + 'country_id'])
+    #     partner_lang = request.lang if request.lang in [lang.code for lang in request.website.language_ids] else None
 
-        if query.get(prefix + 'vat'):
-            query[prefix + 'vat_subjected'] = True
+    #     billing_info = {}
+    #     if partner_lang:
+    #         billing_info['lang'] = partner_lang
+    #     billing_info.update(self.checkout_parse('billing', checkout, True))
 
-        if not remove_prefix:
-            return query
+    #     # set partner_id
+    #     partner_id = None
+    #     if request.uid != request.website.user_id.id:
+    #         partner_id = orm_user.browse(cr, SUPERUSER_ID, uid, context=context).partner_id.id
+    #     elif order.partner_id:
+    #         user_ids = request.registry['res.users'].search(cr, SUPERUSER_ID,
+    #             [("partner_id", "=", order.partner_id.id)], context=dict(context or {}, active_test=False))
+    #         if not user_ids or request.website.user_id.id not in user_ids:
+    #             partner_id = order.partner_id.id
 
-        return dict((field_name, data[prefix + field_name]) for field_name in all_fields if data.get(prefix + field_name))
+    #     # save partner informations
+    #     if partner_id and request.website.partner_id.id != partner_id:
+    #         orm_partner.write(cr, SUPERUSER_ID, [partner_id], billing_info, context=context)
+    #     else:
+    #         # create partner
+    #         billing_info['team_id'] = request.registry.get('ir.model.data').xmlid_to_res_id(cr, uid, 'website.salesteam_website_sales')
+    #         partner_id = orm_partner.create(cr, SUPERUSER_ID, billing_info, context=context)
 
-    def checkout_form_validate(self, data):
+    #     # create a new shipping partner
+    #     if checkout.get('shipping_id') == -1:
+    #         shipping_info = {}
+    #         if partner_lang:
+    #             shipping_info['lang'] = partner_lang
+    #         shipping_info.update(self.checkout_parse('shipping', checkout, True))
+    #         shipping_info['type'] = 'delivery'
+    #         shipping_info['parent_id'] = partner_id
+    #         checkout['shipping_id'] = orm_partner.create(cr, SUPERUSER_ID, shipping_info, context)
+
+    #     order_info = {
+    #         'partner_id': partner_id,
+    #         'message_follower_ids': [(4, partner_id), (3, request.website.partner_id.id)],
+    #         'partner_invoice_id': partner_id,
+    #     }
+    #     order_info.update(order_obj.onchange_partner_id(cr, SUPERUSER_ID, [], partner_id, context=context)['value'])
+    #     address_change = order_obj.onchange_delivery_id(cr, SUPERUSER_ID, [], order.company_id.id, partner_id,
+    #                                                     checkout.get('shipping_id'), None, context=context)['value']
+    #     order_info.update(address_change)
+    #     if address_change.get('fiscal_position_id'):
+    #         fiscal_update = order_obj.onchange_fiscal_position(cr, SUPERUSER_ID, [], address_change['fiscal_position_id'],
+    #                                                            [(4, l.id) for l in order.order_line], context=None)['value']
+    #         order_info.update(fiscal_update)
+
+    #     order_info.pop('user_id')
+    #     order_info.update(partner_shipping_id=checkout.get('shipping_id') or partner_id)
+
+    #     order_obj.write(cr, SUPERUSER_ID, [order.id], order_info, context=context)
+
+    def get_available_address(self):
+        cr, uid, context = request.cr, request.uid, request.context
+        order = request.website.sale_get_order(force_create=1, context=context)
+
+        address = []
+        if order.partner_id != request.website.user_id.partner_id:
+            address = [a for a in order.partner_id.child_ids if a.is_ecommerce] + [order.partner_id]
+        if request.session.new_address:
+            address += request.registry['res.partner'].browse(cr, SUPERUSER_ID, request.session.new_address, context)
+        # if request.session.billing_id:
+        #     address += request.registry['res.partner'].browse(cr, SUPERUSER_ID, [request.session.billing_id], context)
+        # if request.session.partner_id:
+        #     address += request.registry['res.partner'].browse(cr, SUPERUSER_ID, [request.session.partner_id], context)
+        # if request.session.shipping_id:
+        #     address += request.registry['res.partner'].browse(cr, SUPERUSER_ID, [request.session.shipping_id], context)
+        print "available address = "
+        print len(address) and address[0] and list(set(address)) or []
+        return len(address) and address[0] and list(set(address)) or []
+
+    def get_optionnal_field(self):
+        # This method should be useless when form_builder will be merged
+        return ['phone', 'email']
+
+    def create_address(self, data, billing=True):
+        if not request.session.get('new_address'):
+            request.session['new_address'] = []
         cr, uid, context, registry = request.cr, request.uid, request.context, request.registry
-
-        error = dict()
-        error_message = []
-
-        # Validation
-        for field_name in self.mandatory_billing_fields:
-            if not data.get(field_name):
-                error[field_name] = 'missing'
-
-        # email validation
-        if data.get('email') and not tools.single_email_re.match(data.get('email')):
-            error["email"] = 'error'
-            error_message.append(_('Invalid Email! Please enter a valid email address.'))
-
-        # vat validation
-        if data.get("vat") and hasattr(registry["res.partner"], "check_vat"):
-            if request.website.company_id.vat_check_vies:
-                # force full VIES online check
-                check_func = registry["res.partner"].vies_vat_check
-            else:
-                # quick and partial off-line checksum validation
-                check_func = registry["res.partner"].simple_vat_check
-            vat_country, vat_number = registry["res.partner"]._split_vat(data.get("vat"))
-            if not check_func(cr, uid, vat_country, vat_number, context=None): # simple_vat_check
-                error["vat"] = 'error'
-
-        if data.get("shipping_id") == -1:
-            for field_name in self.mandatory_shipping_fields:
-                field_name = 'shipping_' + field_name
-                if not data.get(field_name):
-                    error[field_name] = 'missing'
-
-        # error message for empty required fields
-        if [err for err in error.values() if err == 'missing']:
-            error_message.append(_('Some required fields are empty.'))
-
-        return error, error_message
-
-    def checkout_form_save(self, checkout):
-        cr, uid, context, registry = request.cr, request.uid, request.context, request.registry
-
         order = request.website.sale_get_order(force_create=1, context=context)
 
         orm_partner = registry.get('res.partner')
-        orm_user = registry.get('res.users')
-        order_obj = request.registry.get('sale.order')
+        country_obj = registry.get('res.country')
 
-        partner_lang = request.lang if request.lang in [lang.code for lang in request.website.language_ids] else None
+        country = country_obj.browse(cr, uid, int(data['country_id']), context)
+        values = {}
 
-        billing_info = {}
-        if partner_lang:
-            billing_info['lang'] = partner_lang
-        billing_info.update(self.checkout_parse('billing', checkout, True))
+        values['is_ecommerce'] = True
+        values['lang'] = context.get('lang')
+        values['name'] = data.get('name')
 
-        # set partner_id
-        partner_id = None
-        if request.uid != request.website.user_id.id:
-            partner_id = orm_user.browse(cr, SUPERUSER_ID, uid, context=context).partner_id.id
-        elif order.partner_id:
-            user_ids = request.registry['res.users'].search(cr, SUPERUSER_ID,
-                [("partner_id", "=", order.partner_id.id)], context=dict(context or {}, active_test=False))
-            if not user_ids or request.website.user_id.id not in user_ids:
-                partner_id = order.partner_id.id
+        for f in country.get_address_fields()[0]:
+            if f == "country_name":
+                f = "country_id"
+            values[f] = data.get(f)
 
-        # save partner informations
-        if partner_id and request.website.partner_id.id != partner_id:
-            orm_partner.write(cr, SUPERUSER_ID, [partner_id], billing_info, context=context)
+        for f in self.get_optionnal_field():
+            if data.get(f):
+                values[f] = data.get(f)
+
+        # if public user, I have not yet an account and I'm maybe a company
+        if request.uid == request.website.user_id.id: # and data.get('first_address'):
+            if billing and data.get('is_company'):
+                new_company = {
+                    'name': data.get('company_name'),
+                    'is_company': True,
+                }
+                if data.get('vat'):
+                    new_company['vat_subjected'] = True
+                    new_company['vat'] = data.get('vat')
+
+                created = orm_partner.create(cr, SUPERUSER_ID, new_company, context)
+                request.session['new_address'].append(created)
+                # created = create company partner
+                values['parent_id'] = created
+
+                partner_id = orm_partner.create(cr, SUPERUSER_ID, values, context)
+                request.session['new_address'].append(partner_id)
+                request.session.partner_id = partner_id
+            else:
+                values['parent_id'] = request.session.billing_id
         else:
-            # create partner
-            billing_info['team_id'] = request.registry.get('ir.model.data').xmlid_to_res_id(cr, uid, 'website.salesteam_website_sales')
-            partner_id = orm_partner.create(cr, SUPERUSER_ID, billing_info, context=context)
+            if billing:
+                request.session.partner_id = order.partner_id.id
+            values['parent_id'] = order.partner_id.id
 
-        # create a new shipping partner
-        if checkout.get('shipping_id') == -1:
-            shipping_info = {}
-            if partner_lang:
-                shipping_info['lang'] = partner_lang
-            shipping_info.update(self.checkout_parse('shipping', checkout, True))
-            shipping_info['type'] = 'delivery'
-            shipping_info['parent_id'] = partner_id
-            checkout['shipping_id'] = orm_partner.create(cr, SUPERUSER_ID, shipping_info, context)
+        if billing:
+            pass
+        else:
+            values['type'] = 'delivery'
 
-        order_info = {
-            'partner_id': partner_id,
-            'message_follower_ids': [(4, partner_id), (3, request.website.partner_id.id)],
-            'partner_invoice_id': partner_id,
-        }
-        order_info.update(order_obj.onchange_partner_id(cr, SUPERUSER_ID, [], partner_id, context=context)['value'])
-        address_change = order_obj.onchange_delivery_id(cr, SUPERUSER_ID, [], order.company_id.id, partner_id,
-                                                        checkout.get('shipping_id'), None, context=context)['value']
-        order_info.update(address_change)
-        if address_change.get('fiscal_position_id'):
-            fiscal_update = order_obj.onchange_fiscal_position(cr, SUPERUSER_ID, [], address_change['fiscal_position_id'],
-                                                               [(4, l.id) for l in order.order_line], context=None)['value']
-            order_info.update(fiscal_update)
+        created = orm_partner.create(cr, SUPERUSER_ID, values, context)
 
-        order_info.pop('user_id')
-        order_info.update(partner_shipping_id=checkout.get('shipping_id') or partner_id)
+        if billing:
+            request.session.billing_id = created
+        request.session.shipping_id = created
 
-        order_obj.write(cr, SUPERUSER_ID, [order.id], order_info, context=context)
+        if request.uid == request.website.user_id.id:
+            if billing and not data.get('is_company'):
+                request.session.partner_id = request.session.billing_id
+        else:
+            request.session.partner_id = order.partner_id.id
+
+        return created
+
+        # billing_info.update(self.checkout_parse('billing', checkout, True))
+
+        # # set partner_id
+        # partner_id = None
+        # if request.uid != request.website.user_id.id:
+        #     partner_id = orm_user.browse(cr, SUPERUSER_ID, uid, context=context).partner_id.id
+        # elif order.partner_id:
+        #     user_ids = request.registry['res.users'].search(cr, SUPERUSER_ID,
+        #         [("partner_id", "=", order.partner_id.id)], context=dict(context or {}, active_test=False))
+        #     if not user_ids or request.website.user_id.id not in user_ids:
+        #         partner_id = order.partner_id.id
+
+        # # save partner informations
+        # if partner_id and request.website.partner_id.id != partner_id:
+        #     orm_partner.write(cr, SUPERUSER_ID, [partner_id], billing_info, context=context)
+        # else:
+        #     # create partner
+        #     billing_info['team_id'] = request.registry.get('ir.model.data').xmlid_to_res_id(cr, uid, 'website.salesteam_website_sales')
+        #     partner_id = orm_partner.create(cr, SUPERUSER_ID, billing_info, context=context)
+
+        # # create a new shipping partner
+        # if checkout.get('shipping_id') == -1:
+        #     shipping_info = {}
+        #     if partner_lang:
+        #         shipping_info['lang'] = partner_lang
+        #     shipping_info.update(self.checkout_parse('shipping', checkout, True))
+        #     shipping_info['type'] = 'delivery'
+        #     shipping_info['parent_id'] = partner_id
+        #     checkout['shipping_id'] = orm_partner.create(cr, SUPERUSER_ID, shipping_info, context)
+
+        # order_info = {
+        #     'partner_id': partner_id,
+        #     'message_follower_ids': [(4, partner_id), (3, request.website.partner_id.id)],
+        #     'partner_invoice_id': partner_id,
+        # }
+        # order_info.update(order_obj.onchange_partner_id(cr, SUPERUSER_ID, [], partner_id, context=context)['value'])
+        # address_change = order_obj.onchange_delivery_id(cr, SUPERUSER_ID, [], order.company_id.id, partner_id,
+        #                                                 checkout.get('shipping_id'), None, context=context)['value']
+        # order_info.update(address_change)
+        # if address_change.get('fiscal_position_id'):
+        #     fiscal_update = order_obj.onchange_fiscal_position(cr, SUPERUSER_ID, [], address_change['fiscal_position_id'],
+        #                                                        [(4, l.id) for l in order.order_line], context=None)['value']
+        #     order_info.update(fiscal_update)
+
+        # order_info.pop('user_id')
+        # order_info.update(partner_shipping_id=checkout.get('shipping_id') or partner_id)
+
+        # order_obj.write(cr, SUPERUSER_ID, [order.id], order_info, context=context)
+
 
     @http.route(['/shop/checkout'], type='http', auth="public", website=True)
     def checkout(self, **post):
         cr, uid, context = request.cr, request.uid, request.context
-
         order = request.website.sale_get_order(force_create=1, context=context)
 
         redirection = self.checkout_redirection(order)
         if redirection:
             return redirection
 
-        values = self.checkout_values()
+        values = self.checkout_values(post, type="billing")
+        if post and not values['error']:
+            if 'billing' in values:
+                billing_id = values['billing']
+                if uid == request.website.user_id.id:
+                    request.session.partner_id = billing_id.id
+                else:
+                    request.session.partner_id = order.partner_id.id
+            else:
+                created = self.create_address(post, billing=True)
+                billing_id = request.registry['res.partner'].browse(cr, SUPERUSER_ID, created, context)
+            values['billing'] = billing_id
+            request.session.billing_id = billing_id.id
+            if order and order.only_services:
+                return request.redirect('/shop/confirm_order')
+            return request.redirect("/shop/checkout_shipping")
 
         return request.website.render("website_sale.checkout", values)
+
+    @http.route(['/shop/checkout_shipping'], type='http', auth="public", website=True)
+    def checkout_shipping(self, **post):
+        cr, uid, context = request.cr, request.uid, request.context
+        order = request.website.sale_get_order(force_create=1, context=context)
+
+        redirection = self.checkout_redirection(order)
+        if redirection:
+            return redirection
+
+        if order and order.only_services:
+            return request.redirect('/shop/confirm_order')
+
+        values = self.checkout_values(post, type="shipping")
+        if post and not values['error']:
+            if 'shipping' in values:
+                shipping_id = values['shipping']
+                request.session.shipping_id = shipping_id.id
+            else:
+                created = self.create_address(post, billing=False)
+                request.session.shipping_id = created
+
+            return request.redirect('/shop/confirm_order')
+
+        return request.website.render("website_sale.checkout_shipping", values)
 
     @http.route(['/shop/confirm_order'], type='http', auth="public", website=True)
     def confirm_order(self, **post):
         cr, uid, context, registry = request.cr, request.uid, request.context, request.registry
+        order_obj = request.registry['sale.order']
 
         order = request.website.sale_get_order(context=context)
+
         if not order:
             return request.redirect("/shop")
 
         redirection = self.checkout_redirection(order)
         if redirection:
             return redirection
+        partner_id = request.session.partner_id
+        billing_id = request.session.billing_id
+        shipping_id = request.session.shipping_id
 
-        values = self.checkout_values(post)
+        order_info = {
+            'partner_id': partner_id,
+            'message_follower_ids': [(4, partner_id), (3, request.website.partner_id.id)],
+            'partner_invoice_id': billing_id,
+        }
 
-        values["error"], values["error_message"] = self.checkout_form_validate(values["checkout"])
-        if values["error"]:
-            return request.website.render("website_sale.checkout", values)
+        order_info.update(order_obj.onchange_partner_id(cr, SUPERUSER_ID, [], partner_id, context=context)['value'])
 
-        self.checkout_form_save(values["checkout"])
+        address_change = order_obj.onchange_delivery_id(cr, SUPERUSER_ID, [], order.company_id.id, partner_id,
+                                                        shipping_id, None, context=context)['value']
+        order_info.update(address_change)
 
+        if address_change.get('fiscal_position_id'):
+            fiscal_update = order_obj.onchange_fiscal_position(cr, SUPERUSER_ID, [], address_change['fiscal_position_id'],
+                                                               [(4, l.id) for l in order.order_line], context=None)['value']
+            order_info.update(fiscal_update)
+
+#        order_info.pop('user_id')
+        order_info.update(partner_shipping_id=shipping_id)
+
+        print order_info
+        order_obj.write(cr, SUPERUSER_ID, [order.id], order_info, context=context)
+
+        #values["error"], values["error_message"] = self.checkout_form_validate(values["checkout"])
+        # if values["error"]:
+        #     return request.website.render("website_sale.checkout", values)
+
+        #self.checkout_form_save(values["checkout"])
+        print "c"
         request.session['sale_last_order_id'] = order.id
-
+        print "d"
         request.website.sale_get_order(update_pricelist=True, context=context)
+        print "e"
 
         extra_step = registry['ir.model.data'].xmlid_to_object(cr, uid, 'website_sale.extra_info_option', raise_if_not_found=True)
         if extra_step.active:

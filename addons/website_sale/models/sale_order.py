@@ -399,3 +399,4 @@ class res_partner(openerp.models.Model):
     _inherit = 'res.partner'
 
     last_website_so_id = openerp.fields.Many2one('sale.order', 'Last Online Sale Order')
+    is_ecommerce = openerp.fields.Boolean('Address used in eCommerce')

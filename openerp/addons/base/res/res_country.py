@@ -70,11 +70,9 @@ addresses belonging to this country.\n\nYou can use the python-style string pate
             vals['code'] = vals['code'].upper()
         return super(Country, self).write(cursor, user, ids, vals, context=context)
 
-    def get_address_fields(self, cr, uid, ids, context=None):
-        res = {}
-        for country in self.browse(cr, uid, ids, context=context):
-            res[country.id] = re.findall('\((.+?)\)', country.address_format)
-        return res
+    def get_address_fields(self, cr, uid, id, context=None):
+        country = self.browse(cr, uid, id, context=context)
+        return re.findall('\((.+?)\)', country.address_format)
 
 
 class CountryGroup(osv.osv):
