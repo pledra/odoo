@@ -430,7 +430,7 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
             sc: begin,
             ec: end,
             so: !dom.isBR(begin) && so > 0 ? so : 0,
-            eo: eo
+            eo: dom.isBR(begin) ? 0 : so
         };
     };
     dom.node = function (node) {
@@ -454,13 +454,17 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
             }
             data.so = 0;
         }
-        data.sc.splitText(data.so);
         var first = data.sc;
-        var last = data.sc.nextSibling;
+        var last = data.sc.splitText(data.so);
+
+        var $container = $('<div/>').text(text);
+        var nodes = _.toArray($container.prop('childNodes'));
+        text = $container.html();
 
         isOnlyText = isOnlyText || !text.match('\n');
         
         if (!isOnlyText) {
+
             // tag to close and open
             var tag = node.tagName.toLowerCase();
             if(dom.pasteTextApply.indexOf(tag) === -1) {
@@ -469,27 +473,27 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
                 text = "<"+tag+">"+text.split('\n').join("</"+tag+"><"+tag+">")+"</"+tag+">";
             }
 
-            var $text = $(text);
+            nodes = _.toArray($('<div/>').html(text).prop('childNodes'));
 
             // split parent node and insert text
             if(dom.pasteTextClose.indexOf(tag) !== -1) {
                 var $next = $(node).clone().empty();
                 $next.append( last );
                 $(node).after( $next );
-                $(node).after( $text );
+                $(node).after( nodes );
+            } else if (dom.isBR(node)) {
+                $(node).replaceWith( nodes );
             } else {
-                $(data.sc).after( $text );
+                $(data.sc).after( nodes );
             }
+        } else if (dom.isBR(first)) {
+            $(first).replaceWith( nodes );
         } else {
-            first.appendData( text );
+            first.appendData( nodes );
         }
 
-        // clean the dom content
-        data = dom.merge(node.parentNode.parentNode, last, 0, last, 0, null, true);
-        data = dom.removeSpace(node.parentNode.parentNode, data.sc, data.so, data.ec, data.eo);
-
         // move caret
-        range.create(data.sc, data.so, data.ec, data.eo).select();
+        range.create(nodes[0], 0, nodes[nodes.length-1], 1).clean().select();
     };
     dom.removeBetween = function (sc, so, ec, eo, towrite) {
         if (ec.tagName) {
@@ -866,6 +870,7 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
     };
     range.WrappedRange.prototype.clean = function (mergeFilter, all) {
         var node = dom.node(this.sc === this.ec ? this.sc : this.commonAncestor());
+        node = node || $(this.sc).closest('[contenteditable]')[0];
         if (node.childNodes.length <=1) {
             return this;
         }
@@ -2242,7 +2247,7 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
                 r.select();
             }
 
-            var text = clipboardData.getData("text/plain").replace(/</g, "&lt;");
+            var text = clipboardData.getData("text/plain").toString();
             dom.pasteText(r.sc, r.so, text);
             event.preventDefault();
             return false;
