@@ -430,7 +430,7 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
             sc: begin,
             ec: end,
             so: !dom.isBR(begin) && so > 0 ? so : 0,
-            eo: dom.isBR(begin) ? 0 : so
+            eo: dom.isBR(end) ? 0 : eo
         };
     };
     dom.node = function (node) {
@@ -449,6 +449,8 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
                 data.sc = node.insertBefore(document.createTextNode(" "), data.sc);
             } else if (node.firstChild && !dom.isBR(dom.firstChild(node))) {
                 data.sc = node.insertBefore(document.createTextNode(" "), dom.firstChild(node));
+            } else if (dom.isBR(node)) {
+                data.sc = node.parentNode.insertBefore(document.createTextNode(" "), node);
             } else {
                 data.sc = node.appendChild(document.createTextNode(" "));
             }
@@ -462,18 +464,24 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
         text = $container.html();
 
         isOnlyText = isOnlyText || !text.match('\n');
-        
+
+        var sc = nodes[0], so = 0, ec = dom.lastChild(nodes[nodes.length - 1]), eo = dom.nodeLength(ec);
+
         if (!isOnlyText) {
 
             // tag to close and open
-            var tag = node.tagName.toLowerCase();
+            var tag = (dom.isBR(node) ? node.parentElement : node).tagName.toLowerCase();
             if(dom.pasteTextApply.indexOf(tag) === -1) {
                 text = text.split('\n').join("<br/>");
             } else {
                 text = "<"+tag+">"+text.split('\n').join("</"+tag+"><"+tag+">")+"</"+tag+">";
+                if(dom.isBR(node)) tag = 'br';
             }
 
             nodes = _.toArray($('<div/>').html(text).prop('childNodes'));
+            sc = nodes[0];
+            ec = dom.lastChild(nodes[nodes.length - 1]);
+            eo = dom.nodeLength(ec);
 
             // split parent node and insert text
             if(dom.pasteTextClose.indexOf(tag) !== -1) {
@@ -482,18 +490,26 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
                 $(node).after( $next );
                 $(node).after( nodes );
             } else if (dom.isBR(node)) {
-                $(node).replaceWith( nodes );
+                if(dom.hasContentBefore(node) || dom.hasContentAfter(node)) {
+                    node = dom.splitTree(node.parentNode, {node: node, offset:0}).previousSibling;
+                    $(node).after(nodes);
+                }
+                else {
+                    $(node.parentNode).replaceWith( nodes );
+                }
             } else {
                 $(data.sc).after( nodes );
             }
         } else if (dom.isBR(first)) {
             $(first).replaceWith( nodes );
         } else {
-            first.appendData( nodes );
+            sc = ec = first;
+            so = sc.nodeValue.length;
+            eo = so + text.length;
+            first.appendData( text );
         }
 
-        // move caret
-        range.create(nodes[0], 0, nodes[nodes.length-1], 1).clean().select();
+        range.create(sc, so, ec, eo).clean().select();
     };
     dom.removeBetween = function (sc, so, ec, eo, towrite) {
         if (ec.tagName) {
@@ -539,7 +555,8 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
             if (!dom.isNotBreakable(node)) {
                 sc = dom.splitTree(ancestor_sc, {'node': sc, 'offset': so});
             }
-            var before = dom.hasContentBefore(dom.ancestorHavePreviousSibling(sc));
+            var before = dom.ancestorHavePreviousSibling(sc);
+            before = before.contentEditable === "true" ? undefined : dom.hasContentBefore(before);
 
             var after;
             if (ec.textContent.slice(eo, Infinity).match(/\S|\u00A0/)) {
@@ -566,7 +583,7 @@ define(['summernote/editing/Editor', 'summernote/summernote'], function (Editor)
             if (towrite && !node.firstChild && node.parentNode && !dom.isNotBreakable(node)) {
                 sc = $("<br/>")[0];
                 so = 0;
-                node.appendChild(br);
+                node.appendChild(sc);
             } else if (!ancestor.children.length && !dom.isVisibleText(ancestor)) {
                 sc = $("<br/>")[0];
                 so = 0;
