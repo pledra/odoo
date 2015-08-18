@@ -32,7 +32,7 @@
         drop_and_build_snippet: function() {
             var uuid = 0;
             $(".carousel").each(function () {
-                var id = parseInt(($(this).attr('id') || '0').replace(/[^0-9]/, ''));
+                var id = parseInt(($(this).attr('id') || '0').replace(/[^0-9]+/g, ''));
                 if (id > uuid) uuid = id;
             });
             this.$target.find('.carousel').attr('id', 'slideshow_'+ (uuid+1));
@@ -189,12 +189,12 @@
                 urls = $imgs.map(function() { return $(this).attr("src"); } ).get(),
                 uuid = 0;
             $(".carousel").each(function () {
-                var id = parseInt(($(this).attr('id') || '0').replace(/[^0-9]/, ''));
+                var id = parseInt(($(this).attr('id') || '0').replace(/[^0-9]+/g, ''));
                 if (id > uuid) uuid = id;
             });
             var params = {
                     srcs : urls,
-                    index: 1,
+                    index: 0,
                     title: "",
                     interval : this.$target.data("interval") || false,
                     id: "slideshow_" + (uuid+1)
