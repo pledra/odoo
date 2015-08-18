@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import cgi
 import itertools
 
 import unittest2
@@ -176,13 +177,16 @@ class TestViewSaving(common.TransactionCase):
 
     def test_save_escaped_text(self):
         view_id = self.registry('ir.ui.view').create(self.cr, self.uid, {
-            'arch':'<t>hello world</t>',
+            'arch':'<t></t>',
             'type':'qweb'
         })
         view = self.registry('ir.ui.view').browse(self.cr, self.uid, view_id)
-        replacement = 'hello world &amp; &lt;angle brackets&gt;!'
+        replacement = '<script>1 && "hello & world"<script>'
         view.save(replacement, xpath='/t')
-        self.assertEqual(view.render(), replacement, 'html special characters wrongly escaped')
+        self.assertIn(replacement, view.render(), 'inline script should not be escaped')
+        replacement = 'world &amp;amp; &amp;lt;b&amp;gt;cie'
+        view.save(replacement, xpath='/t')
+        self.assertEqual(replacement, cgi.escape(view.render()), 'text node characters wrongly escaped')
 
     def test_save_only_embedded(self):
         Company = self.registry('res.company')

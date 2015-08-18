@@ -1119,7 +1119,14 @@ define(['summernote/summernote'], function () {
             return this._save();
         },
         saveElement: function ($el) {
-            var markup = $el.prop('outerHTML');
+            var $el_to_escape = $el.clone();
+            // escape text nodes for xml saving
+            _.chain(dom.listDescendant($el_to_escape[0])).filter(dom.isText).each(function(node){
+                if(!$(node).parent().is('script,style')) {
+                    node.nodeValue = _.escape(node.nodeValue);
+                }
+            });
+            var markup = $el_to_escape.prop('outerHTML');
             return openerp.jsonRpc('/web/dataset/call', 'call', {
                 model: 'ir.ui.view',
                 method: 'save',
