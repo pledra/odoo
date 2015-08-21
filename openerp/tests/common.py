@@ -250,7 +250,7 @@ class HttpCase(TransactionCase):
 
     def url_open(self, url, data=None, timeout=10):
         if url.startswith('/'):
-            url = "http://localhost:%s%s" % (PORT, url)
+            url = "http://%s:%s%s" % (HOST, PORT, url)
         return self.opener.open(url, data, timeout)
 
     def authenticate(self, user, password):
@@ -311,14 +311,14 @@ class HttpCase(TransactionCase):
                     # when error occurs the execution stack may be sent as as JSON
                     try:
                         line_ = json.loads(line_)
-                    except ValueError: 
+                    except ValueError:
                         pass
                     self.fail(line_ or "phantomjs test failed")
 
     def phantom_run(self, cmd, timeout):
         _logger.info('phantom_run executing %s', ' '.join(cmd))
 
-        ls_glob = os.path.expanduser('~/.qws/share/data/Ofi Labs/PhantomJS/http_localhost_%s.*'%PORT)
+        ls_glob = os.path.expanduser('~/.qws/share/data/Ofi Labs/PhantomJS/http_%s_%s.*' % (HOST, PORT))
         for i in glob.glob(ls_glob):
             _logger.info('phantomjs unlink localstorage %s', i)
             os.unlink(i)

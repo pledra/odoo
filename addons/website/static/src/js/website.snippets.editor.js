@@ -651,6 +651,9 @@
                     }
                 });
             });
+            if ($snippet.find('t[t-call]').length) {
+                alert('This snippet need a refresh to be displayed correctly');
+            }
         },
 
         // return the original snippet in the editor bar from a snippet id (string)
