@@ -480,5 +480,11 @@ class test_expression(common.TransactionCase):
             ids = Country.search(self.cr, self.uid, domain)
             self.assertListEqual([be], ids)
 
+    def test_long_table_alias(self):
+        self.patch_order('res.users', 'partner_id')
+        self.patch_order('res.partner', 'commercial_partner_id,company_id,name')
+        self.patch_order('res.company', 'parent_id')
+        self.env['res.users'].search([('name', '=', 'test')])
+
 if __name__ == '__main__':
     unittest2.main()
