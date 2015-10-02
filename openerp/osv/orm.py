@@ -841,14 +841,6 @@ class BaseModel(object):
                      vals['relation'], bool(vals['view_load']), 'base',
                     vals['select_level'], vals['relation_field'], bool(vals['translate']), vals['serialization_field_id']
                 ))
-                if 'module' in context:
-                    name1 = 'field_' + self._table + '_' + k
-                    cr.execute("select name from ir_model_data where name=%s", (name1,))
-                    if cr.fetchone():
-                        name1 = name1 + "_" + str(id)
-                    cr.execute("INSERT INTO ir_model_data (name,date_init,date_update,module,model,res_id) VALUES (%s, (now() at time zone 'UTC'), (now() at time zone 'UTC'), %s, %s, %s)", \
-                        (name1, context['module'], 'ir.model.fields', id)
-                    )
             else:
                 for key, val in vals.items():
                     if cols[k][key] != vals[key]:
@@ -863,6 +855,15 @@ class BaseModel(object):
                                 vals['select_level'], bool(vals['readonly']), bool(vals['required']), bool(vals['selectable']), vals['relation_field'], bool(vals['translate']), vals['serialization_field_id'], vals['model'], vals['name']
                             ))
                         break
+                cr.execute('select id from ir_model_fields where model=%s and name=%s', (vals['model'], vals['name']))
+                id = cr.fetchone()[0]
+            if 'module' in context:
+                name1 = 'field_' + self._table + '_' + k
+                cr.execute("select name from ir_model_data where module=%s and name=%s", (context['module'], name1))
+                if not cr.rowcount:
+                    cr.execute("INSERT INTO ir_model_data (name,date_init,date_update,module,model,res_id) VALUES (%s, (now() at time zone 'UTC'), (now() at time zone 'UTC'), %s, %s, %s)", \
+                        (name1, context['module'], 'ir.model.fields', id)
+                    )
 
     #
     # Goal: try to apply inheritance at the instanciation level and
