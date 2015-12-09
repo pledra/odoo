@@ -65,7 +65,7 @@ class SignedIntConverter(werkzeug.routing.BaseConverter):
             raise werkzeug.routing.ValidationError()
 
     def to_url(self, value):
-        return value
+        return str(value)
 
 
 class ir_http(osv.AbstractModel):
