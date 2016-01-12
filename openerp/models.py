@@ -4595,11 +4595,19 @@ class BaseModel(object):
         """
         lang = self._context.get('lang')
         if lang and lang != 'en_US':
+            records_unique_translation = """
+            (SELECT DISTINCT ON (res_id)res_id, value
+            FROM "ir_translation"
+            WHERE
+                name = %s AND
+                lang = %s AND
+                value != %s
+            ORDER BY res_id, id DESC)
+            """
             alias, alias_statement = query.add_join(
-                (table_alias, 'ir_translation', 'id', 'res_id', field),
+                (table_alias, records_unique_translation, 'id', 'res_id', field),
                 implicit=False,
                 outer=True,
-                extra='"{rhs}"."name" = %s AND "{rhs}"."lang" = %s AND "{rhs}"."value" != %s',
                 extra_params=["%s,%s" % (self._name, field), lang, ""],
             )
             return 'COALESCE("%s"."%s", "%s"."%s")' % (alias, 'value', table_alias, field)
