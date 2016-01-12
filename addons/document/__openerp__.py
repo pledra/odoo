@@ -14,6 +14,9 @@ Attachments list and document indexation
     'data': [
         'views/document.xml',
     ],
+    'qweb' : [
+        "static/src/xml/*.xml",
+    ],
     'installable': True,
     'auto_install': False,
 }

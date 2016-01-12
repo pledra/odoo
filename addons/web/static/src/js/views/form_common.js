@@ -859,7 +859,7 @@ var FormViewDialog = ViewDialog.extend({
             options = options || {};
             options.buttons = [
                 {text: (readonly ? _t("Close") : _t("Discard")), classes: "btn-default o_form_button_cancel", close: true, click: function() {
-                    self.view_form.trigger('on_button_cancel');
+                    self.view_form.trigger('on_button_discard');
                 }}
             ];
 

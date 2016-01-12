@@ -83,9 +83,9 @@ var CalendarView = View.extend({
         this.title = (this.options.action)? this.options.action.name : '';
 
         this.shown = $.Deferred();
-        self.current_start = null;
-        self.current_end = null;
-        self.previous_ids = [];
+        this.current_start = null;
+        this.current_end = null;
+        this.previous_ids = [];
 
         var attrs = this.fields_view.arch.attrs;
         if (!attrs.date_start) {
@@ -210,25 +210,17 @@ var CalendarView = View.extend({
             $(window).trigger('resize');
         });
     },
-    /**
-     * Render the buttons according to the CalendarView.buttons template and
-     * add listeners on it.
-     * Set this.$buttons with the produced jQuery element
-     * @param {jQuery} [$node] a jQuery node where the rendered buttons should be inserted
-     * $node may be undefined, in which case the ListView inserts them into this.options.$buttons
-     * or into a div of its template
-     */
-    render_buttons: function($node) {
+    create_cp_buttons: function () {
         var self = this;
-        this.$buttons = $(QWeb.render("CalendarView.buttons", {'widget': this}));
-        this.$buttons.on('click', 'button.o_calendar_button_new', function () {
-            self.dataset.index = null;
-            self.do_switch_view('form');
+        return $.when(this._super.apply(this, arguments)).then(function () {
+            self.$buttons = self.$buttons.add($(QWeb.render("CalendarView.buttons", {'widget': self})).not(':text'));
+            self.$buttons.find('.o_calendar_button_' + self.mode).addClass('active');
         });
+    },
+    bind_cp_buttons_events: function () {
+        this._super.apply(this, arguments);
+        var self = this;
 
-        var bindCalendarButton = function(selector, arg1, arg2) {
-            self.$buttons.on('click', selector, _.bind(self.$calendar.fullCalendar, self.$calendar, arg1, arg2));
-        }
         bindCalendarButton('.o_calendar_button_prev', 'prev');
         bindCalendarButton('.o_calendar_button_today', 'today');
         bindCalendarButton('.o_calendar_button_next', 'next');
@@ -236,8 +228,16 @@ var CalendarView = View.extend({
         bindCalendarButton('.o_calendar_button_week', 'changeView', 'agendaWeek');
         bindCalendarButton('.o_calendar_button_month', 'changeView', 'month');
 
-        this.$buttons.find('.o_calendar_button_' + this.mode).addClass('active');
-        
+        function bindCalendarButton(selector, arg1, arg2) {
+            self.$buttons.on('click', selector, _.bind(self.$calendar.fullCalendar, self.$calendar, arg1, arg2));
+        }
+    },
+    on_button_create: function () {
+        this.dataset.index = null;
+        this.do_switch_view('form');
+    },
+    append_cp_buttons: function ($node) {
+        $node = $node || this.options.$buttons;
         if ($node) {
             this.$buttons.appendTo($node);
         } else {

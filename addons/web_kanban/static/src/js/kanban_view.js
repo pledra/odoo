@@ -65,7 +65,6 @@ var KanbanView = View.extend({
         this.qweb.default_dict = _.clone(QWeb.default_dict);
 
         this.limit = this.options.limit || 40;
-        this.fields = {};
         this.fields_keys = _.keys(this.fields_view.fields);
         this.grouped = undefined;
         this.group_by_field = undefined;
@@ -294,9 +293,11 @@ var KanbanView = View.extend({
         }
         return this._super(action);
     },
+
     has_active_field: function() {
         return this.fields_view.fields.active;
     },
+
     _is_quick_create_enabled: function() {
         if (!this.quick_creatable || !this.is_action_enabled('create'))
             return false;
@@ -304,19 +305,9 @@ var KanbanView = View.extend({
             return JSON.parse(this.fields_view.arch.attrs.quick_create);
         return !!this.grouped;
     },
-    /**
-     * Render the buttons according to the KanbanView.buttons template and
-     * add listeners on it.
-     * Set this.$buttons with the produced jQuery element
-     * @param {jQuery} [$node] a jQuery node where the rendered buttons should be inserted
-     * $node may be undefined, in which case the ListView inserts them into this.options.$buttons
-     */
-    render_buttons: function($node) {
-        if (this.options.action_buttons !== false && this.is_action_enabled('create')) {
-            this.$buttons = $(QWeb.render("KanbanView.buttons", {'widget': this}));
-            this.$buttons.on('click', 'button.o-kanban-button-new', this.add_record.bind(this));
-            this.$buttons.appendTo($node);
-        }
+
+    on_button_create: function () {
+        this.add_record.apply(this, arguments);
     },
 
     render_pager: function($node, options) {

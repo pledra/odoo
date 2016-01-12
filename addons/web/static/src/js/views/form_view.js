@@ -136,7 +136,7 @@ var FormView = View.extend(common.FieldManagerMixin, {
      * or into a div of its template
      */
     render_buttons: function($node) {
-        this.$buttons = $('<div/>', {'class': 'oe_form_buttons'});
+        this.$buttons = $(QWeb.render("FormView.buttons", {'widget': this}));
 
         var $footer = this.$('footer');
         if (this.options.action_buttons !== false || this.options.footer_to_buttons && $footer.children().length === 0) {
@@ -151,7 +151,7 @@ var FormView = View.extend(common.FieldManagerMixin, {
         this.$buttons.on('click', '.oe_form_button_create', this.on_button_create);
         this.$buttons.on('click', '.oe_form_button_edit', this.on_button_edit);
         this.$buttons.on('click', '.oe_form_button_save', this.on_button_save);
-        this.$buttons.on('click', '.oe_form_button_cancel', this.on_button_cancel);
+        this.$buttons.on('click', '.oe_form_button_cancel', this.on_button_discard);
 
         if ($node) {
             this.$buttons.appendTo($node);
@@ -716,7 +716,7 @@ var FormView = View.extend(common.FieldManagerMixin, {
             self.enable_button();
         });
     },
-    on_button_cancel: function(event) {
+    on_button_discard: function(event) {
         var self = this;
         this.can_be_discarded().then(function() {
             if (self.get('actual_mode') === 'create') {
@@ -728,7 +728,7 @@ var FormView = View.extend(common.FieldManagerMixin, {
                 });
             }
         });
-        this.trigger('on_button_cancel');
+        this.trigger('on_button_discard');
         return false;
     },
     on_button_new: function() {
