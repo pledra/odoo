@@ -11,40 +11,728 @@
     </record>
 
     <!-- Account Tags -->
-    <record id="tax_tag_01" model="account.account.tag">
-        <field name="name">TVA 20% VENTES</field>
+    <record id="tag_ma_01" model="account.account.tag">
+        <field name="name">Ventilation du chiffre d’affaires total</field>
         <field name="applicability">taxes</field>
     </record>
-    <record id="tax_tag_02" model="account.account.tag">
-        <field name="name">TVA 14% VENTES</field>
+
+    <record id="tag_ma_02" model="account.account.tag">
+        <field name="name">Montant du chiffre d’affaires réalisé y compris les affaires non imposables (HT)</field>
         <field name="applicability">taxes</field>
     </record>
-    <record id="tax_tag_03" model="account.account.tag">
-        <field name="name">TVA 10% VENTES</field>
+
+    <record id="tag_ma_03" model="account.account.tag">
+        <field name="name">-Opérations situées hors champ d’application de la TVA</field>
         <field name="applicability">taxes</field>
     </record>
-    <record id="tax_tag_04" model="account.account.tag">
-        <field name="name">TVA 7% VENTES</field>
+
+    <record id="tag_ma_04" model="account.account.tag">
+        <field name="name">-Opérations exonérées sans droit à déduction (art 91du CGI)</field>
         <field name="applicability">taxes</field>
     </record>
-    <record id="tax_tag_05" model="account.account.tag">
-        <field name="name">TVA 10% ACHATS</field>
+
+    <record id="tag_ma_05" model="account.account.tag">
+        <field name="name">-Opérations exonérées avec droit à déduction (art 92 du CGI)</field>
         <field name="applicability">taxes</field>
     </record>
-    <record id="tax_tag_06" model="account.account.tag">
-        <field name="name">TVA 20% ACHATS</field>
+
+    <record id="tag_ma_06" model="account.account.tag">
+        <field name="name">-Opérations faites en suspension de la TVA (art 94 du CGI)</field>
         <field name="applicability">taxes</field>
     </record>
-    <record id="tax_tag_07" model="account.account.tag">
-        <field name="name">TVA 14% ACHATS</field>
+
+    <record id="tag_ma_07" model="account.account.tag">
+        <field name="name">Chiffre d’affaires imposable à répartir (différence : ligne 10 – (20 + 30 +40 +50) (HT)</field>
         <field name="applicability">taxes</field>
     </record>
-    <record id="tax_tag_08" model="account.account.tag">
-        <field name="name">TVA 7% ACHATS</field>
+
+    <record id="tag_ma_08" model="account.account.tag">
+        <field name="name">Ventilation du chiffre d’affaires imposable</field>
         <field name="applicability">taxes</field>
     </record>
-    <record id="tax_tag_09" model="account.account.tag">
-        <field name="name">TVA 20% ACHATS (immobilisation)</field>
+
+    <record id="tag_ma_09" model="account.account.tag">
+        <field name="name">TAUX NORMAL DE 20% (Base HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_10" model="account.account.tag">
+        <field name="name">-Opération de production et de distribution (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_11" model="account.account.tag">
+        <field name="name">-Opérations d'entreprises de travaux immobiliers (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_12" model="account.account.tag">
+        <field name="name">-Prestations de services (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_13" model="account.account.tag">
+        <field name="name">-Opérations de crédit bail (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_14" model="account.account.tag">
+        <field name="name">-Professions libérales visées à l’article 89-I-12°-b du CGI(HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_15" model="account.account.tag">
+        <field name="name">TAUX NORMAL DE 20% (TVA exigible)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_16" model="account.account.tag">
+        <field name="name">-Opération de production et de distribution (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_17" model="account.account.tag">
+        <field name="name">-Opérations d'entreprises de travaux immobiliers (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_18" model="account.account.tag">
+        <field name="name">-Prestations de services (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_19" model="account.account.tag">
+        <field name="name">-Opérations de crédit bail (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_20" model="account.account.tag">
+        <field name="name">-Professions libérales visées à l’article 89-I-12°-b du CGI(TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_21" model="account.account.tag">
+        <field name="name">TAUX REDUIT DE 14% (Base HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_22" model="account.account.tag">
+        <field name="name">TR 14%- Avec droit à déduction (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_23" model="account.account.tag">
+        <field name="name">-Beurre à l’exclusion du beurre de fabrication artisanale visé à l’article 91 (IA. 2°)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_24" model="account.account.tag">
+        <field name="name">-Graisses alimentaires (animales ou végétales), margarines ou saindoux</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_25" model="account.account.tag">
+        <field name="name">-Thé (en vrac ou conditionné)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_26" model="account.account.tag">
+        <field name="name">-Opérations de transport de voyageurs et de marchandises</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_27" model="account.account.tag">
+        <field name="name">-Véhicule utilitaire léger économique, et cyclomoteur économique et produits et matières entrant dans leur fabrication</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_28" model="account.account.tag">
+        <field name="name">Énergie électrique</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_29" model="account.account.tag">
+        <field name="name">TR 14%- Avec droit à déduction (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_30" model="account.account.tag">
+        <field name="name">Les prestations de services rendues par tout agent démarcheur ou courtier d’assurances à raison des contrats apportés par lui à une entreprise d’assurances</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_31" model="account.account.tag">
+        <field name="name">TAUX REDUIT DE 14% (TVA exigible)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_32" model="account.account.tag">
+        <field name="name">TR 14%- Avec droit à déduction (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_33" model="account.account.tag">
+        <field name="name">-Beurre à l’exclusion du beurre de fabrication artisanale visé à l’article 91 (IA. 2°)(TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_34" model="account.account.tag">
+        <field name="name">-Graisses alimentaires (animales ou végétales), margarines ou saindoux(TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_35" model="account.account.tag">
+        <field name="name">-Thé (en vrac ou conditionné)(TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_36" model="account.account.tag">
+        <field name="name">-Opérations de transport de voyageurs et de marchandises(TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_37" model="account.account.tag">
+        <field name="name">-Véhicule utilitaire léger économique, et cyclomoteur économique et produits et matières entrant dans leur fabrication(TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_38" model="account.account.tag">
+        <field name="name">Énergie électrique(TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_39" model="account.account.tag">
+        <field name="name">TR 14%- Avec droit à déduction (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_40" model="account.account.tag">
+        <field name="name">Les prestations de services rendues par tout agent démarcheur ou courtier d’assurances à raison des contrats apportés par lui à une entreprise d’assurances(TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_41" model="account.account.tag">
+        <field name="name">TAUX REDUIT DE 1O% (Base HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_42" model="account.account.tag">
+        <field name="name">-Les opérations de crédit foncier, de crédit à la construction et de crédit à l’hôtellerie (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_43" model="account.account.tag">
+        <field name="name">-Les transactions portant sur les actions et les parts sociales (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_44" model="account.account.tag">
+        <field name="name">-Les opérations de crédit agricole (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_45" model="account.account.tag">
+        <field name="name">Les opérations afférentes aux prêts et avances consentis aux collectivités locales par le fonds d’équipement communal ainsi que celles au profit dudit fonds (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_46" model="account.account.tag">
+        <field name="name">-Les opérations des avocats, interprètes, notaires, adoul, huissiers de justice et vétérinaires (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_47" model="account.account.tag">
+        <field name="name">-Opérations de restauration et de logement dans des hôtels (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_48" model="account.account.tag">
+        <field name="name">-Opérations de restauration fournies par les prestataires de services au personnel salarié des entreprises (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_49" model="account.account.tag">
+        <field name="name">-Exploitation ou location d’hôtel ou ensemble immobilier à destination touristique (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_50" model="account.account.tag">
+        <field name="name">-Les huiles fluides alimentaires (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_51" model="account.account.tag">
+        <field name="name">-Le sel de cuisines (gemme ou marin) (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_52" model="account.account.tag">
+        <field name="name">-Le riz usiné, les farines et semoules de riz et les farines de féculents, les pâtes alimentaires (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_53" model="account.account.tag">
+        <field name="name">-Les opérations de banque et de crédit et les commissions de change (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_54" model="account.account.tag">
+        <field name="name">-Les transactions relatives aux valeurs mobilières (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_55" model="account.account.tag">
+        <field name="name">TAUX REDUIT DE 1O% (TVA exigible)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_56" model="account.account.tag">
+        <field name="name">-Les opérations de crédit foncier, de crédit à la construction et de crédit à l’hôtellerie (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_57" model="account.account.tag">
+        <field name="name">-Les transactions portant sur les actions et les parts sociales (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_58" model="account.account.tag">
+        <field name="name">-Les opérations de crédit agricole (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_59" model="account.account.tag">
+        <field name="name">Les opérations afférentes aux prêts et avances consentis aux collectivités locales par le fonds d’équipement communal ainsi que celles au profit dudit fonds (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_60" model="account.account.tag">
+        <field name="name">-Les opérations des avocats, interprètes, notaires, adoul, huissiers de justice et vétérinaires (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_61" model="account.account.tag">
+        <field name="name">-Opérations de restauration et de logement dans des hôtels (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_62" model="account.account.tag">
+        <field name="name">-Opérations de restauration fournies par les prestataires de services au personnel salarié des entreprises (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_63" model="account.account.tag">
+        <field name="name">-Exploitation ou location d’hôtel ou ensemble immobilier à destination touristique (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_64" model="account.account.tag">
+        <field name="name">-Les huiles fluides alimentaires (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_65" model="account.account.tag">
+        <field name="name">-Le sel de cuisines (gemme ou marin) (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_66" model="account.account.tag">
+        <field name="name">-Le riz usiné, les farines et semoules de riz et les farines de féculents, les pâtes alimentaires (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_67" model="account.account.tag">
+        <field name="name">-Les opérations de banque et de crédit et les commissions de change (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_68" model="account.account.tag">
+        <field name="name">-Les transactions relatives aux valeurs mobilières (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_69" model="account.account.tag">
+        <field name="name">TAUX REDUIT DE 7% (Base HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_70" model="account.account.tag">
+        <field name="name">L’eau livrée aux réseaux de distribution publique et les prestations d’assainissement (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_71" model="account.account.tag">
+        <field name="name">Location de compteurs d'eau et d'électricité (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_72" model="account.account.tag">
+        <field name="name">Gaz de pétrole et les autres hydrocarbures gazeux (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_73" model="account.account.tag">
+        <field name="name">Huiles de pétrole ou de schistes, brutes ou raffinées (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_74" model="account.account.tag">
+        <field name="name">Produits pharmaceutiques, matières premières et produits entrant dans leurs compositions ainsi que les emballages non récupérables de ces produits et matières (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_75" model="account.account.tag">
+        <field name="name">Les fournitures scolaires, produits et matières entrant dans leur composition (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_76" model="account.account.tag">
+        <field name="name">Aliments de bétail et des animaux de basse cour (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_77" model="account.account.tag">
+        <field name="name">Sucre raffiné ou aggloméré (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_78" model="account.account.tag">
+        <field name="name">Conserves de sardines (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_79" model="account.account.tag">
+        <field name="name">Lait en poudre (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_80" model="account.account.tag">
+        <field name="name">Savon de ménage (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_81" model="account.account.tag">
+        <field name="name">Voiture économique et produits et matières entrant dans sa fabrication (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_82" model="account.account.tag">
+        <field name="name">Péage dans les autoroutes (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_83" model="account.account.tag">
+        <field name="name">Reversement de la TVA à différents titres (cessation, régularisation,....)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_84" model="account.account.tag">
+        <field name="name">TOTAL de la TVA exigible</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_85" model="account.account.tag">
+        <field name="name">TAUX REDUIT DE 7% (TVA exigible)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_86" model="account.account.tag">
+        <field name="name">L’eau livrée aux réseaux de distribution publique et les prestations d’assainissement (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_87" model="account.account.tag">
+        <field name="name">Location de compteurs d'eau et d'électricité (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_88" model="account.account.tag">
+        <field name="name">Gaz de pétrole et les autres hydrocarbures gazeux (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_89" model="account.account.tag">
+        <field name="name">Huiles de pétrole ou de schistes, brutes ou raffinées (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_90" model="account.account.tag">
+        <field name="name">Produits pharmaceutiques, matières premières et produits entrant dans leurs compositions ainsi que les emballages non récupérables de ces produits et matières (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_91" model="account.account.tag">
+        <field name="name">Les fournitures scolaires, produits et matières entrant dans leur composition (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_92" model="account.account.tag">
+        <field name="name">Aliments de bétail et des animaux de basse cour (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_93" model="account.account.tag">
+        <field name="name">Sucre raffiné ou aggloméré (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_94" model="account.account.tag">
+        <field name="name">Conserves de sardines (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_95" model="account.account.tag">
+        <field name="name">Lait en poudre (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_96" model="account.account.tag">
+        <field name="name">Savon de ménage (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_97" model="account.account.tag">
+        <field name="name">Voiture économique et produits et matières entrant dans sa fabrication (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_98" model="account.account.tag">
+        <field name="name">Péage dans les autoroutes (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_99" model="account.account.tag">
+        <field name="name">Ventilation des déductions</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_100" model="account.account.tag">
+        <field name="name">1-ACHATS NON IMMOBILISES (Base HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_101" model="account.account.tag">
+        <field name="name">Travaux à façons (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_102" model="account.account.tag">
+        <field name="name">Sous-traitance (travaux immobiliers) (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_103" model="account.account.tag">
+        <field name="name">Biens matériels (Base HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_104" model="account.account.tag">
+        <field name="name">-Achats à l'importation (20%) (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_105" model="account.account.tag">
+        <field name="name">-Achats à l'intérieur (20%) (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_106" model="account.account.tag">
+        <field name="name">-Achats à l'importation (14%) (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_107" model="account.account.tag">
+        <field name="name">-Achats à l'intérieur (14%) (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_108" model="account.account.tag">
+        <field name="name">-Achat à l'importation (7%) (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_109" model="account.account.tag">
+        <field name="name">-Achat à l'intérieur (7%) (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_110" model="account.account.tag">
+        <field name="name">Prestations de services (Base HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_111" model="account.account.tag">
+        <field name="name">Prestations de service au taux normal (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_112" model="account.account.tag">
+        <field name="name">Transport (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_113" model="account.account.tag">
+        <field name="name">Opérations de banque (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_114" model="account.account.tag">
+        <field name="name">Hôtels de voyageurs, et ensemble immobiliers à destination touristique (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_115" model="account.account.tag">
+        <field name="name">1-ACHATS NON IMMOBILISES (TVA déductible)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_116" model="account.account.tag">
+        <field name="name">Travaux à façons (TVA déductible)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_117" model="account.account.tag">
+        <field name="name">Sous-traitance (travaux immobiliers) (TVA déductible)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_118" model="account.account.tag">
+        <field name="name">Biens matériels (TVA déductible)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_119" model="account.account.tag">
+        <field name="name">-Achats à l'importation (20%) (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_120" model="account.account.tag">
+        <field name="name">-Achats à l'intérieur (20%) (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_121" model="account.account.tag">
+        <field name="name">-Achats à l'importation (14%) (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_122" model="account.account.tag">
+        <field name="name">-Achats à l'intérieur (14%) (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_123" model="account.account.tag">
+        <field name="name">-Achat à l'importation (7%) (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_124" model="account.account.tag">
+        <field name="name">-Achat à l'intérieur (7%) (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_125" model="account.account.tag">
+        <field name="name">Prestations de services (TVA déductible)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_126" model="account.account.tag">
+        <field name="name">Prestations de service au taux normal (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_127" model="account.account.tag">
+        <field name="name">Transport (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_128" model="account.account.tag">
+        <field name="name">Opérations de banque (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_129" model="account.account.tag">
+        <field name="name">Hôtels de voyageurs, et ensemble immobiliers à destination touristique (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_130" model="account.account.tag">
+        <field name="name">2-IMMOBILISATIONS (Base HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_131" model="account.account.tag">
+        <field name="name">-Achats à l'importation (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_132" model="account.account.tag">
+        <field name="name">-Achats à l'intérieur (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_133" model="account.account.tag">
+        <field name="name">-Livraison à soi-même autre que les constructions (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_134" model="account.account.tag">
+        <field name="name">-Installation et pose (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_135" model="account.account.tag">
+        <field name="name">-Constructions (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_136" model="account.account.tag">
+        <field name="name">-Livraison à soi-même de constructions (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_137" model="account.account.tag">
+        <field name="name">-Déduction complémentaire de la régularisation du prorata (HT)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_138" model="account.account.tag">
+        <field name="name">2-IMMOBILISATIONS (TVA déductible)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_139" model="account.account.tag">
+        <field name="name">-Achats à l'importation (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_140" model="account.account.tag">
+        <field name="name">-Achats à l'intérieur (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_141" model="account.account.tag">
+        <field name="name">-Livraison à soi-même autre que les constructions (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_142" model="account.account.tag">
+        <field name="name">-Installation et pose (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_143" model="account.account.tag">
+        <field name="name">-Constructions (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_144" model="account.account.tag">
+        <field name="name">-Livraison à soi-même de constructions (TVA)</field>
+        <field name="applicability">taxes</field>
+    </record>
+
+    <record id="tag_ma_145" model="account.account.tag">
+        <field name="name">-Déduction complémentaire de la régularisation du prorata (TVA)</field>
         <field name="applicability">taxes</field>
     </record>
 
@@ -80,7 +768,7 @@
     <field name="amount">20</field>
     <field name="amount_type">percent</field>
     <field name="chart_template_id" ref="l10n_kzc_temp_chart"/>
-    <field name="tag_ids" eval="[(6,0,[ref('tax_tag_01')])]"/>
+    <field name="tag_ids" eval="[(6,0,[ref('tag_ma_09'), ref('tag_ma_15')])]"/>
     <field name="tax_group_id" ref="tax_group_tva_20"/>
   </record>
   <record model="account.tax.template" id="tva_vt14">
@@ -92,7 +780,7 @@
     <field name="amount">14</field>
     <field name="amount_type">percent</field>
     <field name="chart_template_id" ref="l10n_kzc_temp_chart"/>
-    <field name="tag_ids" eval="[(6,0,[ref('tax_tag_02')])]"/>
+    <field name="tag_ids" eval="[(6,0,[ref('tag_ma_21'), ref('tag_ma_31')])]"/>
     <field name="tax_group_id" ref="tax_group_tva_14"/>
   </record>
   <record model="account.tax.template" id="tva_vt10">
@@ -104,7 +792,7 @@
     <field name="amount">10</field>
     <field name="amount_type">percent</field>
     <field name="chart_template_id" ref="l10n_kzc_temp_chart"/>
-    <field name="tag_ids" eval="[(6,0,[ref('tax_tag_03')])]"/>
+    <field name="tag_ids" eval="[(6,0,[ref('tag_ma_55'), ref('tag_ma_41')])]"/>
     <field name="tax_group_id" ref="tax_group_tva_10"/>
   </record>
   <record model="account.tax.template" id="tva_vt07">
@@ -116,7 +804,7 @@
     <field name="amount">7</field>
     <field name="amount_type">percent</field>
     <field name="chart_template_id" ref="l10n_kzc_temp_chart"/>
-    <field name="tag_ids" eval="[(6,0,[ref('tax_tag_04')])]"/>
+    <field name="tag_ids" eval="[(6,0,[ref('tag_ma_69'), ref('tag_ma_85')])]"/>
     <field name="tax_group_id" ref="tax_group_tva_7"/>
   </record>
   <record model="account.tax.template" id="tva_ac20">
@@ -128,7 +816,7 @@
     <field name="amount">20</field>
     <field name="amount_type">percent</field>
     <field name="chart_template_id" ref="l10n_kzc_temp_chart"/>
-    <field name="tag_ids" eval="[(6,0,[ref('tax_tag_06')])]"/>
+    <field name="tag_ids" eval="[(6,0,[ref('tag_ma_104'), ref('tag_ma_119')])]"/>
     <field name="tax_group_id" ref="tax_group_tva_20"/>
   </record>
   <record model="account.tax.template" id="tva_acim">
@@ -140,7 +828,7 @@
     <field name="amount">20</field>
     <field name="amount_type">percent</field>
     <field name="chart_template_id" ref="l10n_kzc_temp_chart"/>
-    <field name="tag_ids" eval="[(6,0,[ref('tax_tag_09')])]"/>
+    <field name="tag_ids" eval="[(6,0,[ref('tag_ma_130'), ref('tag_ma_138')])]"/>
     <field name="tax_group_id" ref="tax_group_tva_20"/>
   </record>
   <record model="account.tax.template" id="tva_ac14">
@@ -152,7 +840,7 @@
     <field name="amount">14</field>
     <field name="amount_type">percent</field>
     <field name="chart_template_id" ref="l10n_kzc_temp_chart"/>
-    <field name="tag_ids" eval="[(6,0,[ref('tax_tag_07')])]"/>
+    <field name="tag_ids" eval="[(6,0,[ref('tag_ma_106'), ref('tag_ma_121')])]"/>
     <field name="tax_group_id" ref="tax_group_tva_14"/>
   </record>
   <record model="account.tax.template" id="tva_ac10">
@@ -164,7 +852,7 @@
     <field name="amount">10</field>
     <field name="amount_type">percent</field>
     <field name="chart_template_id" ref="l10n_kzc_temp_chart"/>
-    <field name="tag_ids" eval="[(6,0,[ref('tax_tag_05')])]"/>
+    <field name="tag_ids" eval="[(6,0,[ref('tag_ma_103'), ref('tag_ma_118')])]"/>
     <field name="tax_group_id" ref="tax_group_tva_10"/>
   </record>
   <record model="account.tax.template" id="tva_ac07">
@@ -176,7 +864,7 @@
     <field name="amount">7</field>
     <field name="amount_type">percent</field>
     <field name="chart_template_id" ref="l10n_kzc_temp_chart"/>
-    <field name="tag_ids" eval="[(6,0,[ref('tax_tag_08')])]"/>
+    <field name="tag_ids" eval="[(6,0,[ref('tag_ma_108'), ref('tag_ma_123')])]"/>
     <field name="tax_group_id" ref="tax_group_tva_7"/>
   </record>
 </odoo>
