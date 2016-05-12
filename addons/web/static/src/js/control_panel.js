@@ -61,7 +61,6 @@ var ControlPanel = Widget.extend({
             $pager: this.$('.o_cp_pager'),
             $searchview: this.$('.o_cp_searchview'),
             $searchview_buttons: this.$('.o_search_options'),
-            $sidebar: this.$('.o_cp_sidebar'),
             $switch_buttons: this.$('.o_cp_switch_buttons'),
         };
 

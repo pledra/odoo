@@ -11,7 +11,6 @@ var formats = require('web.formats');
 var framework = require('web.framework');
 var Model = require('web.DataModel');
 var session = require('web.session');
-var Sidebar = require('web.Sidebar');
 var utils = require('web.utils');
 var View = require('web.View');
 

@@ -339,12 +339,12 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
         this.switch_buttons.$mono = _render_switch_buttons(mono_record_views);
     },
     /**
-     * Renders the control elements (buttons, sidebar, pager) of the current view.
+     * Renders the control elements (buttons, pager) of the current view.
      * Fills this.active_view.control_elements dictionnary with the rendered
      * elements and the adequate view switcher, to send to the ControlPanel.
      * Warning: it should be called before calling do_show on the view as the
-     * sidebar is extended to listen on the load_record event triggered as soon
-     * as do_show is done (the sidebar should thus be instantiated before).
+     * irvaluessections are extended to listen on the load_record event triggered as soon
+     * as do_show is done (the irvaluessections should thus be instantiated before).
      */
     render_view_control_elements: function() {
         if (!this.active_view.control_elements) {
@@ -354,7 +354,6 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
             if (!this.flags.headless) {
                 elements = {
                     $buttons: $("<div>"),
-                    $sidebar: $("<div>"),
                     $pager: $("<div>"),
                 };
             }

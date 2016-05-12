@@ -9,7 +9,6 @@ var Dialog = require('web.Dialog');
 var FormRenderingEngine = require('web.FormRenderingEngine');
 var Model = require('web.DataModel');
 var Pager = require('web.Pager');
-var Sidebar = require('web.Sidebar');
 var utils = require('web.utils');
 var View = require('web.View');
 
@@ -77,7 +76,6 @@ var FormView = View.extend(common.FieldManagerMixin, {
         this.has_been_loaded.done(function() {
             self._build_onchange_specs();
             self.on("change:actual_mode", self, self.toggle_buttons);
-            self.on("change:actual_mode", self, self.toggle_sidebar);
         });
         self.on("load_record", self, self.load_record);
         core.bus.on('clear_uncommitted_changes', this, function(chain_callbacks) {
@@ -169,6 +167,8 @@ var FormView = View.extend(common.FieldManagerMixin, {
             $dropdown.append($("<a/>", {"class": "btn btn-link dropdown-toggle", "data-toggle": "dropdown", "text": _t("More")})),
             $dropdown.append($dropdown_menu).appendTo($node);
         }
+
+        this.$buttons.filter(".o_ir_values_section").addClass("pull-right");
     },
     /**
      * Show or hide the buttons according to the actual_mode
@@ -312,10 +312,6 @@ var FormView = View.extend(common.FieldManagerMixin, {
             self.on_form_changed();
             self.rendering_engine.init_fields().then(function() {
                 self.is_initialized.resolve();
-                self.record_loaded.resolve();
-                if (self.sidebar) {
-                    self.sidebar.do_attachement_update(self.dataset, self.datarecord.id);
-                }
                 if (record.id) {
                     self.do_push_state({id:record.id});
                 } else {
@@ -893,9 +889,7 @@ var FormView = View.extend(common.FieldManagerMixin, {
                 this.dataset.index = 0;
             }
             this.update_pager();
-            if (this.sidebar) {
-                this.sidebar.do_attachement_update(this.dataset, this.datarecord.id);
-            }
+
             //openerp.log("The record has been created with id #" + this.datarecord.id);
             return $.when(this.reload()).then(function () {
                 self.trigger('record_created', r);

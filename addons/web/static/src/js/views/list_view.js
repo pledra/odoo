@@ -11,7 +11,6 @@ var Model = require('web.DataModel');
 var Pager = require('web.Pager');
 var pyeval = require('web.pyeval');
 var session = require('web.session');
-var Sidebar = require('web.Sidebar');
 var utils = require('web.utils');
 var View = require('web.View');
 
@@ -509,9 +508,6 @@ var ListView = View.extend({
             this.reload_content();
         }
     },
-    on_sidebar_export: function() {
-        new DataExport(this, this.dataset).open();
-    },
     /**
      * Handler for the result of eval_domain_and_context, actually perform the
      * searching
@@ -584,17 +580,11 @@ var ListView = View.extend({
 
         if (!ids.length) {
             this.dataset.index = 0;
-            if (this.sidebar) {
-                this.sidebar.do_hide();
-            }
             this.compute_aggregates();
             return;
         }
 
         this.dataset.index = _(this.dataset.ids).indexOf(ids[0]);
-        if (this.sidebar) {
-            this.sidebar.do_show();
-        }
 
         this.compute_aggregates(_(records).map(function (record) {
             return {count: 1, values: record};

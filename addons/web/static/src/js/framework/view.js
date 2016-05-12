@@ -3,9 +3,11 @@ odoo.define('web.View', function (require) {
 
 var core = require('web.core');
 var data = require('web.data');
-var data_manager = require('web.data_manager');
+var IrValuesSection = require('web.IrValuesSection');
 var pyeval = require('web.pyeval');
 var Widget = require('web.Widget');
+
+var _t = core._t;
 
 var View = Widget.extend({
     events: {
@@ -40,6 +42,11 @@ var View = Widget.extend({
         this.model = dataset.model;
         this.fields_view = fields_view;
         this.options = _.defaults({}, options, this.defaults);
+
+        this.ir_values_sections = { // Sidebar compatibility
+            print: {label: _t('Print'), klass: IrValuesSection, toolbar: 'print'},
+            other: {label: _t('Action'), klass: IrValuesSection, toolbar: 'action,relate'}
+        };
     },
     /**
      * Triggers event 'view_loaded'.
@@ -165,7 +172,7 @@ var View = Widget.extend({
         var self = this;
 
         var defs = [];
-        if (this.options.sidebar && (this.view_type == 'form' || this.view_type == 'tree')) { // Sidebar compatibility
+        if (this.options.sidebar && (this.fields_view.type == 'form' || this.fields_view.type == 'tree')) { // Sidebar compatibility
             _.each(this.ir_values_sections, function (section, name) {
                 var items = [];
 
