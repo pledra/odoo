@@ -59,7 +59,7 @@ var ListView = View.extend({
         'click thead th.o_column_sortable[data-id]': 'sort_by_column',
         'click .oe_view_nocontent': function() {
             if (this.$buttons) {
-                this.$buttons.width(this.$buttons.width() + 1).openerpBounce();
+                this.$buttons.openerpBounce();
             }
         },
     },
@@ -132,6 +132,7 @@ var ListView = View.extend({
         }
 
         this.options.deletable = this.options.deletable && this.is_action_enabled('delete');
+
         this.name = "" + this.fields_view.arch.attrs.string;
 
         // the view's number of records per page (|| section)
@@ -150,7 +151,7 @@ var ListView = View.extend({
             this.dataset.set_sort(default_order.split(','));
         }
     },
-    willStart: function() {
+    willStart: function () {
         // Retrieve the decoration defined on the model's list view
         this.decoration = _.pick(this.fields_view.arch.attrs, function(value, key) {
             return row_decoration.indexOf(key) >= 0;
@@ -159,6 +160,21 @@ var ListView = View.extend({
             return py.parse(py.tokenize(value));
         });
         return this._super();
+    },
+    start: function () {
+        if (!this.no_leaf && this.options.action_buttons !== false) {
+            if (this.is_action_enabled('create')) {
+                this.cp_button_create = 'btn-primary o_button_viewmode o_button_noselectedmode o_list_button_add';
+            }
+            this.cp_button_export = 'btn-default o_button_viewmode o_button_selectedmode';
+            if (this.is_action_enabled('delete')) {
+                this.cp_button_delete = 'btn-default o_button_viewmode o_button_selectedmode';
+            }
+            this.cp_button_save = 'btn-primary o_button_editmode';
+            this.cp_button_discard = 'btn-default o_button_editmode';
+        }
+
+        return this._super.apply(this, arguments);
     },
     /**
      * Set a custom Group construct as the root of the List View.
@@ -250,47 +266,41 @@ var ListView = View.extend({
         this.trigger('list_view_loaded', data, this.grouped);
         return $.when();
     },
-    /**
-     * Render the buttons according to the ListView.buttons template and
-     * add listeners on it.
-     * Set this.$buttons with the produced jQuery element
-     * @param {jQuery} [$node] a jQuery node where the rendered buttons should be inserted
-     * $node may be undefined, in which case the ListView inserts them into this.options.$buttons
-     * if it exists
-     */
-    render_buttons: function($node) {
-        if (!this.$buttons) {
-            this.$buttons = $(QWeb.render("ListView.buttons", {'widget': this}));
-            this.$buttons.find('.o_list_button_add').click(this.proxy('do_add_record'));
-            this.$buttons.appendTo($node);
+    create_cp_buttons: function () {
+        var self = this;
+        var def = this._super.apply(this, arguments);
+
+        if (!this.no_leaf && this.options.action_buttons !== false) {
+            this.$buttons = this.$buttons.add($(QWeb.render("ListView.buttons", {'widget': this})).not(':text'));
         }
+
+        return def.then(function () {
+            self.toggle_buttons(true); // Show or hide the buttons according to the view mode
+            self.toggle_selection_buttons(false);
+        });
     },
-    /**
-     * Instantiate and render the sidebar.
-     * Sets this.sidebar
-     * @param {jQuery} [$node] a jQuery node where the sidebar should be inserted
-     * $node may be undefined, in which case the ListView inserts the sidebar in
-     * this.options.$sidebar or in a div of its template
-     **/
-    render_sidebar: function($node) {
-        if (!this.sidebar && this.options.sidebar) {
-            this.sidebar = new Sidebar(this, {editable: this.is_action_enabled('edit')});
-            if (this.fields_view.toolbar) {
-                this.sidebar.add_toolbar(this.fields_view.toolbar);
-            }
-            this.sidebar.add_items('other', _.compact([
-                { label: _t("Export"), callback: this.on_sidebar_export },
-                this.fields_view.fields.active && {label: _t("Archive"), callback: this.do_archive_selected},
-                this.fields_view.fields.active && {label: _t("Unarchive"), callback: this.do_unarchive_selected},
-                this.is_action_enabled('delete') && { label: _t('Delete'), callback: this.do_delete_selected }
-            ]));
-
-            $node = $node || this.options.$sidebar;
-            this.sidebar.appendTo($node);
-
-            // Hide the sidebar by default (it will be shown as soon as a record is selected)
-            this.sidebar.do_hide();
-        }
+    toggle_buttons: function (view_mode) {
+        this.$buttons.filter('.o_button_viewmode').toggleClass('o_viewmode_hidden', !view_mode);
+        this.$buttons.filter('.o_button_editmode').toggleClass('o_viewmode_hidden', !!view_mode);
+    },
+    toggle_selection_buttons: function (selected) {
+        this.$buttons.filter('.o_button_selectedmode').toggleClass('o_selectionmode_hidden', !selected);
+        this.$buttons.filter('.o_button_noselectedmode').toggleClass('o_selectionmode_hidden', !!selected);
+    },
+    on_button_create: function () {
+        this.do_add_record();
+    },
+    on_button_export: function () {
+        new DataExport(this, this.dataset).open();
+    },
+    on_button_delete: function () {
+        this.do_delete_selected();
+    },
+    on_button_archive: function () {
+        this.do_archived_selected();
+    },
+    on_button_unarchive: function () {
+        this.do_unarchive_selected();
     },
     /**
      * Instantiate and render the pager and add listeners on it.
@@ -408,10 +418,9 @@ var ListView = View.extend({
         }, this));
     },
     do_show: function () {
-        this._super();
-        if (this.sidebar) {
-            // Hide the sidebar by default (will be shown once a record is selected)
-            this.sidebar.do_hide();
+        this._super.apply(this, arguments);
+        if (this.$buttons) {
+            this.toggle_selection_buttons(false);
         }
     },
     /**
@@ -481,7 +490,6 @@ var ListView = View.extend({
             return def;
         });
     },
-
     do_load_state: function(state, warm) {
         var reload = false;
         if (state.min && this.current_min !== state.min) {
@@ -567,6 +575,8 @@ var ListView = View.extend({
      * @param {Array} records selected record values
      */
     do_select: function (ids, records, deselected) {
+        this.toggle_selection_buttons(ids.length > 0);
+
         // uncheck header hook if at least one row has been deselected
         if (deselected) {
             this.$('thead .o_list_record_selector input').prop('checked', false);
@@ -861,7 +871,7 @@ var ListView = View.extend({
         this.$el.prepend(
             $('<div class="oe_view_nocontent">').html(this.options.action.help)
         );
-    }
+    },
 });
 core.view_registry.add('list', ListView);
 
@@ -1198,7 +1208,7 @@ ListView.List = Class.extend({
             render_cell: function () {
                 return self.render_cell.apply(self, arguments); }
         });
-    }
+    },
 });
 
 ListView.Groups = Class.extend({
@@ -1607,7 +1617,7 @@ ListView.Groups = Class.extend({
             .map(function (child) {
                 return child.get_records();
             }).flatten().value();
-    }
+    },
 });
 
 /**
@@ -1675,7 +1685,7 @@ var DataGroup =  Class.extend({
            });
            ifGroups(child_datagroups);
        });
-   }
+   },
 });
 
 var StaticDataGroup = DataGroup.extend({
@@ -1684,7 +1694,7 @@ var StaticDataGroup = DataGroup.extend({
    },
    list: function (fields, ifGroups, ifRecords) {
        return ifRecords(this.dataset);
-   }
+   },
 });
 
 var Column = Class.extend({
@@ -1806,7 +1816,7 @@ var ColumnButton = Column.extend({
                 || isNaN(row_data.id.value)
                 || data.BufferedDataSet.virtual_id_regex.test(row_data.id.value)
         });
-    }
+    },
 });
 
 var ColumnBoolean = Column.extend({
@@ -1818,7 +1828,7 @@ var ColumnBoolean = Column.extend({
     _format: function (row_data, options) {
         return _.str.sprintf('<div class="o_checkbox"><input type="checkbox" %s disabled="disabled"/><span/></div>',
                  row_data[this.id].value ? 'checked="checked"' : '');
-    }
+    },
 });
 
 var ColumnBinary = Column.extend({
@@ -1854,7 +1864,7 @@ var ColumnBinary = Column.extend({
             size: utils.binary_to_binsize(value),
             download: filename,
         });
-    }
+    },
 });
 
 var ColumnChar = Column.extend({
@@ -1869,7 +1879,7 @@ var ColumnChar = Column.extend({
             return value.replace(/[\s\S]/g, _.escape(this.replacement));
         }
         return this._super(row_data, options);
-    }
+    },
 });
 
 var ColumnProgressBar = Column.extend({
@@ -1883,7 +1893,7 @@ var ColumnProgressBar = Column.extend({
             '<progress value="<%-value%>" max="100"><%-value%>%</progress>')({
                 value: _.str.sprintf("%.0f", row_data[this.id].value || 0)
             });
-    }
+    },
 });
 
 var ColumnHandle = Column.extend({
@@ -1904,7 +1914,7 @@ var ColumnHandle = Column.extend({
      */
     _format: function (row_data, options) {
         return '<span class="o_row_handle fa fa-arrows"/>';
-    }
+    },
 });
 
 var ColumnMany2OneButton = Column.extend({
@@ -1926,7 +1936,7 @@ var ColumnMany2Many = Column.extend({
             row_data[this.id] = row_data[this.id + '__display'];
         }
         return this._super(row_data, options);
-    }
+    },
 });
 
 var ColumnReference = Column.extend({
@@ -1940,7 +1950,7 @@ var ColumnReference = Column.extend({
             }
         }
         return this._super(row_data, options);
-    }
+    },
 });
 
 var ColumnUrl = Column.extend({
@@ -1967,11 +1977,10 @@ var ColumnUrl = Column.extend({
             });
         }
         return this._super(row_data, options);
-    }
+    },
 });
 
 var ColumnMonetary = Column.extend({
-
     _format: function (row_data, options) {
         var options = pyeval.py_eval(this.options || '{}');
         //name of currency field is defined either by field attribute, in view options or we assume it is named currency_id

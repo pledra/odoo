@@ -720,7 +720,7 @@ var FieldX2Many = AbstractManyField.extend({
         this.is_loaded.done(function() {
             self.on("change:effective_readonly", self, destroy);
         });
-        this.view.on("on_button_cancel", this, destroy);
+        this.view.on("on_button_discard", this, destroy);
         this.is_started = true;
         this.reload_current_view();
     },
@@ -1341,12 +1341,6 @@ var FieldMany2Many = FieldX2Many.extend({
 
 var FieldMany2ManyKanban = FieldMany2Many.extend({
     default_view: 'kanban',
-    init: function() {
-        this._super.apply(this, arguments);
-        this.view_options = _.extend({}, this.view_options, {
-            'create_text': _t("Add"),
-        });
-    }
 });
 
 var FieldMany2ManyTags = AbstractManyField.extend(common.CompletionFieldMixin, common.ReinitializeFieldMixin, {

@@ -37,9 +37,9 @@ var FormViewBarcodeHandler = common.AbstractField.extend(BarcodeHandlerMixin, {
         this.map_barcode_method = {
             'O-CMD.NEW': _.bind(this.form_view.on_button_new, this.form_view),
             'O-CMD.EDIT': _.bind(this.form_view.on_button_edit, this.form_view),
-            'O-CMD.CANCEL': _.bind(this.form_view.on_button_cancel, this.form_view),
+            'O-CMD.CANCEL': _.bind(this.form_view.on_button_discard, this.form_view),
             // FIXME: on_button_save shouldn't mix view and model concerns (it expects to be used as onclick handler)
-            'O-CMD.SAVE': _.bind(this.form_view.on_button_save, this.form_view, {target: $('.o_cp_buttons .o_form_button_save')}),
+            'O-CMD.SAVE': _.bind(this.form_view.on_button_save, this.form_view, {target: $('.o_cp_buttons .o_cp_button_save')}),
         };
         // Old design pager actions
         if (this.form_view.execute_pager_action) {

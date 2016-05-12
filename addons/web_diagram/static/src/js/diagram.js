@@ -334,24 +334,14 @@ var DiagramView = View.extend({
             form_controller.fields[self.connectors.attrs.destination].dirty = true;
         });
     },
-
-    /**
-     * Render the buttons according to the DiagramView.buttons template and add listeners on it.
-     * Set this.$buttons with the produced jQuery element
-     * @param {jQuery} [$node] a jQuery node where the rendered buttons should be inserted
-     * $node may be undefined, in which case they are inserted into this.options.$buttons
-     */
-    render_buttons: function($node) {
-        var self = this;
-
-        this.$buttons = $(QWeb.render("DiagramView.buttons", {'widget': this}));
-        this.$buttons.on('click', '.o_diagram_new_button', function() {
-            self.add_node();
-        });
-
-        this.$buttons.appendTo($node);
+    create_cp_buttons: function() {
+        var def = this._super.apply(this, arguments);
+        this.$buttons = this.$buttons.add($(QWeb.render("DiagramView.buttons", {'widget': this})).not(':text'));
+        return def;
     },
-
+    on_button_addnode: function () {
+        this.add_node.apply(this, arguments);
+    },
     /**
      * Instantiate and render the pager and add listeners on it.
      * Set this.pager

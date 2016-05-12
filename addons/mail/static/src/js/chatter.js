@@ -190,7 +190,7 @@ var ChatterComposer = composer.BasicComposer.extend({
                     deferred.resolve();
                 });
                 dialog.opened().then(function () {
-                    dialog.view_form.on('on_button_cancel', self, function () {
+                    dialog.view_form.on('on_button_discard', self, function () {
                         names_to_remove.push(partner_name);
                         if (partner_id) {
                             recipient_ids_to_remove.push(partner_id);

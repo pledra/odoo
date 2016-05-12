@@ -47,72 +47,54 @@ function jsonp(form, attributes, callback) {
     $(form).ajaxSubmit(attributes);
 }
 
-function execute_import_action () {
-    var self = this;
-    this.do_action({
-        type: 'ir.actions.client',
-        tag: 'import',
-        params: {
-            model: this.dataset.model,
-            // this.dataset.get_context() could be a compound?
-            // not sure. action's context should be evaluated
-            // so safer bet. Odd that timezone & al in it
-            // though
-            context: this.getParent().action.context,
-        }
-    }, {
-        on_reverse_breadcrumb: function () {
-            return self.reload();
-        },
-    });
-    return false;
-}
+var import_extension = {
+    create_cp_buttons: function () {
+        var def = this._super.apply(this, arguments);
+
+        this.$buttons = this.$buttons.add($('<button/>', {
+            type: 'button',
+            html: _t('Import'),
+            'class': 'btn btn-sm btn-default o_button_viewmode o_button_noselectedmode o_button_import',
+            'data-action': 'import',
+            'data-sequence': 25, // after create
+        }));
+
+        return def;
+    },
+
+    on_button_import: function () {
+        var self = this;
+        this.do_action({
+            type: 'ir.actions.client',
+            tag: 'import',
+            params: {
+                model: this.dataset.model,
+                // this.dataset.get_context() could be a compound?
+                // not sure. action's context should be evaluated
+                // so safer bet. Odd that timezone & al in it
+                // though
+                context: this.getParent().action.context,
+            }
+        }, {
+            on_reverse_breadcrumb: function () {
+                return self.reload();
+            },
+        });
+        return false;
+    },
+};
 
 // if true, the 'Import', 'Export', etc... buttons will be shown
 ListView.prototype.defaults.import_enabled = true;
-ListView.include({
-    /**
-     * Extend the render_buttons function of ListView by adding an event listener
-     * on the import button.
-     * @return {jQuery} the rendered buttons
-     */
-    render_buttons: function() {
-        var self = this;
-        var add_button = false;
-        if (!this.$buttons) { // Ensures that this is only done once
-            add_button = true;
-        }
-        this._super.apply(this, arguments); // Sets this.$buttons
-        if(add_button) {
-            this.$buttons.on('click', '.o_button_import', execute_import_action.bind(this));
-        }
-    }
-});
+ListView.include(import_extension);
 
-KanbanView.include({
-    /**
-     * Extend the render_buttons function of KanbanView by adding an event listener
-     * on the import button.
-     * @return {jQuery} the rendered buttons
-     */
-    render_buttons: function() {
-        var self = this;
-        var add_button = false;
-        if (!this.$buttons) { // Ensures that this is only done once
-            add_button = true;
-        }
-        this._super.apply(this, arguments); // Sets this.$buttons
-        if(add_button && this.$buttons) {
-            this.$buttons.on('click', '.o_button_import', execute_import_action.bind(this));
-        }
-    },
-
+KanbanView.include(_.extend({}, import_extension, {
     set_default_options: function (options) {
         this._super(_.defaults(options || {}, {
             import_enabled: true,
         }));
     },
-});
+}));
 
 var DataImport = Widget.extend(ControlPanelMixin, {
     template: 'ImportView',

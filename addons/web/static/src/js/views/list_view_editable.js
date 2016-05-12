@@ -183,12 +183,12 @@ ListView.include(/** @lends instance.web.ListView# */{
             }
         });
         this.on('edit:after', this, function () {
-            self.$el.add(self.$buttons).addClass('o-editing');
+            self.toggle_buttons(false);
             self.$('.ui-sortable').sortable('disable');
         });
         this.on('save:after cancel:after', this, function () {
             self.$('.ui-sortable').sortable('enable');
-            self.$el.add(self.$buttons).removeClass('o-editing');
+            self.toggle_buttons(true);
         });
     },
     destroy: function () {
@@ -278,27 +278,12 @@ ListView.include(/** @lends instance.web.ListView# */{
         }
         return result;
     },
-    /**
-     * Extend the render_buttons function of ListView by adding event listeners
-     * in the case of an editable list.
-     * @return {jQuery} the rendered buttons
-     */
-    render_buttons: function() {
-        var add_button = !this.$buttons; // Ensures that this is only done once
-        var result = this._super.apply(this, arguments); // Sets this.$buttons
-
-        if (add_button && (this.editable() || this.grouped)) {
-            var self = this;
-            this.$buttons
-                .off('click', '.o_list_button_save')
-                .on('click', '.o_list_button_save', this.proxy('save_edition'))
-                .off('click', '.o_list_button_discard')
-                .on('click', '.o_list_button_discard', function (e) {
-                    e.preventDefault();
-                    self.cancel_edition();
-                });
-        }
-        return result;
+    on_button_save: function () {
+        this.proxy('save_edition').apply(this, arguments);
+    },
+    on_button_discard: function (e) {
+        e.preventDefault();
+        this.cancel_edition();
     },
     do_button_action: function (name, id, callback) {
         var self = this;

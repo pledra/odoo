@@ -189,7 +189,7 @@ Tour.register({
             title:      "save discussion",
             waitFor:    '.tab-pane:eq(1) .o_form_field.o_view_manager_content tbody tr[data-id]:eq(2)',
             waitNot:    '.tab-pane:eq(1) .o_form_field.o_view_manager_content tbody tr[data-id]:eq(3)',
-            element:    'button.o_form_button_save'
+            element:    'button.o_cp_button_save'
         },
 
         // check saved data
@@ -211,7 +211,7 @@ Tour.register({
         // edit
         {
             title:      "edit discussion",
-            element:    'button.o_form_button_edit'
+            element:    'button.o_cp_button_edit'
         },
         {
             title:      "change tab to Participants",
@@ -326,7 +326,7 @@ Tour.register({
         {
             title:      "save discussion",
             waitNot:    'tr:has(td:containsExact(e))',
-            element:    'button.o_form_button_save'
+            element:    'button.o_cp_button_save'
         },
 
         // check saved data
@@ -351,7 +351,7 @@ Tour.register({
         // edit
         {
             title:      "edit discussion",
-            element:    'button.o_form_button_edit'
+            element:    'button.o_cp_button_edit'
         },
 
         // add message ddd
@@ -406,7 +406,7 @@ Tour.register({
         {
             title:      "cancel change",
             waitFor:    '.tab-pane:eq(0) .o_form_field.o_view_manager_content tbody:has(tr td:containsExact(ddd))',
-            element:    '.o_form_button_cancel',
+            element:    '.o_cp_button_discard',
             onload: function () {
                 // remove the window alert (can't click on it with JavaScript tour)
                 $('.oe_form_dirty').removeClass('oe_form_dirty');
@@ -433,7 +433,7 @@ Tour.register({
         },
         {
             title:      "click on edit",
-            element:    '.o_form_button_edit',
+            element:    '.o_cp_button_edit',
         },
 
         {
@@ -525,7 +525,7 @@ Tour.register({
         {
             title:      "save discussion",
             waitNot:    'tr:has(td:containsExact(d))',
-            element:    'button.o_form_button_save'
+            element:    'button.o_cp_button_save'
         },
 
         // check saved data
@@ -542,7 +542,7 @@ Tour.register({
         // edit
         {
             title:      "edit discussion",
-            element:    'button.o_form_button_edit'
+            element:    'button.o_cp_button_edit'
         },
 
         // add message eee
@@ -561,7 +561,7 @@ Tour.register({
         {
             title:      "save discussion",
             waitFor:    'textarea.o_form_field[data-fieldname="body"]:propValueContains(eee)',
-            element:    'button.o_form_button_save'
+            element:    'button.o_cp_button_save'
         },
 
         // check saved data

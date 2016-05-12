@@ -358,8 +358,7 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
                     $pager: $("<div>"),
                 };
             }
-            view_controller.render_buttons($buttons ? $buttons.empty() : elements.$buttons);
-            view_controller.render_sidebar(elements.$sidebar);
+            this.render_cp_buttons($buttons ? $buttons.empty() : elements.$buttons, view_controller);
             view_controller.render_pager(elements.$pager);
             // Remove the unnecessary outer div
             elements = _.mapObject(elements, function($node) {
@@ -378,6 +377,10 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
             this.active_view.control_elements = elements;
         }
         return this.active_view.control_elements;
+    },
+    render_cp_buttons: function ($node, view_controller) {
+        var $buttons = $();
+        view_controller.render_cp_buttons($node || view_controller.options.$sidebar, $buttons); // Buttons added by the view
     },
     /**
      * Sets up the current viewmanager's search view.

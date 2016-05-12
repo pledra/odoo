@@ -130,39 +130,73 @@ var PivotView = View.extend({
         });
         return this._super();
     },
-    /**
-     * Render the buttons according to the PivotView.buttons template and
-     * add listeners on it.
-     * Set this.$buttons with the produced jQuery element
-     * @param {jQuery} [$node] a jQuery node where the rendered buttons should be inserted
-     * $node may be undefined, in which case the PivotView does nothing
-     */
-    render_buttons: function ($node) {
-        if ($node) {
-            var self = this;
+    create_cp_buttons: function () {
+        var def = this._super.apply(this, arguments);
+        
+        var context = {measures: _.pairs(_.omit(this.measures, '__count__'))};
+        this.$buttons = this.$buttons.add($(QWeb.render('PivotView.buttons', context)).not(':text'));
 
-            var context = {measures: _.pairs(_.omit(this.measures, '__count__'))};
-            this.$buttons = $(QWeb.render('PivotView.buttons', context));
-            this.$buttons.click(this.on_button_click.bind(this));
-            this.active_measures.forEach(function (measure) {
-                self.$buttons.find('li[data-field="' + measure + '"]').addClass('selected');
-            });
-            this.$buttons.find('button').tooltip();
+        var self = this;
+        this.active_measures.forEach(function (measure) {
+            self.$buttons.find('li[data-field="' + measure + '"]').addClass('selected');
+        });
+        this.$buttons.find('button').tooltip();
 
-            this.$buttons.appendTo($node);
-        }
+        return def;
+
     },
-    /**
-     * Instantiate and render the sidebar.
-     * Sets this.sidebar
-     * @param {jQuery} [$node] a jQuery node where the sidebar should be inserted
-     * $node may be undefined, in which case the PivotView does nothing
-     **/
-    render_sidebar: function($node) {
-        if (this.xlwt_installed && $node && this.options.sidebar) {
-            this.sidebar = new Sidebar(this, {editable: this.is_action_enabled('edit')});
-            this.sidebar.appendTo($node);
+    on_button_measure: function (e) {
+        var $parent = $(e.target).parent();
+        var field = $parent.data('field');
+        $parent.toggleClass('selected');
+        e.preventDefault();
+        e.stopPropagation();
+        return this.toggle_measure(field);
+    },
+    on_button_flip: function () {
+        var temp = this.main_col;
+        this.main_col = this.main_row;
+        this.main_row = temp;
+        this.display_table();
+    },
+    on_button_expand: function () {
+        this.load_data(false).then(this.proxy('display_table'));
+    },
+    on_button_xls: function () {
+        framework.blockUI();
+        var nbr_measures = this.active_measures.length,
+            headers = this.compute_headers(),
+            measure_row = nbr_measures > 1 ? _.last(headers) : [],
+            rows = this.compute_rows(),
+            i, j, value;
+        headers[0].splice(0,1);
+        // process measure_row
+        for (i = 0; i < measure_row.length; i++) {
+            measure_row[i].measure = this.measures[measure_row[i].measure].string;
         }
+        // process all rows
+        for (i =0, j, value; i < rows.length; i++) {
+            for (j = 0; j < rows[i].values.length; j++) {
+                value = rows[i].values[j];
+                rows[i].values[j] = {
+                    is_bold: (i === 0) || ((this.main_col.width > 1) && (j >= rows[i].values.length - nbr_measures)),
+                    value:  (value === undefined) ? "" : value,
+                };
+            }
+        }
+        var table = {
+            headers: _.initial(headers),
+            measure_row: measure_row,
+            rows: rows,
+            nbr_measures: nbr_measures,
+            title: this.title,
+        };
+        session.get_file({
+            url: '/web/pivot/export_xls',
+            data: {data: JSON.stringify(table)},
+            complete: framework.unblockUI,
+            error: crash_manager.rpc_error.bind(crash_manager)
+        });
     },
     prepare_fields: function (fields) {
         var self = this,
@@ -215,22 +249,6 @@ var PivotView = View.extend({
             pivot_column_groupby: this.main_col.groupbys,
             pivot_row_groupby: this.main_row.groupbys,
         };
-    },
-    on_button_click: function (event) {
-        var $target = $(event.target);
-        if ($target.hasClass('o_pivot_flip_button')) { return this.flip(); }
-        if ($target.hasClass('o_pivot_expand_button')) { return this.expand_all(); }
-        if ($target.parents('.o_pivot_measures_list').length) {
-            var parent = $target.parent();
-            var field = parent.data('field');
-            parent.toggleClass('selected');
-            event.preventDefault();
-            event.stopPropagation();
-            return this.toggle_measure(field);
-        }
-        if ($target.hasClass('o_pivot_download')) {
-            return this.download_table();
-        }
     },
     on_open_header_click: function (event) {
         var id = $(event.target).data('id'),
@@ -376,9 +394,6 @@ var PivotView = View.extend({
                 }
             }
         });
-    },
-    expand_all: function () {
-        this.load_data(false).then(this.proxy('display_table'));
     },
     // returns a deferred that resolve when the data is loaded.
     load_data: function (update) {
@@ -773,12 +788,6 @@ var PivotView = View.extend({
         }
         if (id2 in this.cells) return this.cells[id2][id1];
     },
-    flip: function () {
-        var temp = this.main_col;
-        this.main_col = this.main_row;
-        this.main_row = temp;
-        this.display_table();
-    },
     toggle_measure: function (field) {
         if (_.contains(this.active_measures, field)) {
             this.active_measures = _.without(this.active_measures, field);
@@ -787,46 +796,6 @@ var PivotView = View.extend({
             this.active_measures.push(field);            
             this.load_data().then(this.display_table.bind(this));
         }
-    },
-    download_table: function () {
-        framework.blockUI();
-        var nbr_measures = this.active_measures.length,
-            headers = this.compute_headers(),
-            measure_row = nbr_measures > 1 ? _.last(headers) : [],
-            rows = this.compute_rows(),
-            i, j, value;
-        headers[0].splice(0,1);
-        // process measure_row
-        for (i = 0; i < measure_row.length; i++) {
-            measure_row[i].measure = this.measures[measure_row[i].measure].string;
-        }
-        // process all rows
-        for (i =0, j, value; i < rows.length; i++) {
-            for (j = 0; j < rows[i].values.length; j++) {
-                value = rows[i].values[j];
-                rows[i].values[j] = {
-                    is_bold: (i === 0) || ((this.main_col.width > 1) && (j >= rows[i].values.length - nbr_measures)),
-                    value:  (value === undefined) ? "" : value,
-                };
-            }
-        }
-        var table = {
-            headers: _.initial(headers),
-            measure_row: measure_row,
-            rows: rows,
-            nbr_measures: nbr_measures,
-            title: this.title,
-        };
-        if(table.measure_row.length + 1 > 256) {
-            c.show_message(_t("For Excel compatibility, data cannot be exported if there is more than 256 columns.\n\nTip: try to flip axis, filter further or reduce the number of measures."));
-            return;
-        }
-        session.get_file({
-            url: '/web/pivot/export_xls',
-            data: {data: JSON.stringify(table)},
-            complete: framework.unblockUI,
-            error: crash_manager.rpc_error.bind(crash_manager)
-        });    
     },
 });
 
@@ -855,5 +824,4 @@ function find_path_in_tree(root, path) {
 core.view_registry.add('pivot', PivotView);
 
 return PivotView;
-
 });

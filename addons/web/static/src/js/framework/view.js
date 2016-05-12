@@ -147,16 +147,85 @@ var View = Widget.extend({
      * It should be called after start().
      * @param {jQuery} [$node] a jQuery node where the rendered buttons should be inserted
      * $node may be undefined, in which case the View can insert the buttons somewhere else
+     * @param {jQuery} [$buttons] jQuery button nodes the caller would want to be part of
+     * the rendered view buttons
      */
-    render_buttons: function($node) {
+    render_cp_buttons: function($node, $buttons) {
+        if (this.$buttons) {
+            return;
+        }
+
+        this.$buttons = $buttons || $();
+        this.create_cp_buttons();
+        this.sort_cp_buttons();
+        this.bind_cp_buttons_events();
+        this.append_cp_buttons($node);
     },
-    /**
-     * This function should render the sidebar of the view.
-     * It should be called after start().
-     * @param {jQuery} [$node] a jQuery node where the sidebar should be inserted
-     * $node may be undefined, in which case the View can insert the sidebar somewhere else
-     */
-    render_sidebar: function($node) {
+    create_cp_buttons: function () {
+        var self = this;
+
+        var defs = [];
+        if (this.options.sidebar && (this.view_type == 'form' || this.view_type == 'tree')) { // Sidebar compatibility
+            _.each(this.ir_values_sections, function (section, name) {
+                var items = [];
+
+                if (section.toolbar) {
+                    var toolbar_types = section.toolbar.split(',');
+                    _.each(toolbar_types, function (type) {
+                        var tItems = self.fields_view.toolbar[type];
+                        for (var i = 0; i < tItems.length; i++) {
+                            items.push(_.extend({}, tItems[i], {
+                                label: tItems[i]['name'],
+                                action: tItems[i],
+                            }));
+                        }
+                    });
+                }
+
+                section.instance = new (section.klass)(self, name, section.label, items, {editable: self.is_action_enabled('edit')});
+                var $tmpdv = $('<div/>');
+                defs.push(section.instance.appendTo($tmpdv).then(function () {
+                    self.$buttons = self.$buttons.add($tmpdv.children());
+                }));
+            });
+        }
+
+        this.$buttons = this.$buttons.add($(core.qweb.render('View.buttons', {
+            widget: this,
+            actions: {
+                'edit':      [_t('Edit'), 'E'],
+                'create':    [_t('Create'), 'C'],
+                'save':      [_t('Save'), 'S'],
+                'discard':   [_t('Discard'), 'D'],
+                'export':    [_t('Export')],
+                'duplicate': [_t('Duplicate')],
+                'delete':    [_t('Delete')],
+            },
+        })).not(':text'));
+
+        return $.when.apply($, defs);
+    },
+    sort_cp_buttons: function () { // order according to sequence (default to 0)
+        this.$buttons = $(this.$buttons.toArray().sort(function(a, b) {
+            var aVal = parseInt(a.getAttribute('data-sequence') || 0),
+                bVal = parseInt(b.getAttribute('data-sequence') || 0);
+            return aVal - bVal;
+        }));
+    },
+    bind_cp_buttons_events: function () {
+        var self = this;
+        this.$buttons.on('click', function (e) {
+            var action = $(e.target).data('action');
+            if (action) {
+                self['on_button_' + action].apply(self, arguments);
+            }
+        });
+    },
+    append_cp_buttons: function ($node) {
+        var $node = $node || this.options.$buttons;
+        if ($node) {
+            this.$buttons.appendTo($node);
+        }
     },
     /**
      * This function should render the pager of the view.
@@ -201,9 +270,8 @@ var View = Widget.extend({
     },
     get_scrollTop: function() {
         return this.scrollTop;
-    }
+    },
 });
 
 return View;
-
 });

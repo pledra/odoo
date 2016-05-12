@@ -63,10 +63,7 @@
     <div class="o_control_panel">
         <ol class="breadcrumb"/>
         <div class="o_cp_searchview"/>
-        <div class="o_cp_left">
-            <div class="o_cp_buttons"/>
-            <div class="o_cp_sidebar"/>
-        </div>
+        <div class="o_cp_buttons"/>
         <div class="o_cp_right">
             <div class="btn-group o_search_options"/>
             <div class="o_cp_pager"/>
@@ -273,6 +270,16 @@
                 </li>
             </ul>
         </div>
+        </t>
+</t>
+<t t-name="View.buttons">
+    <t t-foreach="actions" t-as="action">
+        <button t-if="widget['cp_button_' + action]"
+                type="button"
+                t-attf-class="btn btn-sm #{widget['cp_button_' + action]} o_cp_button_#{action}"
+                t-att-data-action="action"
+                t-att-data-sequence="10 + 10 * action_index"
+                t-att-accesskey="(action_value.length > 1)? action_value[1] : ''"><t t-esc="action_value[0]"/></button>
     </t>
 </t>
 
@@ -355,21 +362,19 @@
 </div>
 
 <t t-name="ListView.buttons">
-    <t t-if="!widget.no_leaf and widget.options.action_buttons !== false">
-        <div class="o_list_buttons">
-            <t t-if="widget.options.addable and widget.is_action_enabled('create')">
-                <button type="button" class="btn btn-primary btn-sm o_list_button_add" accesskey="c">
-                    <t t-esc="widget.options.addable"/>
-                </button>
-            </t>
-            <button type="button" class="btn btn-primary btn-sm o_list_button_save" accesskey="s">
-                Save
-            </button>
-            <button type="button" class="btn btn-default btn-sm o_list_button_discard" accesskey="j">
-                Discard
-            </button>
-        </div>
-    </t>
+    <div t-if="widget.fields_view.fields.active" class="btn-group o_button_editmode o_button_selectedmode" data-sequence="100">
+        <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"/>
+        <ul class="dropdown-menu">
+            <li>
+                <a href="#" data-action="archive" class="o_list_button_archive">
+                    Archive
+                </a>
+                <a href="#" data-action="unarchive" class="o_list_button_unarchive">
+                    Unarchive
+                </a>
+            </li>
+        </ul>
+    </div>
 </t>
 
 <t t-name="ListView.rows" t-foreach="records.length" t-as="index">
@@ -427,28 +432,6 @@
     </t>
 </t>
 
-<t t-name="FormView.buttons">
-    <div class="o_form_buttons_view">
-        <button t-if="widget.is_action_enabled('edit')" type="button"
-                class="btn btn-primary btn-sm o_form_button_edit" accesskey="a">
-            Edit
-        </button>
-        <button t-if="widget.is_action_enabled('create')" type="button"
-                class="btn btn-default btn-sm o_form_button_create" accesskey="c">
-            Create
-        </button>
-    </div>
-    <div class="o_form_buttons_edit">
-        <button type="button"
-                class="btn btn-primary btn-sm o_form_button_save" accesskey="s">
-            Save
-        </button>
-        <button type="button"
-                class="btn btn-default btn-sm o_form_button_cancel" accesskey="j">
-            Discard
-        </button>
-    </div>
-</t>
 <form t-name="FormView.set_default">
     <t t-set="args" t-value="widget.args"/>
     <table style="width: 100%">
@@ -553,21 +536,19 @@
 
 <t t-name="GraphView.buttons">
     <div class="btn-group btn-group-sm" role="group">
-        <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
-            Measures <span class="caret"/>
-        </button>
+        <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">Measures</button>
         <ul class="dropdown-menu o_graph_measures_list">
             <li t-foreach="measures" t-as="measure" t-att-data-field="measure[0]">
-                <a href="#"><t t-esc="measure[1].string"/></a>
+                <a href="#" data-action="measure"><t t-esc="measure[1].string"/></a>
             </li>
             <li class="divider"></li>
-            <li data-field="__count__"><a href="#">Quantity</a></li>
+            <li data-field="__count__"><a href="#" data-action="measure">Quantity</a></li>
         </ul>
     </div>
     <div class="btn-group btn-group-sm">
-        <button class="btn btn-default fa fa-bar-chart-o o_graph_button" title="Bar Chart" data-mode="bar"/>
-        <button class="btn btn-default fa fa-line-chart o_graph_button" title="Line Chart" data-mode="line"/>
-        <button class="btn btn-default fa fa-pie-chart o_graph_button" title="Pie Chart" data-mode="pie"/>
+        <button class="btn btn-default fa fa-bar-chart-o o_graph_button" title="Bar Chart" data-action="changemode" data-mode="bar"/>
+        <button class="btn btn-default fa fa-line-chart o_graph_button" title="Line Chart" data-action="changemode" data-mode="line"/>
+        <button class="btn btn-default fa fa-pie-chart o_graph_button" title="Pie Chart" data-action="changemode" data-mode="pie"/>
     </div>
 </t>
 
@@ -582,21 +563,19 @@
 
 <t t-name="PivotView.buttons">
     <div class="btn-group btn-group-sm" role="group">
-        <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
-            Measures <span class="caret"/>
-        </button>
+        <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">Measures</button>
         <ul class="dropdown-menu o_pivot_measures_list">
             <li t-foreach="measures" t-as="measure" t-att-data-field="measure[0]">
-                <a href="#"><t t-esc="measure[1].string"/></a>
+                <a href="#" data-action="measure"><t t-esc="measure[1].string"/></a>
             </li>
             <li class="divider"></li>
-            <li data-field="__count__"><a href="#">Quantity</a></li>
+            <li data-field="__count__"><a href="#" data-action="measure">Quantity</a></li>
         </ul>
     </div>
     <div class="btn-group btn-group-sm">
-        <button class="btn btn-default fa fa-expand o_pivot_flip_button" title="Flip axis"/>
-        <button class="btn btn-default fa fa-arrows-alt o_pivot_expand_button" title="Expand all"/>
-        <button class="btn btn-default fa fa-download o_pivot_download" title="Download xls"/>
+        <button class="btn btn-default fa fa-expand" data-action="flip" title="Flip axis"/>
+        <button class="btn btn-default fa fa-arrows-alt" data-action="expand" title="Expand all"/>
+        <button class="btn btn-default fa fa-download" data-action="xls" title="Download xls"/>
     </div>
 </t>
 

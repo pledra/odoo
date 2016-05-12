@@ -1233,7 +1233,7 @@ var FieldBinaryImage = FieldBinary.extend({
         var self = this;
         $img.click(function(e) {
             if(self.view.get("actual_mode") == "view") {
-                var $button = $(".o_form_button_edit");
+                var $button = $(".o_cp_button_edit");
                 $button.openerpBounce();
                 e.stopPropagation();
             }

@@ -865,8 +865,8 @@ var FormViewDialog = ViewDialog.extend({
         if(!options || !options.buttons) {
             options = options || {};
             options.buttons = [
-                {text: (readonly ? _t("Close") : _t("Discard")), classes: "btn-default o_form_button_cancel", close: true, click: function() {
-                    self.view_form.trigger('on_button_cancel');
+                {text: (readonly ? _t("Close") : _t("Discard")), classes: "btn-default", close: true, click: function() {
+                    self.view_form.trigger('on_button_discard');
                 }}
             ];
 
@@ -1043,7 +1043,7 @@ var SelectCreateDialog = ViewDialog.extend({
             });
 
             var buttons = [
-                {text: _t("Cancel"), classes: "btn-default o_form_button_cancel", close: true}
+                {text: _t("Cancel"), classes: "btn-default", close: true}
             ];
             if(!self.options.no_create) {
                 buttons.splice(0, 0, {text: _t("Create"), classes: "btn-primary", click: function() {

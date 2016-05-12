@@ -15,9 +15,10 @@
         }
     }
 
-    // Sidebar
-    .o_cp_sidebar {
-        padding-right: 10px;
+    .o_cp_buttons {
+        .o_viewmode_hidden, .o_selectionmode_hidden {
+            display: none;
+        }
 
         .o_hidden_input_file {
             position: relative;
@@ -41,6 +42,11 @@
             position: absolute;
             top: 5px;
             right: 10px;
+        }
+
+        .dropdown-toggle::after {
+            .o-caret-down();
+            margin-left: 5px;
         }
     }
 
@@ -70,5 +76,11 @@
     text-align: right;
     &:focus {
         outline: none;
+    }
+}
+
+.o_act_window ~ .modal-footer {
+    .o_viewmode_hidden, .o_selectionmode_hidden {
+        display: none;
     }
 }

@@ -30,7 +30,6 @@ var TreeView = View.extend({
         this.fields = this.fields_view.fields;
         this.children_field = this.fields_view.field_parent;
     },
-
     /**
      * Returns the list of fields needed to correctly read objects.
      *
@@ -199,7 +198,6 @@ var TreeView = View.extend({
             }
         });
     },
-
     // Get details in listview
     activate: function(id) {
         var self = this;
@@ -226,7 +224,6 @@ var TreeView = View.extend({
             return self.do_action(action);
         });
     },
-
     // show & hide the contents
     showcontent: function (curnode,record_id, show) {
         curnode.parent('tr').toggleClass('o_open', show);
@@ -244,6 +241,4 @@ var TreeView = View.extend({
 core.view_registry.add('tree', TreeView);
 
 return TreeView;
-
 });
-

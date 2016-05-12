@@ -93,7 +93,7 @@ var FormView = View.extend(common.FieldManagerMixin, {
             });
         });
     },
-    start: function() {
+    start: function () {
         var self = this;
 
         this.rendering_engine.set_fields_registry(this.fields_registry);
@@ -108,14 +108,32 @@ var FormView = View.extend(common.FieldManagerMixin, {
 
         this.has_been_loaded.resolve();
 
+        // Buttons
+        var $footer = this.$('footer');
+        if (this.options.action_buttons !== false || this.options.footer_to_buttons && $footer.children().length === 0) {
+            if (this.is_action_enabled("edit")) {
+                this.cp_button_edit = "btn-primary o_button_viewmode";
+            }
+            if (this.is_action_enabled("create")) {
+                this.cp_button_create = "btn-default o_button_viewmode";
+                this.cp_button_duplicate = "btn-link o_button_viewmode";
+            }
+            if (this.is_action_enabled("delete")) {
+                this.cp_button_delete = "btn-link o_button_viewmode";
+            }
+            this.cp_button_save = "btn-primary o_button_editmode";
+            this.cp_button_discard = "btn-default o_button_editmode";
+        }
+
         // Add bounce effect on button 'Edit' when click on readonly page view.
         this.$(".oe_title,.o_group").on('click', function (e) {
             if(self.get("actual_mode") === "view" && self.$buttons && !$(e.target).is('[data-toggle]')) {
-                self.$buttons.find(".o_form_button_edit").openerpBounce();
+                self.$buttons.filter(".o_cp_button_edit").openerpBounce();
                 core.bus.trigger('click', e);
             }
         });
-        return this._super();
+
+        return this._super.apply(this, arguments);
     },
     destroy: function() {
         _.each(this.get_widgets(), function(w) {
@@ -127,53 +145,39 @@ var FormView = View.extend(common.FieldManagerMixin, {
         }
         this._super();
     },
-    /**
-     * Render the buttons according to the FormView.buttons template and add listeners on it.
-     * Set this.$buttons with the produced jQuery element
-     * @param {jQuery} [$node] a jQuery node where the rendered buttons should be inserted
-     * $node may be undefined, in which case the FormView inserts them into this.options.$buttons
-     * if it exists
-     */
-    render_buttons: function($node) {
-        this.$buttons = $('<div/>');
+    create_cp_buttons: function () {
+        var self = this;
+        var def = this._super.apply(this, arguments);
 
-        var $footer = this.$('footer');
-        if (this.options.action_buttons !== false || this.options.footer_to_buttons && $footer.children().length === 0) {
-            this.$buttons.append(QWeb.render("FormView.buttons", {'widget': this}));
-        }
         if (this.options.footer_to_buttons) {
-            $footer.appendTo(this.$buttons);
+            this.$buttons = this.$buttons.add(this.$('footer').children());
         }
 
-        // Show or hide the buttons according to the view mode
-        this.toggle_buttons();
-        this.$buttons.on('click', '.o_form_button_create', this.on_button_create);
-        this.$buttons.on('click', '.o_form_button_edit', this.on_button_edit);
-        this.$buttons.on('click', '.o_form_button_save', this.on_button_save);
-        this.$buttons.on('click', '.o_form_button_cancel', this.on_button_cancel);
+        return def.then(function () {
+            self.toggle_buttons(); // Show or hide the buttons according to the view mode
+        });
+    },
+    append_cp_buttons: function ($node) {
+        this._super.apply(this, arguments);
 
-        this.$buttons.appendTo($node);
+        var $node = $node || this.options.$buttons;
+        if ($node) {
+            var $dropdown_menu = $("<ul/>", {"class": "dropdown-menu"});
+            $dropdown_menu.append(this.$buttons.filter(".o_cp_button_delete, .o_cp_button_duplicate").wrap("<li/>").parent());
+
+            var $dropdown = $("<div/>", {"class": "btn-group"});
+            $dropdown.append($("<a/>", {"class": "btn btn-link dropdown-toggle", "data-toggle": "dropdown", "text": _t("More")})),
+            $dropdown.append($dropdown_menu).appendTo($node);
+        }
     },
     /**
-     * Instantiate and render the sidebar if a sidebar is requested
-     * Sets this.sidebar
-     * @param {jQuery} [$node] a jQuery node where the sidebar should be inserted
-     **/
-    render_sidebar: function($node) {
-        if (!this.sidebar && this.options.sidebar) {
-            this.sidebar = new Sidebar(this, {editable: this.is_action_enabled('edit')});
-            if (this.fields_view.toolbar) {
-                this.sidebar.add_toolbar(this.fields_view.toolbar);
-            }
-            this.sidebar.add_items('other', _.compact([
-                this.is_action_enabled('delete') && { label: _t('Delete'), callback: this.on_button_delete },
-                this.is_action_enabled('create') && { label: _t('Duplicate'), callback: this.on_button_duplicate }
-            ]));
-
-            this.sidebar.appendTo($node);
-
-            // Show or hide the sidebar according to the view mode
-            this.toggle_sidebar();
+     * Show or hide the buttons according to the actual_mode
+     */
+    toggle_buttons: function() {
+        var view_mode = this.get("actual_mode") === "view";
+        if (this.$buttons) {
+            this.$buttons.filter('.o_button_viewmode').toggleClass('o_viewmode_hidden', !view_mode);
+            this.$buttons.filter('.o_button_editmode').toggleClass('o_viewmode_hidden', view_mode);
         }
     },
     /**
@@ -205,24 +209,6 @@ var FormView = View.extend(common.FieldManagerMixin, {
             if (this.get("actual_mode") === "create") {
                 this.pager.do_hide();
             }
-        }
-    },
-    /**
-     * Show or hide the buttons according to the actual_mode
-     */
-    toggle_buttons: function() {
-        var view_mode = this.get("actual_mode") === "view";
-        if (this.$buttons) {
-            this.$buttons.find('.o_form_buttons_view').toggle(view_mode);
-            this.$buttons.find('.o_form_buttons_edit').toggle(!view_mode);
-        }
-    },
-    /**
-     * Show or hide the sidebar according to the actual_mode
-     */
-    toggle_sidebar: function() {
-        if (this.sidebar) {
-            this.sidebar.do_toggle(this.get("actual_mode") === "view");
         }
     },
     update_pager: function() {
@@ -257,7 +243,6 @@ var FormView = View.extend(common.FieldManagerMixin, {
             self.trigger('blurred');
         }, 0);
     },
-
     do_load_state: function(state, warm) {
         if (state.id && this.datarecord.id != state.id) {
             if (this.dataset.get_id_index(state.id) === null) {
@@ -410,7 +395,6 @@ var FormView = View.extend(common.FieldManagerMixin, {
         }
         return field_values;
     },
-
     do_onchange: function(widget) {
         var self = this;
         var onchange_specs = self._onchange_specs;
@@ -666,7 +650,7 @@ var FormView = View.extend(common.FieldManagerMixin, {
             self.enable_button();
         });
     },
-    on_button_cancel: function() {
+    on_button_discard: function(event) {
         var self = this;
         this.can_be_discarded().then(function() {
             if (self.get('actual_mode') === 'create') {
@@ -678,7 +662,7 @@ var FormView = View.extend(common.FieldManagerMixin, {
                 });
             }
         });
-        this.trigger('on_button_cancel');
+        this.trigger('on_button_discard');
         return false;
     },
     on_button_new: function() {
@@ -1194,7 +1178,6 @@ var FormView = View.extend(common.FieldManagerMixin, {
 core.view_registry.add('form', FormView);
 
 return FormView;
-
 });
 
 

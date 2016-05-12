@@ -43,26 +43,33 @@ var GraphView = View.extend({
         });
         return $.when(this._super(), fields_def);
     },
-    /**
-     * Render the buttons according to the GraphView.buttons and
-     * add listeners on it.
-     * Set this.$buttons with the produced jQuery element
-     * @param {jQuery} [$node] a jQuery node where the rendered buttons should be inserted
-     * $node may be undefined, in which case the GraphView does nothing
-     */
-    render_buttons: function ($node) {
-        if ($node) {
-            var context = {measures: _.pairs(_.omit(this.measures, '__count__'))};
-            this.$buttons = $(QWeb.render('GraphView.buttons', context));
-            this.$measure_list = this.$buttons.find('.o_graph_measures_list');
-            this.update_measure();
-            this.$buttons.find('button').tooltip();
-            this.$buttons.click(this.on_button_click.bind(this));
+    create_cp_buttons: function ($node) {
+        var def = this._super.apply(this, arguments);
 
-            this.$buttons.find('.o_graph_button[data-mode="' + this.widget.mode + '"]').addClass('active');
+        var context = {measures: _.pairs(_.omit(this.measures, '__count__'))};
+        this.$buttons = this.$buttons.add($(QWeb.render('GraphView.buttons', context)).not(':text'));
 
-            this.$buttons.appendTo($node);  
-        }
+        this.$measure_list = this.$buttons.find('.o_graph_measures_list');
+        this.update_measure();
+        this.$buttons.find('button').tooltip();
+
+        this.$buttons.find('.o_graph_button[data-mode="' + this.widget.mode + '"]').addClass('active');
+
+        return def;
+    },
+    on_button_measure: function (e) {
+        var field = $(e.target).parent().data('field');
+        this.active_measure = field;
+        e.preventDefault();
+        e.stopPropagation();
+        this.update_measure();
+        this.widget.set_measure(this.active_measure);
+    },
+    on_button_changemode: function (e) {
+        var $target = $(e.target);
+        this.widget.set_mode($target.data('mode'));
+        this.$buttons.find('.o_graph_button.active').removeClass('active');
+        $target.addClass('active');
     },
     update_measure: function () {
         var self = this;
@@ -112,27 +119,9 @@ var GraphView = View.extend({
             graph_groupbys: this.widget.groupbys
         };
     },
-    on_button_click: function (event) {
-        var $target = $(event.target);
-        if ($target.hasClass('o_graph_button')) {
-            this.widget.set_mode($target.data('mode'));
-            this.$buttons.find('.o_graph_button.active').removeClass('active');
-            $target.addClass('active');
-        }
-        else if ($target.parents('.o_graph_measures_list').length) {
-            var parent = $target.parent();
-            var field = parent.data('field');
-            this.active_measure = field;
-            event.preventDefault();
-            event.stopPropagation();
-            this.update_measure();
-            this.widget.set_measure(this.active_measure);
-        }
-    },
 });
 
 core.view_registry.add('graph', GraphView);
 
 return GraphView;
-
 });
