@@ -38,6 +38,7 @@
         <field name="name">Request Created</field>
         <field name="res_model">hr.equipment.request</field>
         <field name="hidden" eval="True"/>
+        <field name="default" eval="False"/>
         <field name="description">Maintenance Request created</field>
     </record>
     <record id="mt_req_status" model="mail.message.subtype">
@@ -51,6 +52,7 @@
     <record id="mt_mat_assign" model="mail.message.subtype">
         <field name="name">Equipment Assigned</field>
         <field name="res_model">hr.equipment</field>
+        <field name="default" eval="True"/>
         <field name="description">Equipment Assigned</field>
     </record>
 

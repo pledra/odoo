@@ -41,6 +41,7 @@
             <field name="name">Opportunity Stage Changed</field>
             <field name="sequence">11</field>
             <field name="res_model">crm.team</field>
+            <field name="default" eval="True"/>
             <field name="parent_id" eval="ref('mt_lead_stage')"/>
             <field name="relation_field">team_id</field>
         </record>
@@ -48,6 +49,7 @@
             <field name="name">Opportunity Won</field>
             <field name="sequence">12</field>
             <field name="res_model">crm.team</field>
+            <field name="default" eval="True"/>
             <field name="parent_id" eval="ref('mt_lead_won')"/>
             <field name="relation_field">team_id</field>
         </record>
