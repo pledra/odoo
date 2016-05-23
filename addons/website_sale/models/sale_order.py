@@ -433,3 +433,4 @@ class ResPartner(models.Model):
     _inherit = 'res.partner'
 
     last_website_so_id = fields.Many2one('sale.order', string='Last Online Sale Order')
+    website_sale_company_name = fields.Char('Company Name (eCommerce)')

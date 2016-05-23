@@ -1,13 +1,13 @@
 import itertools
 
-from openerp import tools
 from openerp import models, fields, api
 
 MAGIC_FIELDS = ["id", "create_uid", "create_date", "write_uid", "write_date", "__last_update"]
 
+
 class website_form_config(models.Model):
     _inherit = 'website'
-    website_form_enable_metadata = fields.Boolean('Write metadata',help="Enable writing metadata on form submit.")
+    website_form_enable_metadata = fields.Boolean('Write metadata', help="Enable writing metadata on form submit.")
 
 
 class website_form_model(models.Model):
@@ -31,6 +31,7 @@ class website_form_model(models.Model):
         builders and are writable. By default no field is writable by the
         form builder.
         """
+
         excluded = {
             field.name
             for field in self.env['ir.model.fields'].sudo().search([
@@ -49,7 +50,7 @@ class website_form_model(models.Model):
         fields_get = model.fields_get()
 
         for key, val in model._inherits.iteritems():
-            fields_get.pop(val,None)
+            fields_get.pop(val, None)
 
         # Unrequire fields with default values
         default_values = model.default_get(fields_get.keys())
