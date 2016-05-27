@@ -9,7 +9,6 @@ from itertools import product
 from werkzeug import urls
 
 from odoo import _
-from odoo.addons.http_routing.models.ir_http import slug
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
 
@@ -180,7 +179,7 @@ class TestSurvey(TransactionCase):
             survey_url = getattr(self.survey1, urltype + '_url')
             survey_url_relative = getattr(self.survey1.with_context({'relative_url': True}), urltype + '_url')
             self.assertTrue(validate_url(survey_url))
-            url = "survey/%s/%s" % (urltxt, slug(self.survey1))
+            url = "survey/%s/%s" % (urltxt, self.survey1.id)
             full_url = urls.url_join(base_url, url)
             self.assertEqual(full_url, survey_url)
             self.assertEqual('/' + url, survey_url_relative)

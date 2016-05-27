@@ -6,7 +6,7 @@ var base = require("web_editor.base");
 
 tour.register('test_survey', {
     test: true,
-    url: '/survey/start/user-feedback-form-1/phantom',
+    url: '/survey/start/1/phantom',
     wait_for: base.ready()
 },
     [
@@ -179,7 +179,7 @@ tour.register('test_survey', {
         // Page-4
         // Question: Where do you develop your new features?
         {
-            content: "Checking 'I host them on my own website'",
+            content: "Checking 'I host them on my own survey'",
             trigger: 'input[name="1_4_13_59"][value="59"]',
             run: 'text 59',
         },
