@@ -53,7 +53,7 @@
 
     <template id="country_state_shipping" name="Shipping Country and states" inherit_id="website_sale.checkout">
         <!-- By default, with 'ship to the same address', we can only ship to restricted countries & states -->
-        <xpath expr="//select[@name='country_id']" position="attributes">
+        <!-- <xpath expr="//select[@name='country_id']" position="attributes">
             <attribute name="t-att-disabled">not shipping_id and 'disabled' or None</attribute>
             <attribute name="t-att-style">not shipping_id and 'display: none' or None</attribute>
         </xpath>
@@ -82,7 +82,7 @@
         </xpath>
         <xpath expr="//select[@name='shipping_state_id']/t[@t-foreach]" position="attributes">
             <attribute name="t-foreach">shipping_states</attribute>
-        </xpath>
+        </xpath> -->
     </template>
 
     <template id="shipping_tracking" name="Shipping tracking on orders followup" inherit_id="website_sale_stock.orders_followup_shipping">
