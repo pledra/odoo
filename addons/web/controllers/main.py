@@ -122,8 +122,8 @@ def ensure_db(redirect='/web/database/selector'):
             # Can't use werkzeug.wrappers.BaseRequest.url with encoded hashes:
             # https://github.com/amigrave/werkzeug/commit/b4a62433f2f7678c234cdcac6247a869f90a7eb7
             url_redirect += '?' + r.query_string
-        response = werkzeug.utils.redirect(url_redirect, 302)
         request.session.db = db
+        request.session.modified = True
         abort_and_redirect(url_redirect)
 
     # if db not provided, use the session one
