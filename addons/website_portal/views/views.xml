@@ -1,19 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="res_partner_form_view_website_sale" model="ir.ui.view">
-        <field name="name">res.partner.form.website_portal</field>
-        <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.view_partner_form" />
-        <field name="arch" type="xml">
-            <field name="street" position="before">
-                <div class='oe_inline'>
-                    <field name='website_company_name' placeholder="Company (display)" attrs="{'invisible': ['|', '|', ('is_company','=', True),('website_company_name', '=', ''),('website_company_name', '=', False)]}"/>
-                    <button name="create_company" type="object" string="" class="btn btn-sm oe_read_only fa fa-external-link btn btn-link " attrs="{'invisible': ['|', '|', ('is_company','=', True), ('website_company_name', '=', ''), ('website_company_name', '=', False)]}"/>
-                </div>
-            </field>
-        </field>
-    </record>
-
+<!-- 
     <template id="mycontact" inherit_id="base.contact">
         <xpath expr="//t[@t-if='object.name']" position="before">
             <t t-if="not object.parent_name and object.website_company_name">
@@ -21,5 +8,5 @@
             </t>
         </xpath>
     </template>
-
+ -->
 </odoo>
