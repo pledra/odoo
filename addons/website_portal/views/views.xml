@@ -15,17 +15,9 @@
     </record>
 
     <template id="mycontact" inherit_id="base.contact">
-        <xpath expr="//t[@t-if='object.name']/.." position="before">
-            <t t-if="'company_name' in fields and 'name' not in fields">
-                <t t-if="not object.parent_name and object.website_company_name">
-                    <b>DispN:<span t-esc="object.website_company_name"/></b>
-                </t>
-                <t t-if="object.parent_name">
-                    <b>PareN:<span t-esc="object.parent_name"/></b>
-                </t>
-            </t>
-            <t t-if="'contact_name' in fields and 'name' not in fields">
-                <b><u><span itemprop="name" t-esc="object.name"/></u></b>
+        <xpath expr="//t[@t-if='object.name']" position="before">
+            <t t-if="not object.parent_name and object.website_company_name">
+                <b><u><i><span itemprop="name" t-esc="object.website_company_name"/></i></u></b><br/>
             </t>
         </xpath>
     </template>

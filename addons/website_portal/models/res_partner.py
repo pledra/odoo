@@ -27,3 +27,8 @@ class res_partner(models.Model):
             for child in self.child_ids:
                 child.parent_id = new_company
         return True
+
+    @api.multi
+    def create_company(self, vals):
+        if vals.get('parent_id'):
+            vals['website_company_name'] = False

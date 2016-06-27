@@ -409,7 +409,8 @@ class WebsiteSale(http.Controller):
         order = request.website.sale_get_order(force_create=1)
         shippings = []
         if order.partner_id != request.website.user_id.partner_id.id:
-            shippings = request.env['res.partner'].with_context(show_address=1).sudo().search([("commercial_partner_id", "=", order.partner_id.id), ("type", "=", "delivery")])
+            shippings = order.partner_id.commercial_partner_id.child_ids.filtered(lambda r: r.type == 'delivery')
+            #request.env['res.partner'].with_context(show_address=1).sudo().search([("commercial_partner_id", "=", order.partner_id.id), ("type", "=", "delivery")])
             if shippings:
                 if kw.get('partner_id'):
                     partner_id = int(kw.get('partner_id'))
@@ -418,7 +419,7 @@ class WebsiteSale(http.Controller):
                     elif partner_id == -1 or partner_id == order.partner_invoice_id:
                         order.partner_shipping_id = order.partner_invoice_id
                 elif not order.partner_shipping_id:
-                    last_order = request.env['sale.order'].sudo().search([("commercial_partner_id", "=", order.partner_id.id), ("child_ids.type", "in", "delivery")], order='id desc', limit=1)
+                    last_order = request.env['sale.order'].sudo().search([("partner_id", "=", order.partner_id.id)], order='id desc', limit=1)
                     order.partner_shipping_id = last_order and last_order.id
         else:
             import pudb; pudb.set_trace()

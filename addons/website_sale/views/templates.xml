@@ -1147,7 +1147,7 @@
                     </t>
                 </small>
                 <p style="margin:5%">
-                    <t t-raw="format(contact, 'contact', dict(fields=['company_name', 'contact_name', 'address'], no_marker=True))"/>
+                    <t t-raw="format(contact, 'contact', dict(fields=['name', 'address'], no_marker=True))"/>
                 </p>
                 <form action="/shop/checkout" method="POST">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
