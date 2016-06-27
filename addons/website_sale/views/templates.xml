@@ -1185,7 +1185,7 @@
                                     </div>
                                 </t>
                                 <t t-if="mode[1] == 'shipping'">
-                                    <h3 class="page-header mt16">Edit Shipping Adress </h3>
+                                    <h3 class="page-header mt16">Edit Shipping Address </h3>
                                 </t>
                                 <t t-if="error" t-foreach="error.get('error_message', [])" t-as="err">
                                     <h4 class="text-danger" t-esc="err" />
@@ -1197,9 +1197,9 @@
                                     </div>
                                     <div class="clearfix" />
                                     <t t-if="mode[1] == 'billing' and checkout and 'parent_name' in checkout and not checkout['parent_name']">
-                                        <div t-attf-class="form-group #{error.get('website_company_name') and 'has-error' or ''} col-md-6">
-                                            <label class="control-label" for="website_company_name">Company Name</label>
-                                            <input type="text" name="website_company_name" class="form-control" t-att-value="'website_company_name' in checkout and checkout['website_company_name']" />
+                                        <div t-attf-class="form-group #{error.get('display_company_name') and 'has-error' or ''} col-md-6">
+                                            <label class="control-label" for="display_company_name">Company Name</label>
+                                            <input type="text" name="display_company_name" class="form-control" t-att-value="'display_company_name' in checkout and checkout['display_company_name']" />
                                         </div>
                                         <div t-attf-class="form-group #{error.get('vat') and 'has-error' or ''} col-md-6 div_vat">
                                             <label class="control-label" for="vat">TIN</label>
