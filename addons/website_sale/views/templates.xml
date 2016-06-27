@@ -520,51 +520,60 @@
             </p>
         </xpath>
     </template>
+
     <!-- Product options: OpenChatter -->
     <template id="product_comment" inherit_id="website_sale.product" active="False" customize_show="True" name="Discussion and Rating">
-        <xpath expr="//div[@id='product_details']" position="inside">
-            <t t-call="rating.rating_card">
-                <t t-set="rating_stat" t-value="rating_product" />
-                <t t-set="max_rate" t-value="5" />
-                <t t-set="min_rate" t-value="1" />
-            </t>
-        </xpath>
-        <xpath expr="//div[@t-field='product.website_description']" position="after">
-            <hr class="mb32" />
-            <section class="container">
-                <div class="row col-md-10 col-md-offset-1">
-                    <div class="text-muted">
-                        <h3 class="fa fa-comment-o">
-                            <a id="comments">
-                                <t t-if="len(product.website_message_ids) &lt;= 1">
-                                    <t t-esc="len(product.website_message_ids)" /> comment</t>
-                                <t t-if="len(product.website_message_ids) &gt; 1">
-                                    <t t-esc="len(product.website_message_ids)" /> comments</t>
-                            </a>
-                        </h3>
-                    </div>
-                    <t t-call="website_mail.message_thread">
-                        <t t-set="object" t-value="product" />
-                        <t t-set="chatter_mode" t-value="'json'" />
-                        <t t-set="rating_enable" t-value="True" />
-                    </t>
+      <xpath expr="//div[@id='product_details']" position="inside">
+      <t t-call="rating.rating_card">
+        <t t-set="rating_stat" t-value="rating_product"/>
+        <t t-set="max_rate" t-value="5"/>
+        <t t-set="min_rate" t-value="1"/>
+      </t>
+    </xpath>
+    <xpath expr="//div[@t-field='product.website_description']" position="after">
+        <hr class="mb32"/>
+        <section class="container">
+            <div class="row col-md-10 col-md-offset-1">
+                <div class="text-muted">
+                    <h3 class="fa fa-comment-o">
+                        <a id="comments">
+                            <t t-if="len(product.website_message_ids) &lt;= 1" ><t t-esc="len(product.website_message_ids)"/> comment</t>
+                            <t t-if="len(product.website_message_ids) > 1"><t t-esc="len(product.website_message_ids)"/> comments</t>
+                        </a>
+                    </h3>
                 </div>
-
-                <hr t-if="product.description_sale"/>
-                <div><p t-field="product.description_sale" class="text-muted"/></div>
-                <hr/>
-                <p class="text-muted">
-                    30-day money-back guarantee<br/>
-                    Free Shipping in U.S.<br/>
-                    Buy now, get in 2 days
-                </p>
+                <t t-call="website_mail.message_thread">
+                  <t t-set="object" t-value="product"/>
+                  <t t-set="chatter_mode" t-value="'json'"/>
+                  <t t-set="rating_enable" t-value="True"/>
+                </t>
             </div>
-          </div>
         </section>
-        <div itemprop="description" t-field="product.website_description" class="oe_structure mt16" id="product_full_description"/>
+      </xpath>
+    </template>
 
+<!-- extend the generic mail thread message template to add rating widget -->
+<template id="message_thread_rating" inherit_id="website_mail.message_thread" name="Chatter with rating">
+  <xpath expr="//section[contains(@class, 'o_website_mail_thread')]" position="attributes">
+    <attribute name="t-att-data-rating-enabled">rating_message_values and 1 or 0</attribute>
+  </xpath>
+  <xpath expr="//textarea[@name='message']" position="before">
+    <t t-if="rating_enable">
+      <t t-call="rating.rating_star_card">
+        <t t-set="rating_input_name" t-value="'rating'"/>
+      </t>
+    </t>
+  </xpath>
+  <xpath expr="//ul[contains(@class, 'o_website_comments')]//h5" position="after">
+    <t t-if="rating_enable">
+      <div t-if="rating_message_values.get(message.id)">
+        <t t-call="rating.rating_star_card">
+          <t t-set="rating_default_value" t-value="rating_message_values.get(message.id)"/>
+          <t t-set="rating_disabled" t-value="True"/>
+        </t>
       </div>
-  </t>
+    </t>
+  </xpath>
 </template>
 
 <template id="product_quantity" inherit_id="website_sale.product" customize_show="True" name="Select Quantity">
@@ -646,9 +655,54 @@
                            }'/>
                   </span>
               </option>
-            </section>
-        </xpath>
-    </template>
+            </t>
+          </select>
+        </t>
+
+        <t t-if="variant_id.attribute_id.type == 'radio'">
+          <ul class="list-unstyled">
+              <t t-set="inc" t-value="0"/>
+              <t t-foreach="variant_id.value_ids" t-as="value_id">
+                  <li class="form-group js_attribute_value" style="margin: 0;">
+                      <label class="control-label" style="margin: 0 20px;">
+                          <input type="radio" class="js_variant_change" t-att-checked="'checked' if not inc else None" t-att-name="'attribute-%s-%s' % (product.id, variant_id.attribute_id.id)" t-att-value="value_id.id" style="vertical-align: top; margin-right: 10px;"/>
+                          <span t-field="value_id.name"/>
+                          <span class="badge" t-if="value_id.price_extra">
+                              <t t-esc="value_id.price_extra > 0 and '+' or ''"/><span t-field="value_id.price_extra" style="white-space: nowrap;" t-field-options='{
+                                      "widget": "monetary",
+                                      "from_currency": product.currency_id,
+                                      "display_currency": website.currency_id
+                                   }'/>
+                          </span>
+                      </label>
+                  </li>
+                  <t t-set="inc" t-value="inc+1"/>
+              </t>
+          </ul>
+        </t>
+
+        <t t-if="variant_id.attribute_id.type == 'color'">
+          <ul class="list-inline">
+              <t t-set="inc" t-value="0"/>
+              <li t-foreach="variant_id.value_ids" t-as="value_id">
+                  <label t-attf-style="background-color:#{value_id.html_color or value_id.name}"
+                      t-attf-class="css_attribute_color #{'active' if not inc else ''}">
+                    <input type="radio" class="js_variant_change"
+                      t-att-checked="'checked' if not inc else None"
+                      t-att-name="'attribute-%s-%s' % (product.id, variant_id.attribute_id.id)"
+                      t-att-value="value_id.id"
+                      t-att-title="value_id.name"/>
+                  </label>
+                  <t t-set="inc" t-value="inc+1"/>
+              </li>
+          </ul>
+        </t>
+
+      </li>
+    </t>
+  </ul>
+</template>
+
     <!-- extend the generic mail thread message template to add rating widget -->
     <template id="message_thread_rating" inherit_id="website_mail.message_thread" name="Chatter with rating">
         <xpath expr="//section[contains(@class, 'o_website_mail_thread')]" position="attributes">
@@ -724,8 +778,12 @@
                                   Your Reference
                                 </label>
                             </div>
+
+                            <t t-set="website_sale_order" t-value="website.sale_get_order()" />
+
+
                             <div class="col-md-7 col-sm-8">
-                                <input type="text" class="form-control o_website_form_input" name="client_order_ref" />
+                                <input type="text" class="form-control o_website_form_input" name="client_order_ref" t-att-value="website_sale_order and website_sale_order.client_order_ref or ''" />
                             </div>
                         </div>
                         <div class="form-group form-field o_website_form_custom">
@@ -934,9 +992,9 @@
                         </td>
                         <td>
                             <t t-if="(compute_currency(product.lst_price) - product.price) &gt; 0.1">
-                                <del class="text-danger mr8" style="white-space: nowrap;" t-field="product.lst_price" t-field-options="{                                 &quot;widget&quot;: &quot;monetary&quot;,                                 &quot;from_currency&quot;: &quot;product.currency_id&quot;,                                 &quot;display_currency&quot;: &quot;website.currency_id&quot;                                 }" />
+                                <del class="text-danger mr8" style="white-space: nowrap;" t-field="product.lst_price" t-field-options="{'widget': 'monetary','from_currency': product.currency_id, 'display_currency': website.currency_id}" />
                             </t>
-                            <span t-field="product.price" style="white-space: nowrap;" t-field-options="{                                &quot;widget&quot;: &quot;monetary&quot;,                                &quot;display_currency&quot;: &quot;website.currency_id&quot;                                }" />
+                            <span t-field="product.price" style="white-space: nowrap;" t-field-options="{'widget': 'monetary','display_currency': website.currency_id}" />
                         </td>
                         <td class="text-center">
                             <input class="js_quantity" name="product_id" t-att-data-product-id="product.id" type="hidden" />
@@ -1027,79 +1085,21 @@
                                         </form>
                                         <div class="row" style="margin-top: 10px">
                                             <t t-foreach="shippings" t-as="ship">
-                                                <div class="col-xs-12 col-sm-6 col-md-4">
-                                                    <div class="well well-sm">
-                                                        <span class="pull-right right">
-                                                            <form action="/shop/address" method="POST" style="display:inline">
-                                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
-                                                                <input type="hidden" name="partner_id" t-att-value="ship.id" />
-                                                                <a class="btn btn-link a-submit">
-                                                                    <small>
-                                                                        <i title="Edit this address" class="fa fa-edit"></i> Edit</small>
-                                                                </a>
-                                                            </form>
-                                                            <a class="a-submit js_disable_shipping">
-                                                                <i title="Hide this address" class="fa fa-trash " />
-                                                            </a>
-                                                        </span>
-                                                        <small>
-                                                            <i class="fa fa-map-marker"></i> Shipping Address
-                                                        </small>
-                                                        <p style="margin:5%">
-                                                            <t t-esc="ship.name" />
-                                                            <br />
-                                                            <t t-esc="ship.street" />
-                                                            <br />
-                                                            <t t-esc="&quot;%s %s&quot; % (ship.zip, ship.city)" />
-                                                            <br />
-                                                            <t t-esc="ship.country_id.name" />
-                                                            <br />
-                                                        </p>
-                                                        <form action="/shop/checkout" method="POST">
-                                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
-                                                            <input type="hidden" name="partner_id" t-att-value="ship.id" />
-                                                            <a class="btn btn-default a-submit">Ship to this address</a>
-                                                        </form>
-                                                    </div>
-                                                </div>
+                                                <t t-call="website_sale.address_kanban">
+                                                    <t t-set='contact' t-value="ship"/>
+                                                    <t t-set='kanban_type' t-value="'shipping'"/>
+                                                </t>
                                             </t>
-                                            <div class="col-xs-12 col-sm-6 col-md-4">
-                                                <div class="well well-sm">
-                                                    <t t-set="ship" t-value="order.partner_id" />
-                                                    <span class="pull-right right">
-                                                        <form action="/shop/address" method="POST" style="display:inline">
-                                                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
-                                                            <input type="hidden" name="partner_id" t-att-value="ship.id" />
-                                                            <a class="btn btn-link a-submit">
-                                                                <small>
-                                                                    <i title="Edit this address" class="fa fa-edit"></i> Edit</small>
-                                                            </a>
-                                                        </form>
-                                                    </span>
-                                                    <small>
-                                                        <i class="fa fa-money"></i> Billing Address </small>
-                                                    <p style="margin:5%">
-                                                        <t t-esc="ship.name" />
-                                                        <br />
-                                                        <t t-esc="ship.street" />
-                                                        <br />
-                                                        <t t-esc="&quot;%s %s&quot; % (ship.zip, ship.city)" />
-                                                        <br />
-                                                        <t t-esc="ship.country_id.name" />
-                                                        <br />
-                                                    </p>
-                                                    <form action="/shop/checkout" method="POST">
-                                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
-                                                        <input type="hidden" name="partner_id" t-att-value="-1" />
-                                                        <a class="btn btn-default a-submit">Ship to this address</a>
-                                                    </form>
-                                                </div>
-                                            </div>
+                                            <t t-call="website_sale.address_kanban">
+                                                <t t-set='contact' t-value="order.partner_id"/>
+                                                <t t-set='kanban_type' t-value="'billing'"/>
+                                            </t>
                                         </div>
                                     </div>
                                 </div>
                             </t>
-                            <div class="clearfix">
+                            <div class="clearfix" />
+                            <div>
                                 <a href="/shop/cart" class="btn btn-default mb32">
                                     <span class="fa fa-long-arrow-left" /> Return to Cart</a>
                                 <a class="btn btn-default btn-primary pull-right mb32 " href="/shop/confirm_order">Confirm <span class="fa fa-long-arrow-right" /></a>
@@ -1117,45 +1117,44 @@
     </template>
 
     <template id="address_kanban" name="Kanban address">
-        <div class="well well-sm">
-            <span class="pull-right right">
-                <form action="/shop/address" method="POST" style="display:inline">
+        <div class="col-sm-12 col-md-6">
+            <div class="well well-sm" style='min-height:200px'>
+                <span class="pull-right right">
+                    <form action="/shop/address" method="POST" style="display:inline">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                        <input type="hidden" name="partner_id" t-att-value="contact.id" />
+                        <a class="btn btn-link a-submit">
+                            <small>
+                                <i title="Edit this address" class="fa fa-edit"></i> Edit
+                            </small>
+                        </a>
+                    </form>
+                   <!--  
+                    TODO: Complexify the ui => should be done in portal / Manage address
+                    <t t-if='kanban_type == "shipping"'>
+                        <a class="a-submit js_disable_shipping">
+                            <i title="Hide this address" class="fa fa-trash" />
+                        </a>
+                    </t> 
+                    -->
+                </span>
+                <small>
+                    <t t-if='kanban_type == "shipping"'>
+                        <i class="fa fa-map-marker"></i> Shipping Address
+                    </t>
+                    <t t-if='kanban_type != "shipping"'>
+                        <i class="fa fa-money"></i> Billing Address
+                    </t>
+                </small>
+                <p style="margin:5%">
+                    <t t-raw="format(contact, 'contact', dict(fields=['company_name', 'contact_name', 'address'], no_marker=True))"/>
+                </p>
+                <form action="/shop/checkout" method="POST">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
-                    <input type="hidden" name="partner_id" t-att-value="ship.id" />
-                    <a class="btn btn-link a-submit">
-                        <small>
-                            <i title="Edit this address" class="fa fa-edit"></i> Edit</small>
-                    </a>
+                    <input type="hidden" name="partner_id" t-att-value="contact.id" />
+                    <a class="btn btn-default a-submit">Ship to this address</a>
                 </form>
-                <t t-if='kanban_type == "shipping"'>
-                    <a class="a-submit js_disable_shipping">
-                        <i title="Hide this address" class="fa fa-trash" />
-                    </a>
-                </t>
-            </span>
-            <small>
-                <t t-if='kanban_type == "shipping"'>
-                    <i class="fa fa-map-marker"></i> Shipping Address
-                </t>
-                <t t-if='kanban_type != "shipping"'>
-                    <i class="fa fa-money"></i> Billing Address
-                </t>
-            </small>
-            <p style="margin:5%">
-                <t t-esc="ship.name" />
-                <br />
-                <t t-esc="ship.street" />
-                <br />
-                <t t-esc="&quot;%s %s&quot; % (ship.zip, ship.city)" />
-                <br />
-                <t t-esc="ship.country_id.name" />
-                <br />
-            </p>
-            <form action="/shop/checkout" method="POST">
-                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
-                <input type="hidden" name="partner_id" t-att-value="ship.id" />
-                <a class="btn btn-default a-submit">Ship to this address</a>
-            </form>
+            </div>
         </div>
     </template>
     <!-- /shop/payment -->
@@ -1171,7 +1170,23 @@
                     <div class="row">
                         <div class="col-md-9 oe_cart">
                             <div class="row">
-                                <h3 class="page-header mt16">Mode: <t t-esc="mode" /></h3>
+                                <t t-if="mode == ('new', 'billing')">
+                                    <h3 class="page-header mt16">You are creating your billing address. </h3>
+                                    <div class="alert alert-info alert-dismissible h5" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&amp;times;</span></button>
+                                        You will be able to change your shipping address later.
+                                    </div>
+                                </t>
+                                <t t-if="mode == ('edit', 'billing')">
+                                    <h3 class="page-header mt16">You are updating your billing address. </h3>
+                                    <div class="alert alert-warning alert-dismissible h5" role="alert">
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&amp;times;</span></button>
+                                        That will change your contact informations for your contact anywhere.
+                                    </div>
+                                </t>
+                                <t t-if="mode[1] == 'shipping'">
+                                    <h3 class="page-header mt16">Edit Shipping Adress </h3>
+                                </t>
                                 <t t-if="error" t-foreach="error.get('error_message', [])" t-as="err">
                                     <h4 class="text-danger" t-esc="err" />
                                 </t>
@@ -1181,10 +1196,10 @@
                                         <input type="text" name="name" class="form-control" t-att-value="'name' in checkout and checkout['name']" />
                                     </div>
                                     <div class="clearfix" />
-                                    <t t-if="mode and mode[1] == 'billing'">
-                                        <div t-attf-class="form-group #{error.get('website_sale_company_name') and 'has-error' or ''} col-md-6">
-                                            <label class="control-label" for="website_sale_company_name">Company Name</label>
-                                            <input type="text" name="website_sale_company_name" class="form-control" t-att-value="'website_sale_company_name' in checkout and checkout['website_sale_company_name']" />
+                                    <t t-if="mode[1] == 'billing' and checkout and 'parent_name' in checkout and not checkout['parent_name']">
+                                        <div t-attf-class="form-group #{error.get('website_company_name') and 'has-error' or ''} col-md-6">
+                                            <label class="control-label" for="website_company_name">Company Name</label>
+                                            <input type="text" name="website_company_name" class="form-control" t-att-value="'website_company_name' in checkout and checkout['website_company_name']" />
                                         </div>
                                         <div t-attf-class="form-group #{error.get('vat') and 'has-error' or ''} col-md-6 div_vat">
                                             <label class="control-label" for="vat">TIN</label>
@@ -1197,13 +1212,13 @@
                                         <input type="text" name="street" class="form-control" t-att-value="'street' in checkout and checkout['street']" />
                                     </div>
                                     <div class="clearfix" />
-                                    <div t-attf-class="form-group #{error.get('zip') and 'has-error' or ''} col-sm-4 div_zip">
-                                        <label class="control-label" for="zip">Postal Code</label>
-                                        <input type="text" name="zip" class="form-control" t-att-value="'zip' in checkout and checkout['zip']" />
-                                    </div>
                                     <div t-attf-class="form-group #{error.get('city') and 'has-error' or ''} col-sm-8 div_city">
                                         <label class="control-labe" for="city">City</label>
                                         <input type="text" name="city" class="form-control" t-att-value="'city' in checkout and checkout['city']" />
+                                    </div>
+                                    <div t-attf-class="form-group #{error.get('zip') and 'has-error' or ''} col-sm-4 div_zip">
+                                        <label class="control-label" for="zip">Postal Code</label>
+                                        <input type="text" name="zip" class="form-control" t-att-value="'zip' in checkout and checkout['zip']" />
                                     </div>
                                     <div class="clearfix" />
                                     <div t-attf-class="form-group #{error.get('country_id') and 'has-error' or ''} col-md-6 div_country">
@@ -1219,7 +1234,7 @@
                                     </div>
                                     <div t-attf-class="form-group #{error.get('state_id') and 'has-error' or ''} col-md-6 div_state" t-att-style="(not country or not country.state_ids) and 'display: none'">
                                         <label class="control-label" for="state_id">State / Province</label>
-                                        <select name="state_id" class="form-control">
+                                        <select name="state_id" class="form-control" data-init="1">
                                             <option value="">State / Province...</option>
                                             <t t-foreach="country and country.state_ids or []" t-as="s">
                                                 <option t-att-value="s.id" t-att-selected="s.id == ('state_id' in checkout and country and checkout['state_id'] != '' and int(checkout['state_id']))">
@@ -1229,26 +1244,29 @@
                                         </select>
                                     </div>
                                     <div class="clearfix" />
-                                    <div t-attf-class="form-group #{error.get('phone') and 'has-error' or ''} col-md-6" id="div_phone">
-                                        <label class="control-label" for="phone">Phone</label>
-                                        <input type="tel" name="phone" class="form-control" t-att-value="'phone' in checkout and checkout['phone']" />
-                                    </div>
-                                    <t t-if="mode and mode[1] == 'billing'">
+                                    <t t-if="mode[1] == 'billing'">
+                                        <div t-attf-class="form-group #{error.get('phone') and 'has-error' or ''} col-md-6" id="div_phone">
+                                            <label class="control-label" for="phone">Phone</label>
+                                            <input type="tel" name="phone" class="form-control" t-att-value="'phone' in checkout and checkout['phone']" />
+                                        </div>
                                         <div t-attf-class="form-group #{error.get('email') and 'has-error' or ''} col-md-6" id="div_email">
                                             <label class="control-label" for="email">Email</label>
                                             <input type="tel" name="email" class="form-control" t-att-value="'email' in checkout and checkout['email']" />
                                         </div>
                                     </t>
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
+                                    <input type="hidden" name="submitted" value="1" />
                                     <input type="hidden" name="partner_id" t-att-value="partner_id or '0'" />
                                     <input type="hidden" name="callback" t-att-value="callback" />
                                     <!-- Example -->
-                                    <input type="hidden" name="field_required" t-att-value="mode and mode[1] == 'billing' and 'phone,email' or ''" />
-                                    <div class="clearfix" />
-                                    <div class="form-group">
-                                        <div class="col-sm-12">
-                                            <input type="submit" name="submit_address" value="Submit" class="btn btn-primary" />
-                                        </div>
+                                    <input type="hidden" name="field_required" t-att-value="mode[1] == 'billing' and 'phone,email' or ''" />
+
+                                    <div class="clearfix"/>
+                                    <div>
+                                        <a t-att-href="mode == ('new', 'billing') and '/shop/cart' or '/shop/checkout'" class="btn btn-default mb32">
+                                            <span class="fa fa-long-arrow-left" /> Back
+                                        </a>
+                                        <a class="btn btn-default btn-primary pull-right mb32 a-submit"><t t-esc="mode[0].capitalize() or 'Save'"/> <span class="fa fa-long-arrow-right" /></a>
                                     </div>
                                 </form>
                             </div>
@@ -1263,19 +1281,7 @@
             </div>
         </t>
     </template>
-    <template id="quick_create_user" name="Quick create user" inherit_id="address" active="False" customize_show="True">
-        <xpath expr="//input[@name='email']/.." position="before">
-            <div class="clearfix" />
-        </xpath>
-        <xpath expr="//input[@name='email']/.." position="after">
-            <t t-if="mode and mode[0] == 'new' and request.env.ref('website_sale.quick_create_user').active">
-                <div t-attf-class="form-group #{error.get('password') and 'has-error' or ''} col-md-6">
-                    <label class="control-label" for="password">Password</label>
-                    <input type="password" name="password" class="form-control" t-att-value="'password' in checkout and checkout['password']" />
-                </div>
-            </t>
-        </xpath>
-    </template>
+   
     <template id="payment">
         <t t-call="website.layout">
             <t t-set="additional_title">Shop - Select Payment Method</t>

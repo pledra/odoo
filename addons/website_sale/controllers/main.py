@@ -96,7 +96,7 @@ class WebsiteSaleForm(WebsiteForm):
             return json.dumps(False)
 
         try:
-            data = self.extract_data(model_record, ** kwargs)
+            data = self.extract_data(model_record, **kwargs)
         except ValidationError, e:
             return json.dumps({'error_fields': e.args[0]})
 
@@ -354,12 +354,12 @@ class WebsiteSale(http.Controller):
 
         return request.website.render("website_sale.cart", values)
 
-    @http.route(['/shop/cart/update'], type='http', auth="public", methods=['POST'], website=True)
+    @http.route(['/shop/cart/update'], type='http', auth="public", methods=['POST'], website=True, csrf=False)
     def cart_update(self, product_id, add_qty=1, set_qty=0, **kw):
         request.website.sale_get_order(force_create=1)._cart_update(product_id=int(product_id), add_qty=float(add_qty), set_qty=float(set_qty))
         return request.redirect("/shop/cart")
 
-    @http.route(['/shop/cart/update_json'], type='json', auth="public", methods=['POST'], website=True)
+    @http.route(['/shop/cart/update_json'], type='json', auth="public", methods=['POST'], website=True, csrf=False)
     def cart_update_json(self, product_id, line_id=None, add_qty=None, set_qty=None, display=True):
         order = request.website.sale_get_order(force_create=1)
         if order.state != 'draft':
@@ -394,7 +394,6 @@ class WebsiteSale(http.Controller):
     # ------------------------------------------------------
 
     def checkout_redirection(self, order):
-
         # must have a draft sale order with lines at this point, otherwise reset
         if not order or order.state != 'draft':
             request.session['sale_order_id'] = None
@@ -407,11 +406,10 @@ class WebsiteSale(http.Controller):
             return request.redirect('/shop/payment/confirmation/%s' % order.id)
 
     def checkout_values(self, **kw):
-
         order = request.website.sale_get_order(force_create=1)
         shippings = []
         if order.partner_id != request.website.user_id.partner_id.id:
-            shippings = request.env['res.partner'].with_context(show_address=1).sudo().search([("parent_id", "=", order.partner_id.id), ("type", "=", "delivery")])
+            shippings = request.env['res.partner'].with_context(show_address=1).sudo().search([("commercial_partner_id", "=", order.partner_id.id), ("type", "=", "delivery")])
             if shippings:
                 if kw.get('partner_id'):
                     partner_id = int(kw.get('partner_id'))
@@ -420,7 +418,7 @@ class WebsiteSale(http.Controller):
                     elif partner_id == -1 or partner_id == order.partner_invoice_id:
                         order.partner_shipping_id = order.partner_invoice_id
                 elif not order.partner_shipping_id:
-                    last_order = request.env['sale.order'].sudo().search([("partner_id", "=", order.partner_id.id), ("child_ids.type", "in", "delivery")], order='id desc', limit=1)
+                    last_order = request.env['sale.order'].sudo().search([("commercial_partner_id", "=", order.partner_id.id), ("child_ids.type", "in", "delivery")], order='id desc', limit=1)
                     order.partner_shipping_id = last_order and last_order.id
         else:
             import pudb; pudb.set_trace()
@@ -533,6 +531,7 @@ class WebsiteSale(http.Controller):
 
     @http.route(['/shop/address'], type='http', methods=['GET', 'POST'], auth="public", website=True)
     def address(self, **kw):
+        print kw
         Partner = request.env['res.partner'].with_context(show_address=1).sudo()
         order = request.website.sale_get_order(force_create=1)
         mode, def_country_id = False, False
@@ -577,7 +576,7 @@ class WebsiteSale(http.Controller):
                 return request.redirect('/shop/checkout')
 
         # IF POSTED
-        if 'submit_address' in kw:
+        if 'submitted' in kw:
             pre_values = self.values_preprocess(order, mode, kw)
             errors, error_msg = self.checkout_form_validate(mode, kw, pre_values)
             post, errors, error_msg = self.values_postprocess(order, mode, pre_values, errors, error_msg)
@@ -608,6 +607,8 @@ class WebsiteSale(http.Controller):
 
                 if not errors:
                     return request.redirect(kw.get('callback') or '/shop/checkout')
+                else:
+                    print errors
 
         country = 'country_id' in values and values['country_id'] != '' and request.env['res.country'].browse(int(values['country_id']))
 

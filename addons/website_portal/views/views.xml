@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_partner_form_view_website_sale" model="ir.ui.view">
+        <field name="name">res.partner.form.website_portal</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+            <field name="street" position="before">
+                <div class='oe_inline'>
+                    <field name='website_company_name' placeholder="Company (display)" attrs="{'invisible': ['|', '|', ('is_company','=', True),('website_company_name', '=', ''),('website_company_name', '=', False)]}"/>
+                    <button name="create_company" type="object" string="" class="btn btn-sm oe_read_only fa fa-external-link btn btn-link " attrs="{'invisible': ['|', '|', ('is_company','=', True), ('website_company_name', '=', ''), ('website_company_name', '=', False)]}"/>
+                </div>
+            </field>
+        </field>
+    </record>
+
+    <template id="mycontact" inherit_id="base.contact">
+        <xpath expr="//t[@t-if='object.name']/.." position="before">
+            <t t-if="'company_name' in fields and 'name' not in fields">
+                <t t-if="not object.parent_name and object.website_company_name">
+                    <b>DispN:<span t-esc="object.website_company_name"/></b>
+                </t>
+                <t t-if="object.parent_name">
+                    <b>PareN:<span t-esc="object.parent_name"/></b>
+                </t>
+            </t>
+            <t t-if="'contact_name' in fields and 'name' not in fields">
+                <b><u><span itemprop="name" t-esc="object.name"/></u></b>
+            </t>
+        </xpath>
+    </template>
+
+</odoo>

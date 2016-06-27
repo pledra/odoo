@@ -336,18 +336,24 @@ odoo.define('website_sale.website_sale', function (require) {
 
                                 // populate states and display
                                 var selectStates = $("select[name='state_id']");
-                                if (data.states.length) {
-                                    selectStates.html('');
-                                    _.each(data.states, function(x) { 
-                                        var opt = $('<option>').text(x[1])
-                                            .attr('value', x[0])
-                                            .attr('data-code', x[2]);
-                                        selectStates.append(opt);
-                                    });
-                                    selectStates.parent('div').show();
+                                // dont reload state at first loading (done in qweb)
+                                if (selectStates.data('init')===1) {
+                                    selectStates.data('init', 0);
                                 }
-                                else{
-                                    selectStates.val('').parent('div').hide();
+                                else {
+                                    if (data.states.length) {
+                                        selectStates.html('');
+                                        _.each(data.states, function(x) {
+                                            var opt = $('<option>').text(x[1])
+                                                .attr('value', x[0])
+                                                .attr('data-code', x[2]);
+                                            selectStates.append(opt);
+                                        });
+                                        selectStates.parent('div').show();
+                                    }
+                                    else{
+                                        selectStates.val('').parent('div').hide();
+                                    }
                                 }
 
                                 // manage fields order / visibility
@@ -369,5 +375,6 @@ odoo.define('website_sale.website_sale', function (require) {
                 }, 500);
             });
         }
+        $("select[name='country_id']").change();
     });
 });

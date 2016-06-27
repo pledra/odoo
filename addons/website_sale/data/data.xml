@@ -65,7 +65,7 @@
             <value eval="[
                 'name', 'phone', 'email', 
                 'city', 'zip', 'street', 'state_id', 'country_id',
-                'vat', 'website_sale_company_name'
+                'vat', 'website_company_name'
             ]"/>
         </function>
     </data>

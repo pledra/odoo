@@ -313,6 +313,7 @@ class QWeb(object):
             try:
                 return compiled(self, append, values, options, log)
             except QWebException, e:
+                print e
                 raise e
             except Exception, e:
                 path = log['last_path_node']
@@ -1010,10 +1011,10 @@ class QWeb(object):
         return body
 
     def _compile_directive_else(self, el, options):
-        if not options.pop('t_if', None):
-            raise ValueError("t-else directive must be preceded by t-if directive")
         if el.attrib.pop('t-else') == '_t_skip_else_':
             return []
+        if not options.pop('t_if', None):
+            raise ValueError("t-else directive must be preceded by t-if directive")
         compiled = self._compile_directives(el, options)
         el.attrib['t-else'] = '_t_skip_else_'
         return compiled
