@@ -163,6 +163,7 @@ return core.Class.extend({
     init: function(consumed_tours) {
         this.$body = $('body');
         this.active_tooltips = {};
+        this.deactivate_delay = {};
         this.tours = {};
         this.consumed_tours = consumed_tours || [];
         this.running_tour = local_storage.getItem(get_running_key());
@@ -305,10 +306,13 @@ return core.Class.extend({
             if (!tip.widget) {
                 this._activate_tip(tip, tour_name, $trigger);
             } else {
+                clearTimeout(this.deactivate_delay[tour_name]);
                 tip.widget.update($trigger);
             }
         } else {
-            this._deactivate_tip(tip);
+            this.deactivate_delay[tour_name] = _.delay((function () {
+                this._deactivate_tip(tip);
+            }).bind(this), 1000);
         }
     },
     _activate_tip: function(tip, tour_name, $anchor) {
@@ -328,7 +332,10 @@ return core.Class.extend({
         if (this.running_tour !== tour_name) {
             tip.widget.on('tip_consumed', this, this._consume_tip.bind(this, tip, tour_name));
         }
-        tip.widget.attach_to($anchor).then(this._to_next_running_step.bind(this, tip, tour_name));
+        this.pause();
+        tip.widget.attach_to($anchor)
+                  .then(this.play.bind(this))
+                  .then(this._to_next_running_step.bind(this, tip, tour_name));
     },
     _deactivate_tip: function(tip) {
         if (tip && tip.widget) {
@@ -337,7 +344,6 @@ return core.Class.extend({
         }
     },
     _consume_tip: function(tip, tour_name) {
-        this._deactivate_tip(tip);
         this._to_next_step(tour_name);
 
         var is_running = (this.running_tour === tour_name);
@@ -368,7 +374,11 @@ return core.Class.extend({
                 tour.current_step = tour.steps.length;
             }
         }
+        var old_widget = this.active_tooltips[tour_name] && this.active_tooltips[tour_name].widget;
         this.active_tooltips[tour_name] = tour.steps[tour.current_step];
+        if (old_widget) {
+            this.active_tooltips[tour_name].widget = old_widget;
+        }
     },
     _consume_tour: function (tour_name, error) {
         delete this.active_tooltips[tour_name];
