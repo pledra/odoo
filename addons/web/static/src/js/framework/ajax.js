@@ -16,9 +16,7 @@ function genericJsonRpc (fct_name, params, fct) {
     var result = xhr.pipe(function(result) {
         core.bus.trigger('rpc:result', data, result);
         if (result.error !== undefined) {
-            if (result.error.data.arguments[0] !== "bus.Bus not available in test mode") {
-                console.error("Server application error", JSON.stringify(result.error));
-            }
+            console.error("Server application error", JSON.stringify(result.error));
             return $.Deferred().reject("server", result.error);
         } else {
             return result.result;
