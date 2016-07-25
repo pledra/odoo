@@ -44,6 +44,7 @@
                                 <field name="allow_link"/>
                                 <field name="allow_discussion"/>
                                 <field name="default_post_type"/>
+                                <field name="allow_simultaneous_pending_post"/>
                               </group>
                               <group string="Orders">
                                 <field name="default_order"/>

@@ -84,6 +84,7 @@ class Forum(models.Model):
         string='Default Post', required=True, default='question')
     allow_question = fields.Boolean('Questions', help="Users can answer only once per question. Contributors can edit answers and mark the right ones.", default=True)
     allow_discussion = fields.Boolean('Discussions', default=True)
+    allow_simultaneous_pending_post = fields.Integer('Maximum posts pending supported by user', default=3)
     allow_link = fields.Boolean('Links', help="When clicking on the post, it redirects to an external link", default=True)
     allow_bump = fields.Boolean('Allow Bump', default=True,
                                 help='Check this box to display a popup for posts older than 10 days '
