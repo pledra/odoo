@@ -77,6 +77,49 @@
           self.pool.get('account.invoice').browse(cr, uid, ref('demo_invoice_invest_sale'))._onchange_invoice_line_ids()
           self.pool.get('account.invoice').signal_workflow(cr, uid, [ref('demo_invoice_invest_sale')], 'invoice_open')
 -
+  !record {model: account.invoice, id: demo_invoice_4}:
+    company_id: base.main_company
+    partner_id: base.res_partner_2
+    type: 'out_invoice'
+    date_invoice: !eval time.strftime('%Y-%m')+'-08'
+    invoice_line_ids:
+      - product_id: product.product_product_53
+        price_unit: 90.0
+        quantity: 10
+      - product_id: product.product_product_54
+        price_unit: 15.0
+        quantity: 15.0
+-
+  !python {model: ir.model.data} : |
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    invoice_date = datetime.now() - relativedelta(days=60)
+    self.pool.get('account.invoice').browse(cr, uid, ref('demo_invoice_4')).write({'date_invoice': invoice_date.strftime('%Y-%m-%d')})
+-
+  !workflow {model: account.invoice, action: invoice_open, ref: demo_invoice_4}
+-
+  !record {model: account.invoice, id: demo_invoice_5}:
+    company_id: base.main_company
+    partner_id: base.res_partner_4
+    payment_term_id: account.account_payment_term_net
+    type: 'out_invoice'
+    date_invoice: !eval time.strftime('%Y-%m')+'-08'
+    invoice_line_ids:
+      - product_id: product.product_product_53
+        price_unit: 90.0
+        quantity: 20
+      - product_id: product.product_product_54
+        price_unit: 15.0
+        quantity: 30.0
+-
+  !python {model: ir.model.data} : |
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+    invoice_date = datetime.now() - relativedelta(days=60)
+    self.pool.get('account.invoice').browse(cr, uid, ref('demo_invoice_5')).write({'date_invoice': invoice_date.strftime('%Y-%m-%d')})
+-
+  !workflow {model: account.invoice, action: invoice_open, ref: demo_invoice_5}
+-
    Set the context for supplier bills because the 'type' field is readonly in invoice form views, so it value won't be considered by the yaml import
 -
   !context
