@@ -9,53 +9,53 @@ var _t = core._t;
 Tour.register({
     id: 'bank_statement_reconciliation',
     name: _t("Reconcile the demo bank statement"),
-    path: '/web',
+    path: '/web#action=account.open_account_journal_dashboard_kanban',
     mode: 'test',
     steps: [
         // Go to the first statement reconciliation
         {
-            title:     "go to accounting",
-            element:   '.oe_menu_toggler:contains("Accounting"):visible',
+            title:     "go to 'more'",
+            element:   '.o_kanban_record:first a.o_kanban_manage_toggle_button',
         },
         {
             title:     "go to bank statements",
-            element:   '.oe_menu_leaf:contains("Bank Statement"):visible',
+            element:   '.o_kanban_record:first .oe_kanban_action_a:contains("Bank Statement")',
         },
         {
             title:     "select first bank statement",
-            element:   '.oe_list_content tbody tr:contains("BNK/2014/001")',
+            element:   'tr:contains("BNK/2014/001")',
         },
         {
             title:     "click the reconcile button",
-            element:   '.oe_form_container header button:contains("Reconcile")',
+            element:   'button:contains("Reconcile")',
         },
 
 
         // Check mutual exclusion of move lines
-        {
+/*        {
             title:      "set second reconciliation in match mode",
-            element:    '.oe_bank_statement_reconciliation_line:nth-child(2) .initial_line'
+            element:    '.o_bank_statement_reconciliation_line:nth-child(2) .initial_line'
         },
         {
             title:      "deselect SAJ/2014/002 from second reconciliation",
-            element:    '.oe_bank_statement_reconciliation_line:nth-child(2) .accounting_view .mv_line:contains("SAJ/2014/002")'
+            element:    '.o_bank_statement_reconciliation_line:nth-child(2) .accounting_view .mv_line:contains("SAJ/2014/002")'
         },
         {
             title:      "check it appeared in first reconciliation's matches list and select SAJ/2014/002 in second reconciliation",
-            waitNot:    '.oe_bank_statement_reconciliation_line:nth-child(2) .accounting_view .mv_line:contains("SAJ/2014/002")',
-            waitFor:    '.oe_bank_statement_reconciliation_line:first-child .mv_line:contains("SAJ/2014/002")',
-            element:    '.oe_bank_statement_reconciliation_line:nth-child(2) .mv_line:contains("SAJ/2014/002")'
-        },
+            waitNot:    '.o_bank_statement_reconciliation_line:nth-child(2) .accounting_view .mv_line:contains("SAJ/2014/002")',
+            waitFor:    '.o_bank_statement_reconciliation_line:first-child .mv_line:contains("SAJ/2014/002")',
+            element:    '.o_bank_statement_reconciliation_line:nth-child(2) .mv_line:contains("SAJ/2014/002")'
+        },*/
 
 
         // Make a partial reconciliation
         {
             title:      "select SAJ/2014/001",
-            element:    '.oe_bank_statement_reconciliation_line:first-child .mv_line:contains("SAJ/2014/001")'
+            element:    '.o_bank_statement_reconciliation_line:first-child  .initial_line'
         },
         {
             title:      "click on the partial reconciliation button",
-            element:    '.oe_bank_statement_reconciliation_line:first-child .mv_line:contains("SAJ/2014/001") .do_partial_reconcile_button'
+            element:    '.oe_bank_statement_reconciliation_line:first-child button:contains("Validate")'
         },
         {
             title:      "click on the OK button",
