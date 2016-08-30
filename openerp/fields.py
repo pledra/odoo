@@ -204,14 +204,17 @@ class Field(object):
 
             @api.depends('name')
             def _compute_upper(self):
+                \"\"\"returns the `name` field in uppercase\"\"\"
                 for rec in self:
                     rec.upper = rec.name.upper() if rec.name else False
 
             def _inverse_upper(self):
+                \"\"\"modify the `name` field with lowercase value of `upper`\"\"\"
                 for rec in self:
                     rec.name = rec.upper.lower() if rec.upper else False
 
             def _search_upper(self, operator, value):
+                \"\"\"turns into a case insensitive search on the `name` field\"\"\"
                 if operator == 'like':
                     operator = 'ilike'
                 return [('name', operator, value)]
@@ -239,7 +242,7 @@ class Field(object):
 
         The search method is invoked when processing domains before doing an
         actual search on the model. It must return a domain equivalent to the
-        condition: ``field operator value``.
+        condition: ``(field, operator, value)``.
 
         .. _field-related:
 
