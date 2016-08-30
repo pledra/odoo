@@ -404,7 +404,7 @@ added.
   to provide new field values::
 
     @api.onchange('field1', 'field2') # if these fields are changed, call method
-    def check_change(self):
+    def _check_change(self):
         if self.field1 < self.field2:
             self.field3 = True
 
@@ -421,6 +421,28 @@ added.
   will not trigger any interface update when the field is edited by the user,
   even if there are function fields or explicit onchange depending on that
   field.
+* In addition to changing a field value, a dictionnary may be returned with a
+  non-blocking warning message::
+
+    @api.onchange('field1')
+    def _check_negative(self):
+        if self.field1 < 0:
+            return {'warning': {
+                'title': 'Negative value',
+                'message': 'Specifying a negative value for field1 may not correctly works.'
+            }}
+
+* It is possible to set a domain attribute on a :ref:`reference/orm/fields/relational`
+  through onchanges::
+
+    @api.onchange('currency_id')
+    def _onchange_currency(self):
+        """ Force the account to use the selected currency """
+        if self.currency_id != self.account_id.currency_id:
+            self.account_id = False
+        return {'domain': {
+                    'account_id': [('currency_id', '=', self.currency_id)]
+        }}
 
 .. note::
 
