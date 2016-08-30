@@ -193,6 +193,11 @@ def depends(*args):
                 else:
                     self.pname = self.partner_id.name
 
+        Will invalidate the previously computed value when one modifies either
+        the value of the ``partner_id`` field or modifies the value of the
+        fields ``name`` or ``is_company`` on the record linked via the
+        ``partner_id`` field.
+
         One may also pass a single function as argument. In that case, the
         dependencies are given by calling the function with the field's model.
     """
