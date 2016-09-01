@@ -186,6 +186,7 @@ parameter) will see those record just disappear.
 
         <record id="list0" model="product.pricelist">
             <field name="name">Public Pricelist</field>
+            <field name="country_group_ids" eval="[(6, 0, [ref('base.europe')])]" />
         </record>
 
         <!--
