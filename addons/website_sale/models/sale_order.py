@@ -122,6 +122,7 @@ class SaleOrder(models.Model):
             values = self._website_product_id_change(self.id, product_id, qty=1)
             values['name'] = self._get_line_description(self.id, product_id, attributes=attributes)
             order_line = SaleOrderLineSudo.create(values)
+
             try:
                 order_line._compute_tax_id()
             except ValidationError as e:
@@ -142,6 +143,7 @@ class SaleOrder(models.Model):
         else:
             # update line
             values = self._website_product_id_change(self.id, product_id, qty=quantity)
+
             values['price_unit'] = order_line._get_display_price(order_line.product_id)
             order_line.write(values)
 
