@@ -76,7 +76,7 @@ class TestWebsitePriceList(TransactionCase):
         }
 
         country_list = {
-            False: False,
+            False: True,
             'BE': True,
             'IT': True,
             'US': False,
