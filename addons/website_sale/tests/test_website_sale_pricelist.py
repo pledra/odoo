@@ -88,9 +88,9 @@ class TestWebsitePriceList(TransactionCase):
             # mock patch method could not pass env context
             available = self.website.is_pricelist_available(christmas_pl)
             if result:
-                self.assertTrue(available)
+                self.assertTrue(available, "Promocode Failed for %s" % str(country))
             else:
-                self.assertFalse(available)
+                self.assertFalse(available, "Promocode Failed for %s" % str(country))
 
     def tearDown(self):
         self.patcher.stop()
