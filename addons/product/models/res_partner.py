@@ -13,6 +13,11 @@ class Partner(models.Model):
         inverse="_inverse_product_pricelist", company_dependent=False,  # NOT A REAL PROPERTY
         help="This pricelist will be used, instead of the default one, for sales to the current partner")
 
+    # property_product_pricelist = fields.Many2one(
+    #     'product.pricelist', 'Sale Pricelist', company_dependent=True,
+    #     help="This pricelist will be used, instead of the def"
+    # )
+
     @api.multi
     @api.depends('country_id')
     def _compute_product_pricelist(self):
