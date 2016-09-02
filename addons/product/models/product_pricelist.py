@@ -290,7 +290,7 @@ class Pricelist(models.Model):
         """ Mono pricelist, multi product - return price per product """
         return pricelist.get_products_price(zip(**products_by_qty_by_partner))
 
-    def get_partner_pricelist(self, partner_id, company_id=None):
+    def _get_partner_pricelist(self, partner_id, company_id=None):
         """ Retrieve the applicable pricelist for a given partner in a given company.
 
             :param company_id: if passed, used for looking up properties,
@@ -301,14 +301,20 @@ class Pricelist(models.Model):
 
         p = Partner.browse(partner_id)
         pl = Property.get('property_product_pricelist', Partner._name, '%s,%s' % (Partner._name, p.id))
+
+        if not pl:
+            if p.country_id.code:
+                pls = self.env['product.pricelist'].search([('country_group_ids.country_ids.code', '=', p.country_id.code)])
+                pl = pls and pls[0].id
+
         if not pl:
             pl = Property.get('property_product_pricelist', 'res.partner')
-            if p.country_id:
-                groups = self.env['res.country.group'].search([('country_ids.code', '=', p.country_id.code)])
-                for cgroup in groups:
-                    if cgroup.pricelist_ids:
-                        pl = cgroup.pricelist_ids.ids[0]
-                        continue
+
+        if not pl:
+            # search pl where no country
+            pls = self.env['product.pricelist'].search([('country_group_ids', '=', False)])
+            pl = pls and pls[0].id
+
         return pl
 
 
