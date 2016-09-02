@@ -172,7 +172,7 @@ class Property(models.Model):
         return result
 
     @api.model
-    def set_multi(self, name, model, values):
+    def set_multi(self, name, model, values, default_value=None):
         """ Assign the property field `name` for the records of model `model`
             with `values` (dictionary mapping record ids to their value).
         """
@@ -182,12 +182,12 @@ class Property(models.Model):
         if not values:
             return
 
-        domain = self._get_domain(name, model)
-        if domain is None:
-            raise Exception()
-
-        # retrieve the default value for the field
-        default_value = clean(self.get(name, model))
+        if not default_value:
+            domain = self._get_domain(name, model)
+            if domain is None:
+                raise Exception()
+            # retrieve the default value for the field
+            default_value = clean(self.get(name, model))
 
         # retrieve the properties corresponding to the given record ids
         self._cr.execute("SELECT id FROM ir_model_fields WHERE name=%s AND model=%s", (name, model))
