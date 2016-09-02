@@ -743,7 +743,7 @@ Weight: 31 grams</field>
             <field name="selectable" eval="True" />
             <field name="website_id" ref="website.default_website" />
             <field name="country_group_ids" eval="[(6,0,[ref('benelux')])]" />
-            <field name="sequence">5</field>
+            <field name="sequence">2</field>
         </record>
         <record id="item_benelux" model="product.pricelist.item">
             <field name="pricelist_id" ref="list_benelux"/>
@@ -758,7 +758,7 @@ Weight: 31 grams</field>
             <field name="selectable" eval="True" />
             <field name="website_id" ref="website.default_website" />
             <field name="country_group_ids" eval="[(6,0,[ref('base.europe')])]" />
-            <field name="sequence">2</field>
+            <field name="sequence">3</field>
         </record>
         <record id="item_europe" model="product.pricelist.item">
             <field name="pricelist_id" ref="list_europe"/>
@@ -773,7 +773,7 @@ Weight: 31 grams</field>
              <field name="selectable" eval="True" />
              <field name="website_id" ref="website.default_website" />
              <field name="country_group_ids" eval="[(6,0,[ref('country_group_us_ca')])]" />
-            <field name="sequence">1</field>
+            <field name="sequence">3</field>
         </record>
         <record id="item_us" model="product.pricelist.item">
             <field name="pricelist_id" ref="list_us"/>
