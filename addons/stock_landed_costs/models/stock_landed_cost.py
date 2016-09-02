@@ -194,10 +194,9 @@ class LandedCost(models.Model):
                 total_weight += val_line_values.get('weight', 0.0)
                 total_volume += val_line_values.get('volume', 0.0)
                 total_line += 1
-
             for line in cost.cost_lines:
                 value_split = 0.0
-                for valuation in cost.valuation_adjustment_lines:
+                for valuation in cost.valuation_adjustment_lines.sorted(key=lambda r: r.quantity):
                     value = 0.0
                     if valuation.cost_line_id and valuation.cost_line_id.id == line.id:
                         if line.split_method == 'by_quantity' and total_qty:
