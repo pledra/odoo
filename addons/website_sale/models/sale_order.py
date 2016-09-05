@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import logging
+import traceback
 import random
 
 from odoo import api, models, fields, tools, _
@@ -175,6 +176,7 @@ class Website(models.Model):
 
     @api.multi
     def _compute_pricelist_id(self):
+        _logger.warning("ODO MASTER - %s" % ''.join(traceback.format_stack()))
         for website in self:
             if website._context.get('website_id') != website.id:
                 website = website.with_context(website_id=website.id)
