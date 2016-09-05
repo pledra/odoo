@@ -4,6 +4,8 @@
 from odoo.api import Environment
 
 import odoo.tests
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class TestUi(odoo.tests.HttpCase):
@@ -56,6 +58,9 @@ class TestUi(odoo.tests.HttpCase):
         # this you end up with js, css but no qweb.
         env['ir.module.module'].search([('name', '=', 'point_of_sale')], limit=1).state = 'installed'
         cr.release()
+
+        print self.env['product.pricelist'].search([]).mapped(lambda x: (x.name, x.currency_id.name))
+        _logger.warning(self.env['product.pricelist'].search([]).mapped(lambda x: (x.name, x.currency_id.name)))
 
         self.phantom_js("/pos/web",
                         "odoo.__DEBUG__.services['web_tour.tour'].run('pos_basic_order')",
