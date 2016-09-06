@@ -11,7 +11,7 @@
             <field name="street">Avenue des Dessus-de-Lives, 2</field>
             <field name="city">Namur (Loyers)</field>
             <field name="zip">5101</field>
-            <field name="country_id" ref="us"/>
+            <field name="country_id" ref="be"/>
         </record>
 
         <record model="res.partner.bank" id="bank_partner_demo">
