@@ -13,11 +13,6 @@ class Partner(models.Model):
         inverse="_inverse_product_pricelist", company_dependent=False,  # NOT A REAL PROPERTY
         help="This pricelist will be used, instead of the default one, for sales to the current partner")
 
-    # property_product_pricelist = fields.Many2one(
-    #     'product.pricelist', 'Sale Pricelist', company_dependent=True,
-    #     help="This pricelist will be used, instead of the def"
-    # )
-
     @api.multi
     @api.depends('country_id')
     def _compute_product_pricelist(self):
@@ -27,7 +22,18 @@ class Partner(models.Model):
 
     @api.one
     def _inverse_product_pricelist(self):
-        self.env['ir.property'].set_multi('property_product_pricelist', self._name, {self.id: self.property_product_pricelist})
+        pls = self.env['product.pricelist'].search([('country_group_ids.country_ids.code', '=', self.country_id and self.country_id.code or False)])
+        default_for_country = pls and pls[0]
+        actual = self.env['ir.property'].get('property_product_pricelist', 'res.partner', 'res.partner,%s' % self.id)
+
+        # update at each change country, and so erase old pricelist
+        if self.property_product_pricelist or (actual and default_for_country and default_for_country.id != actual.id):
+            self.env['ir.property'].set_multi(
+                'property_product_pricelist',
+                self._name,
+                {self.id: self.property_product_pricelist or default_for_country.id},
+                default_value=default_for_country.id
+            )
 
     def _commercial_fields(self):
         return super(Partner, self)._commercial_fields() + ['property_product_pricelist']

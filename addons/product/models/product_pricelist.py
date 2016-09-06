@@ -308,7 +308,7 @@ class Pricelist(models.Model):
                 pl = pls and pls[0].id
 
         if not pl:
-            pl = Property.get('property_product_pricelist', 'res.partner')
+            pl = Property.get('property_product_pricelist', 'res.partner').id
 
         if not pl:
             # search pl where no country
