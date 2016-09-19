@@ -417,36 +417,6 @@
             <field name="user_type_id" ref="account.data_account_type_current_liabilities"/>
             <field name="chart_template_id" ref="l10nnl_chart_template"/>
         </record>
-        <record id="101001" model="account.account.template">
-            <field name="code">101001</field>
-            <field name="name">Kas 1</field>
-            <field name="user_type_id" ref="account.data_account_type_liquidity"/>
-            <field name="chart_template_id" ref="l10nnl_chart_template"/>
-        </record>
-        <record id="101002" model="account.account.template">
-            <field name="code">101002</field>
-            <field name="name">Kas 2</field>
-            <field name="user_type_id" ref="account.data_account_type_liquidity"/>
-            <field name="chart_template_id" ref="l10nnl_chart_template"/>
-        </record>
-        <record id="103001" model="account.account.template">
-            <field name="code">103001</field>
-            <field name="name">Bank 1</field>
-            <field name="user_type_id" ref="account.data_account_type_liquidity"/>
-            <field name="chart_template_id" ref="l10nnl_chart_template"/>
-        </record>
-        <record id="103002" model="account.account.template">
-            <field name="code">103002</field>
-            <field name="name">Bank 2</field>
-            <field name="user_type_id" ref="account.data_account_type_liquidity"/>
-            <field name="chart_template_id" ref="l10nnl_chart_template"/>
-        </record>
-        <record id="103003" model="account.account.template">
-            <field name="code">103003</field>
-            <field name="name">Bank 3 </field>
-            <field name="user_type_id" ref="account.data_account_type_liquidity"/>
-            <field name="chart_template_id" ref="l10nnl_chart_template"/>
-        </record>
         <record id="recv" model="account.account.template">
             <field name="code">11</field>
             <field name="name">Debiteuren</field>
@@ -2207,6 +2177,9 @@
             <field name="property_account_payable_id" ref="pay"/>
             <field name="property_account_expense_categ_id" ref="7001"/>
             <field name="property_account_income_categ_id" ref="8001"/>
+            <field name="property_stock_account_input_categ_id" ref="0120"/>
+            <field name="property_stock_account_output_categ_id" ref="0129"/>
+            <field name="property_stock_valuation_account_id" ref="4830"/>
             <field name="expense_currency_exchange_account_id" ref="4920"/>
             <field name="income_currency_exchange_account_id" ref="8920"/>
         </record>
