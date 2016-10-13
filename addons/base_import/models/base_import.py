@@ -14,8 +14,8 @@ import re
 from odoo import api, fields, models
 from odoo.tools.translate import _
 from odoo.tools.mimetypes import guess_mimetype
+from odoo.tools.misc import ustr
 from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
-
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -598,14 +598,15 @@ class Import(models.TransientModel):
                 # Parse date
                 index = import_fields.index(name)
                 dt = datetime.datetime
-                field_date_format = DEFAULT_SERVER_DATE_FORMAT if field['type'] == 'date' else DEFAULT_SERVER_DATETIME_FORMAT
-                if options.get('date_format', field_date_format) != field_date_format:
+                if options.get('date_format', DEFAULT_SERVER_DATE_FORMAT) != DEFAULT_SERVER_DATE_FORMAT:
+                    server_format = DEFAULT_SERVER_DATE_FORMAT if field['type'] == 'date' else DEFAULT_SERVER_DATETIME_FORMAT
+                    user_format = server_format.replace(DEFAULT_SERVER_DATE_FORMAT, options.get('date_format'))
                     for line in data:
                         if line[index]:
                             try:
-                                line[index] = dt.strftime(dt.strptime(line[index], options['date_format']), field_date_format)
-                            except ValueError:
-                                raise ValueError(_("Column %s contains incorrect values (value: %s does not match date format" % (name, line[index])))
+                                line[index] = dt.strftime(dt.strptime(line[index], user_format), server_format)
+                            except ValueError, e:
+                                raise ValueError(_("Column %s contains incorrect values. %s" % (name, ustr(e.message).capitalize())))
             elif field['type'] in ('float', 'monetary') and name in import_fields:
                 # Parse float, sometimes float values from file have currency symbol or () to denote a negative value
                 # We should be able to manage both case
