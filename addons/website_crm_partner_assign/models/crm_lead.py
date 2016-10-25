@@ -249,3 +249,16 @@ class CrmLead(models.Model):
                 'priority': values['priority'],
                 'date_deadline': values['date_deadline'] if values['date_deadline'] else False,
             })
+
+    @api.model
+    def create_opp_portal(self, values):
+        print values
+        if self.env.user.partner_id.grade_id or self.env.user.commercial_partner_id.grade_id:
+            self = self.sudo()
+        return self.create({
+            'contact_name': values['contact_name'],
+            'name': values['title'],
+            'description': values['description'],
+            'priority': '2',
+            'partner_assigned_id': self.env.user.partner_id.id
+        }).id
