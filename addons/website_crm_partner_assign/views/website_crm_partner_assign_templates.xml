@@ -317,6 +317,7 @@
                 <table t-if="opportunities" class="table table-hover">
                     <thead>
                         <tr class="active">
+                            <th class="col-xs-2">Date</th>
                             <th class="col-md-5">Name</th>
                             <th class="col-md-3">Expected Revenue</th>
                             <th>Contact Name</th>
@@ -325,6 +326,7 @@
                     </thead>
                     <tbody>
                         <tr t-foreach="opportunities" t-as="opp">
+                            <td><span t-field="lead.create_date" t-field-options='{"widget": "date"}' /></td>
                             <td>
                                 <a t-attf-href="/my/opportunity/#{opp.id}"><span t-field="opp.name"/></a>
                             </td>
