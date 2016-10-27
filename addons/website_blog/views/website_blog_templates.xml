@@ -429,7 +429,7 @@
             <t t-foreach="nav_list" t-as="year">
                 <li t-esc="year"/>
                 <t t-foreach="nav_list[year]" t-as="months">
-                    <t t-if="months['date_begin'] == date">
+                    <t t-if="months['date_begin'] == request.params.get('date_begin', '')">
                         <li class="active">
                             <a t-ignore="True" t-attf-href="#{blog_url(date_begin=False, date_end=False)}"><t t-esc="months['month']"/><span class="pull-right badge" t-esc="months['post_date_count']"/></a>
                         </li>
