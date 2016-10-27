@@ -99,11 +99,23 @@ class Attendee(models.Model):
     availability = fields.Selection([('free', 'Free'), ('busy', 'Busy')], 'Free/Busy', readonly="True")
     access_token = fields.Char('Invitation Token', default=_default_access_token)
     event_id = fields.Many2one('calendar.event', 'Meeting linked', ondelete='cascade')
+    color_code = fields.Char('HTML Color Code', compute='_compute_color_code')
 
     @api.depends('partner_id', 'partner_id.name', 'email')
     def _compute_common_name(self):
         for attendee in self:
             attendee.common_name = attendee.partner_id.name or attendee.email
+
+    @api.multi
+    def _compute_color_code(self):
+        colors = {
+            'needsAction': 'grey',
+            'accepted': 'green',
+            'tentative': '#FFFF00',
+            'declined': 'red'
+        }
+        for attendee in self:
+            attendee.color_code = colors.get(attendee.state, 'grey')
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
@@ -129,54 +141,27 @@ class Attendee(models.Model):
             :param template_xmlid: xml id of the email template to use to send the invitation
             :param force_send: if set to True, the mail(s) will be sent immediately (instead of the next queue processing)
         """
-        res = False
+        if self._context.get("no_mail_to_attendees") or self.env['ir.config_parameter'].get_param('calendar.block_mail'):
+            return False
 
-        if self.env['ir.config_parameter'].get_param('calendar.block_mail') or self._context.get("no_mail_to_attendees"):
-            return res
-
-        calendar_view = self.env.ref('calendar.view_calendar_event_calendar')
         invitation_template = self.env.ref(template_xmlid)
+        invitation_template = invitation_template.with_context(dbname=self._cr.dbname)
 
         # get ics file for all meetings
         ics_files = self.mapped('event_id').get_ics_file()
 
-        # prepare rendering context for mail template
-        colors = {
-            'needsAction': 'grey',
-            'accepted': 'green',
-            'tentative': '#FFFF00',
-            'declined': 'red'
-        }
-        rendering_context = dict(self._context)
-        rendering_context.update({
-            'color': colors,
-            'action_id': self.env['ir.actions.act_window'].search([('view_id', '=', calendar_view.id)], limit=1).id,
-            'dbname': self._cr.dbname,
-            'base_url': self.env['ir.config_parameter'].get_param('web.base.url', default='http://localhost:8069')
-        })
-        invitation_template = invitation_template.with_context(rendering_context)
-
         # send email with attachments
-        mails_to_send = self.env['mail.mail']
+        mail_ids = []
         for attendee in self:
             if attendee.email or attendee.partner_id.email:
                 ics_file = ics_files.get(attendee.event_id.id)
-                mail_id = invitation_template.send_mail(attendee.id)
-
-                vals = {}
+                email_values = {}
                 if ics_file:
-                    vals['attachment_ids'] = [(0, 0, {'name': 'invitation.ics',
-                                                      'datas_fname': 'invitation.ics',
-                                                      'datas': str(ics_file).encode('base64')})]
-                vals['model'] = None  # We don't want to have the mail in the tchatter while in queue!
-                current_mail = self.env['mail.mail'].browse(mail_id)
-                current_mail.mail_message_id.write(vals)
-                mails_to_send |= current_mail
+                    email_values['attachments'] = [('invitation.ics', str(ics_file).encode('base64'))]
+                mail_id = invitation_template.send_mail(attendee.id, force_send=force_send, email_values=email_values)
+                mail_ids.append(mail_id)
 
-        if force_send and mails_to_send:
-            res = mails_to_send.send()
-
-        return res
+        return bool(mail_ids)
 
     @api.multi
     def do_tentative(self):

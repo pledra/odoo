@@ -16,13 +16,13 @@
             </t>
 
             <div class="container">
-                <div class="o_logo">
+                <div class="o_logo mt16 mb16">
                     <img class="img img-responsive center-block" src="/web/binary/company_logo"/>
                 </div>
 
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <h2>Calendar Invitation <small><t t-esc="event.name"/></small></h2>
+                        <h2 class="text-center">Invitation to <i><t t-esc="event.name"/></i></h2>
                     </div>
                     <div class="panel-body">
                         <div class="clearfix mb16" t-if="attendee.state != 'needsAction'">
@@ -39,6 +39,10 @@
                                     <td><t t-esc="attendee.common_name"/> (<t t-esc="attendee.email"/>)</td>
                                 </tr>
                                 <tr>
+                                    <th>Responsible</th>
+                                    <td><t t-esc="event.user_id.name"/></td>
+                                </tr>
+                                <tr>
                                     <th>Date</th>
                                     <td><t t-esc="event.display_time"/></td>
                                 </tr>
@@ -51,7 +55,7 @@
                                     <td>
                                         <ul>
                                             <li t-foreach="event.attendee_ids" t-as="attendee" t-attf-class="o_#{attendee.state}">
-                                                <t t-esc="attendee.common_name"/>
+                                                <span t-att-style="'color:%s;' %(attendee.color_code,)"><t t-esc="attendee.common_name"/></span>
                                             </li>
                                         </ul>
                                     </td>

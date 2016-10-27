@@ -82,7 +82,6 @@
             <field name="auto_delete" eval="True"/>
             <field name="body_html"><![CDATA[
 <div summary="o_mail_template" style="padding:0px;width:600px;margin:auto;background: #FFFFFF repeat top /100%;color:#777777">
-% set colors = {'needsAction': 'grey', 'accepted': 'green', 'tentative': '#FFFF00',  'declined': 'red'}
     <table cellspacing="0" cellpadding="0" style="width:600px;border-collapse:collapse;background:inherit;color:inherit">
         <tbody><tr>
             <td valign="center" width="200" style="padding:10px 10px 10px 5px;font-size: 12px">
@@ -145,7 +144,7 @@
                         <ul>
                         % for attendee in object.event_id.attendee_ids:
                             <li>
-                                <div style="display:inline-block; border-radius: 50%; width:10px; height:10px;background:${colors[attendee.state] or 'white'};"></div>
+                                <div style="display:inline-block; border-radius: 50%; width:10px; height:10px;background:${attendee.color_code};"></div>
                                 % if attendee.common_name != object.common_name:
                                 <span style="margin-left:5px">${attendee.common_name}</span>
                                 % else:
@@ -173,7 +172,6 @@
             <field name="auto_delete" eval="True"/>
             <field name="body_html"><![CDATA[
 <div summary="o_mail_template" style="padding:0px;width:600px;margin:auto;background: #FFFFFF repeat top /100%;color:#777777">
-% set colors = {'needsAction': 'grey', 'accepted': 'green', 'tentative': '#FFFF00',  'declined': 'red'}
     <table cellspacing="0" cellpadding="0" style="width:600px;border-collapse:collapse;background:inherit;color:inherit">
         <tbody><tr>
             <td valign="center" width="200" style="padding:10px 10px 10px 5px;font-size: 12px">
@@ -237,7 +235,7 @@
                         <ul>
                         % for attendee in object.event_id.attendee_ids:
                             <li>
-                                <div style="display:inline-block; border-radius: 50%; width:10px; height:10px;background:${colors[attendee.state] or 'white'};"></div>
+                                <div style="display:inline-block; border-radius: 50%; width:10px; height:10px;background:${attendee.color_code};"></div>
                                 % if attendee.common_name != object.common_name:
                                 <span style="margin-left:5px">${attendee.common_name}</span>
                                 % else:
@@ -265,7 +263,6 @@
             <field name="auto_delete" eval="True"/>
             <field name="body_html"><![CDATA[
 <div summary="o_mail_template" style="padding:0px;width:600px;margin:auto;background: #FFFFFF repeat top /100%;color:#777777">
-% set colors = {'needsAction': 'grey', 'accepted': 'green', 'tentative': '#FFFF00',  'declined': 'red'}
     <table cellspacing="0" cellpadding="0" style="width:600px;border-collapse:collapse;background:inherit;color:inherit">
         <tbody><tr>
             <td valign="center" width="200" style="padding:10px 10px 10px 5px;font-size: 12px">
@@ -329,7 +326,7 @@
                         <ul>
                         % for attendee in object.event_id.attendee_ids:
                             <li>
-                                <div style="display:inline-block; border-radius: 50%; width:10px; height:10px;background:${colors[attendee.state] or 'white'};"></div>
+                                <div style="display:inline-block; border-radius: 50%; width:10px; height:10px;background:${attendee.color_code};"></div>
                                 % if attendee.common_name != object.common_name:
                                 <span style="margin-left:5px">${attendee.common_name}</span>
                                 % else:
