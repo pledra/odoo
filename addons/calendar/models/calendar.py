@@ -557,17 +557,6 @@ class Meeting(models.Model):
             return deadline + relativedelta(**{delay: count * mult})
         return final_date
 
-    @api.multi
-    def _find_my_attendee(self):
-        """ Return the first attendee where the user connected has been invited
-            from all the meeting_ids in parameters.
-        """
-        self.ensure_one()
-        for attendee in self.attendee_ids:
-            if self.env.user.partner_id == attendee.partner_id:
-                return attendee
-        return False
-
     @api.model
     def _get_date_formats(self):
         """ get current date and time format, according to the context lang
@@ -643,8 +632,6 @@ class Meeting(models.Model):
     name = fields.Char('Meeting Subject', required=True, states={'done': [('readonly', True)]})
     state = fields.Selection([('draft', 'Unconfirmed'), ('open', 'Confirmed')], string='Status', readonly=True, track_visibility='onchange', default='draft')
 
-    is_attendee = fields.Boolean('Attendee', compute='_compute_attendee')
-    attendee_status = fields.Selection(Attendee.STATE_SELECTION, string='Attendee Status', compute='_compute_attendee')
     display_time = fields.Char('Event Time', compute='_compute_display_time')
     display_start = fields.Char('Date', compute='_compute_display_start', store=True)
     start = fields.Datetime('Start', required=True, help="Start date of an event, without time for full days events")
@@ -718,13 +705,6 @@ class Meeting(models.Model):
     partner_ids = fields.Many2many('res.partner', 'calendar_event_res_partner_rel', string='Attendees', states={'done': [('readonly', True)]}, default=_default_partners)
     alarm_ids = fields.Many2many('calendar.alarm', 'calendar_alarm_calendar_event_rel', string='Reminders', ondelete="restrict", copy=False)
     is_highlighted = fields.Boolean(compute='_compute_is_highlighted', string='# Meetings Highlight')
-
-    @api.multi
-    def _compute_attendee(self):
-        for meeting in self:
-            attendee = meeting._find_my_attendee()
-            meeting.is_attendee = bool(attendee)
-            meeting.attendee_status = attendee.state if attendee else 'needsAction'
 
     @api.multi
     def _compute_display_time(self):

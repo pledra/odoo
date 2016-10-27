@@ -89,8 +89,6 @@
             <form string="Meetings">
                 <sheet>
                     <field name="state" invisible="1"/>
-                    <field name="is_attendee" invisible="1"/>
-                    <field name="attendee_status" invisible="1"/>
                     <div class="oe_title">
                         <div class="oe_edit_only">
                             <label for="name"/>
@@ -234,8 +232,6 @@
         <field name="arch" type="xml">
             <form string="Meetings">
                 <field name="state" invisible="1"/>
-                <field name="is_attendee" invisible="1"/>
-                <field name="attendee_status" invisible="1"/>
                 <group>
                     <group>
                         <field name="start_date" string="Starting at" attrs="{'invisible': [('allday','=',False)]}"/>
