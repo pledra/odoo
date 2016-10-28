@@ -44,8 +44,13 @@ def check_postgres_user():
     This function assumes the configuration has been initialized.
     """
     config = odoo.tools.config
-    if config['db_user'] == 'postgres':
-        sys.stderr.write("Using the database user 'postgres' is a security risk, aborting.")
+    db_user = config['db_user'] or os.environ.get('PGUSER')
+    if not db_user and os.name == 'posix':
+        import pwd
+        db_user = pwd.getpwuid(os.getuid())[0]
+
+    if db_user == 'postgres':
+        sys.stderr.write("Using the database user 'postgres' is a security risk, aborting.\n")
         sys.exit(1)
 
 def report_configuration():
