@@ -325,6 +325,8 @@ def list_dbs(force=False):
     with closing(db.cursor()) as cr:
         try:
             db_user = odoo.tools.config["db_user"]
+            if not db_user:
+                db_user = os.environ.get('PGUSER')
             if not db_user and os.name == 'posix':
                 import pwd
                 db_user = pwd.getpwuid(os.getuid())[0]
