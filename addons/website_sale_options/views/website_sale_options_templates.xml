@@ -71,11 +71,11 @@
                 </td>
                 <td>
                   <div class="input-group oe_website_spinner">
-                      <a t-attf-href="#" class="mb8 input-group-addon js_add_cart_json">
+                      <a t-attf-href="#" class="mb8 input-group-addon js_add_cart_json hidden-xs">
                           <i class="fa fa-minus"></i>
                       </a>
                       <input type="text" class="js_quantity form-control" data-min="1" name="add_qty" value="1"/>
-                      <a t-attf-href="#" class="mb8 input-group-addon float_left js_add_cart_json">
+                      <a t-attf-href="#" class="mb8 input-group-addon float_left js_add_cart_json hidden-xs">
                           <i class="fa fa-plus"></i>
                       </a>
                   </div>

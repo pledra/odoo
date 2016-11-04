@@ -301,49 +301,12 @@ div#payment_method .list-group-item {
   padding-bottom: 5px;
 }
 
-@media (max-width: 992px) {
-  #modal_optional_products table:last-child td:last-child {
-    overflow: hidden;
-  }
-  #modal_optional_products table:last-child td:nth-child(2) {
-    width: 50%;
-  }
-  #modal_optional_products table:last-child td:nth-child(3) {
-    width: 20%;
-  }
-  #modal_optional_products table:last-child td:last-child, #modal_optional_products table:last-child td:nth-last-child(2) {
-    width: 15%;
-  }
-}
 @media (max-width: 500px) {
-  .oe_cart table, #modal_optional_products table {
-    display: inline-block;
-  }
   .oe_cart table thead, #modal_optional_products table thead {
     display: none;
   }
-  .oe_cart table tbody, .oe_cart table tr, .oe_cart table td, #modal_optional_products table tbody, #modal_optional_products table tr, #modal_optional_products table td {
-    float: left;
-    width: 100% !important;
-    display: inline-block;
-  }
-  .oe_cart table td:first-child, #modal_optional_products table td:first-child {
+  .oe_cart table td.td_product_img, #modal_optional_products table td.td_product_img {
     display: none;
-  }
-  .oe_cart table td:last-child, #modal_optional_products table td:last-child {
-    margin-bottom: 16px;
-  }
-  .oe_cart table:last-child tr:last-child td:last-child, #modal_optional_products table:last-child tr:last-child td:last-child {
-    margin-bottom: 0;
-  }
-  .oe_cart table td:last-child, .oe_cart table td:nth-last-child(2), #modal_optional_products table td:last-child, #modal_optional_products table td:nth-last-child(2) {
-    width: 50% !important;
-    height: 46px;
-    text-align: center;
-  }
-
-  #modal_optional_products table:last-child td:nth-child(3) > div {
-    float: none !important;
   }
 
   .oe_cart a span.hidden-xs, #modal_optional_products a span.hidden-xs {
