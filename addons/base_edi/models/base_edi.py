@@ -1,73 +1,83 @@
 # -*- coding: utf-8 -*-
 
+from os.path import dirname, join, basename
 import jinja2
 from StringIO import StringIO
 from lxml import etree
 from odoo import models, fields, api, tools
 from odoo.exceptions import ValidationError
 
-class BaseJinja(models.Model):
-    _name = 'base.jinja'
+class BaseJinja:
+    def _load_business_document(self, template_path, template_data):
+        addons_dir = join(dirname(tools.config['root_path']), 'addons')
+        template_dir = join(addons_dir, dirname(template_path))
+        template_name = basename(template_path)
+        loader = jinja2.FileSystemLoader(template_dir)
+        environment = jinja2.Environment(
+            loader=loader,
+            trim_blocks=True, 
+            lstrip_blocks=True
+            )
+        template = environment.get_template(template_name)
+        xml_content = template.render(template_data)
+        return xml_content
 
-    def _load_template(self, template_xml, template_values):
-        template = jinja2.Template(template_xml, trim_blocks=True, lstrip_blocks=True)
-        filled_template = template.render(template_values)
-        return filled_template
 
-class BaseEdi(models.Model):
-    _name = 'base.edi'
-    _inherit = 'base.jinja'
-
-    def _check_business_doc_validity(self, xml_tree, xml_schema):
-        if not xml_schema.validate(xml_tree):
-            raise ValidationError('The generate file is unvalid')
-
+class BaseEtree:
     def _create_str_from_tree(self, xml_tree):
-        return etree.tostring(xml_tree, pretty_print=True)
+       return etree.tostring(
+            xml_tree, 
+            pretty_print=True, 
+            encoding='UTF-8',
+            xml_declaration=True)
 
-    def _create_xsd_schema(self, template_xsd_path):
-        if not template_xsd_path:
-            return None
-        xml_schema_doc = etree.parse(tools.file_open(template_xsd_path))
-        xml_schema = etree.XMLSchema(xml_schema_doc)
-        return xml_schema
+    def _check_validity(self, xml_tree, xml_schema):
+        assert xml_schema.validate(xml_tree), 'The generate file is unvalid'
 
-    def _create_xml_tree(self, business_document):
+    def _create_xml_tree(self, xml_content):
         xml_parser = etree.XMLParser(remove_blank_text=True)
-        xml_doc_str = business_document.encode('utf-8')
+        xml_doc_str = xml_content.encode('utf-8')
         xml_tree = etree.fromstring(xml_doc_str, parser=xml_parser)
         return xml_tree
 
-    def _create_template_values(self):
+    def _load_xml_schema(self, xsd_path):
+        xml_schema_doc = etree.parse(tools.file_open(xsd_path))
+        xml_schema = etree.XMLSchema(xml_schema_doc)
+        return xml_schema
+
+    def _create_business_tree_node(self, xml_content, xsd_path=None):
+        xml_tree = self._create_xml_tree(xml_content)
+        if xsd_path:
+            xml_schema = self._load_xml_schema(xsd_path)
+            self._check_validity(xml_tree, xml_schema)
+        return xml_tree
+
+class BaseEdi(models.Model, BaseJinja, BaseEtree):
+    _name = 'base.edi'
+
+    def edi_invoice_validate(self):
+        return
+
+    def create_template_data(self):
         return {'item': self}
 
-    def create_business_document(self, template):
-        if not template:
-            return None
-        template_xml = tools.file_open(template.xml_path).read()
-        template_values = self._create_template_values()
-        business_document = self._load_template(template_xml, template_values)
-        xml_schema = self._create_xsd_schema(template.xsd_path)
-        xml_tree = self._create_xml_tree(business_document)
-        if xml_schema:
-            self._check_business_doc_validity(xml_tree, xml_schema)
-        business_document_content = self._create_str_from_tree(xml_tree)
+    def _create_attachment_content(self, template_path, xsd_path=None):
+        template_data = self.create_template_data()
+        business_document = \
+            self._load_business_document(template_path, template_data)
+        business_document_tree = \
+            self._create_business_tree_node(business_document, xsd_path)
+        business_document_content = \
+            self._create_str_from_tree(business_document_tree)
         return business_document_content
 
-    def _create_pdf_attachment(self, filename, pdf_content):
-        attach = self.env['ir.attachment'].create({
+    def create_attachment(self, filename, template_path, xsd_path=None):
+        content = self._create_attachment_content(template_path, xsd_path)
+        attachment = self.env['ir.attachment'].create({
             'name': filename,
             'res_id': self.id,
             'res_model': unicode(self._name),
-            'datas': pdf_content.encode('base64'),
+            'datas': content.encode('base64'),
             'datas_fname': filename,
             'type': 'binary',
             })
-        action = self.env['ir.actions.act_window'].for_xml_id(
-            'base', 'action_attachment')
-        action.update({
-            'res_id': attach.id,
-            'views': False,
-            'view_mode': 'form,tree'
-            })
-        return action

@@ -37,7 +37,7 @@ MAGIC_COLUMNS = ('id', 'create_uid', 'create_date', 'write_uid', 'write_date')
 
 class AccountInvoice(models.Model):
     _name = "account.invoice"
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'base.edi']
     _description = "Invoice"
     _order = "date_invoice desc, number desc, id desc"
 
@@ -898,6 +898,7 @@ class AccountInvoice(models.Model):
 
     @api.multi
     def invoice_validate(self):
+        self.edi_invoice_validate()
         for invoice in self:
             #refuse to validate a vendor bill/refund if there already exists one with the same reference for the same partner,
             #because it's probably a double encoding of the same bill/refund
