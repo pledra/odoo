@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_unece_agency,unece.agency,model_unece_agency,base.group_user,1,0,0,0
+access_unece_type,unece.type,model_unece_type,base.group_user,1,0,0,0
+access_unece_code,unece.code,model_unece_code,base.group_user,1,0,0,0
