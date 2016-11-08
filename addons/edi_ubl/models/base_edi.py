@@ -46,6 +46,8 @@ class BaseEdi(models.Model):
     def edi_create_template_data(self):
         ''' Override '''
         template_data = super(BaseEdi, self).edi_create_template_data()
+        template_data['version_id'] = 2.1
+        template_data['currency_name'] = self.currency_id.name
         self._ubl_append_party_data(
             self.company_id.partner_id, 'supplier', template_data)
         self._ubl_append_party_data(

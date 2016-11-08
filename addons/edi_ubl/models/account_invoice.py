@@ -6,136 +6,84 @@ class AccountInvoice(models.Model):
     _name = 'account.invoice'
     _inherit = 'account.invoice'
 
-    ubl_type_code = fields.Char(compute='_compute_ubl_type_code')
-    ubl_amount_untaxed_format = fields.Float(compute='_compute_ubl_amount_untaxed_format')
-    ubl_amount_total_format = fields.Float(compute='_compute_ubl_amount_total_format')
-    ubl_amount_prepaid_format = fields.Float(compute='_compute_ubl_amount_prepaid_format')
-    ubl_residual_format = fields.Float(compute='_compute_ubl_residual_format')
+    @api.model
+    def _edi_get_type_code(self):
+        return 380 if self.type == 'out_invoice' else 381
 
-    @api.multi
-    @api.depends('type')
-    def _compute_ubl_type_code(self):
-        for record in self:
-            if record.type == 'out_invoice':
-                record.ubl_type_code = '380'
-            elif record.type == 'out_refund':
-                record.ubl_type_code = '381'
+    @api.model
+    def _edi_append_headers(self, template_data):
+        template_data['id'] = self.number
+        template_data['issuedate'] = self.date_invoice
+        template_data['type_code'] = self._edi_get_type_code()
+        template_data['comment'] = self.comment
 
-    @api.multi
-    @api.depends('amount_untaxed')
-    def _compute_ubl_amount_untaxed_format(self):
+    @api.model
+    def _edi_append_tax_data(self, template_data):
         precision_digits = self.env['decimal.precision'].precision_get('Account')
-        for record in self:
-            record.ubl_amount_untaxed_format = \
-                '%0.*f' % (precision_digits, record.amount_untaxed)
+        template_data['amount_tax'] = self.amount_tax
+        template_data['amount_untaxed'] = \
+            '%0.*f' % (precision_digits, self.amount_untaxed)
+        template_data['amount_total'] = \
+            '%0.*f' % (precision_digits, self.amount_total)
+        template_data['residual'] = \
+            '%0.*f' % (precision_digits, self.residual)
+        template_data['amount_prepaid'] = \
+            '%0.*f' % (precision_digits, self.amount_total - self.residual)
 
-    @api.multi
-    @api.depends('amount_total')
-    def _compute_ubl_amount_total_format(self):
-        precision_digits = self.env['decimal.precision'].precision_get('Account')
-        for record in self:
-            record.ubl_amount_total_format = \
-                '%0.*f' % (precision_digits, record.amount_total)
+    @api.model
+    def _edi_append_invoice_lines(self, template_data):
+        template_data['invoice_lines'] = []
+        line_number = 0
+        for invoice_line_id in self.invoice_line_ids:
+            line_number += 1
+            template_data_line = {'number': line_number}
+            invoice_line_id._edi_append_invoice_line_data(template_data_line)
+            template_data['invoice_lines'].append(template_data_line)
 
-    @api.multi
-    @api.depends('amount_total', 'ubl_residual_format')
-    def _compute_ubl_amount_prepaid_format(self):
-        precision_digits = self.env['decimal.precision'].precision_get('Account')
-        for record in self:
-            amount_prepaid = record.amount_total - record.ubl_residual_format
-            record.ubl_amount_prepaid_format = \
-                '%0.*f' % (precision_digits, amount_prepaid)
-
+    @api.model
+    def edi_create_template_data(self):
+        ''' Override '''
+        template_data = super(AccountInvoice, self).edi_create_template_data()
+        self._edi_append_headers(template_data)
+        self._edi_append_tax_data(template_data)
+        self._edi_append_invoice_lines(template_data)
+        return template_data
 
 class AccountInvoiceLine(models.Model):
     _inherit = 'account.invoice.line'
 
-    ubl_price_subtotal = fields.Float(compute='_compute_ubl_price_subtotal')
-    ubl_price = fields.Float(compute='_compute_ubl_line_price')
-    ubl_total_tax = fields.Float(compute='_compute_taxes_informations')
-    ubl_base_tax = fields.Float(compute='_compute_taxes_informations')
-    ubl_total_included = fields.Float(compute='_compute_taxes_informations')
-    ubl_total_excluded = fields.Float(compute='_compute_taxes_informations')
-    ubl_seller_code = fields.Char(compute='_compute_ubl_seller_code')
-    ubl_product_name = fields.Char(compute='_compute_ubl_product_name')
-    ubl_inline_name = fields.Char(compute='_compute_ubl_inline_name')
+    @api.model
+    def _edi_get_description(self):
+        lines = map(lambda line: line.strip(), self.name.split('\n'))
+        return ', '.join(lines)
 
-    @api.multi
-    @api.depends('price_subtotal')
-    def _compute_ubl_price_subtotal(self):
+    @api.model
+    def _edi_get_product_name(self):
+        variants = [variant.name for variant in self.product_id.attribute_value_ids]
+        if variants:
+            return "%s (%s)" % (self.product_id.name, ', '.join(variants))
+        else:
+            return self.product_id.name
+
+    @api.model
+    def _edi_append_invoice_line_data(self, template_data):
         precision_digits = self.env['decimal.precision'].precision_get('Account')
-        for record in self:
-            record.ubl_price_subtotal = \
-                '%0.*f' % (precision_digits, record.price_subtotal)
-
-    @api.multi
-    @api.depends('price_unit', 'discount')
-    def _compute_ubl_line_price(self):
-        for record in self:
-            record.ubl_price = \
-                record.price_unit * (1 - (record.discount or 0.0) / 100.0)
-
-    @api.multi
-    @api.depends('invoice_id', 'ubl_price')
-    def _compute_taxes_informations(self):
-        precision_digits = self.env['decimal.precision'].precision_get('Account')
-        for record in self:
-            partner_id = record.invoice_id.partner_id
-            res_taxes = record.invoice_line_tax_ids.compute_all(
-                record.ubl_price, 
-                quantity=record.quantity, 
-                product=record.product_id, 
-                partner=partner_id)
-            record.ubl_total_included = tools.float_round(
-                    res_taxes['total_included'], 
-                    precision_digits=precision_digits)
-            record.ubl_total_excluded = tools.float_round(
-                    res_taxes['total_excluded'], 
-                    precision_digits=precision_digits)
-            record.ubl_total_tax = \
-                record.ubl_total_included - record.ubl_total_excluded
-            record.ubl_base_tax = res_taxes['base']
-
-    @api.multi
-    @api.depends('product_id')
-    def _compute_ubl_seller_code(self):
-        for record in self:
-            record.ubl_seller_code = record.product_id.default_code
-
-    @api.multi
-    @api.depends('product_id')
-    def _compute_ubl_product_name(self):
-        for record in self:
-            variants = [variant.name for variant in record.product_id.attribute_value_ids]
-            if variants:
-                record.ubl_product_name = "%s (%s)" % (record.product_id.name, ', '.join(variants))
-            else:
-                record.ubl_product_name = record.product_id.name
-
-    @api.multi
-    @api.depends('name')
-    def _compute_ubl_inline_name(self):
-        for record in self:
-            lines = map(lambda line: line.strip(), record.name.split('\n'))
-            record.ubl_inline_name = ', '.join(lines)
-
-    class AccountInvoiceTax(models.Model):
-        _inherit = 'account.invoice.tax'
-
-        ubl_tax_percent = fields.Float(compute='_compute_ubl_tax_percent')
-        # ubl_account_tax = fields.Many2one(compute='_compute_ubl_account_tax')
-
-        @api.multi
-        @api.depends('amount')
-        def _compute_ubl_tax_percent(self):
-            for record in self:
-                record.ubl_tax_percent = \
-                    tools.float_round((record.amount / record.base) * 100, precision_digits=2)
-
-        @api.multi
-        @api.depends('base_code_id')
-        def _compute_ubl_account_tax(self):
-            for record in self:
-                taxes = self.env['account.tax'].search([
-                ('base_code_id', '=', record.base_code_id.id)])
-                record.ubl_account_tax = taxes[0]
+        partner_id = self.invoice_id.partner_id
+        res_taxes = self.invoice_line_tax_ids.compute_all(
+            self.price_subtotal, 
+            quantity=self.quantity, 
+            product=self.product_id, 
+            partner=partner_id)
+        template_data['quantity'] = self.quantity
+        template_data['price_subtotal'] = \
+            '%0.*f' % (precision_digits, self.price_subtotal)
+        template_data['total_excluded'] =  tools.float_round(
+            res_taxes['total_excluded'], 
+            precision_digits=precision_digits) 
+        template_data['total_tax'] = tools.float_round(
+            res_taxes['total_excluded'] - res_taxes['total_included'], 
+            precision_digits=precision_digits)
+        template_data['description'] = self._edi_get_description()
+        template_data['product_name'] = self._edi_get_product_name()
+        template_data['seller_code'] = self.product_id.default_code
+        template_data['product'] = self.product_id

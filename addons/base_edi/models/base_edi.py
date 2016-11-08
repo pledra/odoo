@@ -4,7 +4,8 @@ from os.path import dirname, join, basename
 import jinja2
 from StringIO import StringIO
 from lxml import etree
-from odoo import models, fields, api, tools, exceptions
+from odoo import models, fields, api, tools
+from odoo.exceptions import UserError
 
 class BaseJinja:
     def _edi_load_business_document(self, template_path, template_data):
@@ -39,7 +40,7 @@ class BaseEtree:
         ''' Checks the validity of the node tree according to the schema.
         '''
         if not xml_schema.validate(xml_tree):
-            raise exceptions.UserError('The generate file is unvalid')
+            raise UserError('The generate file is unvalid')
 
     def _edi_create_xml_tree(self, xml_content):
         ''' Transforms the content of the template into a node tree.
