@@ -371,13 +371,11 @@ var Gui = core.Class.extend({
 
         var blob = new Blob([contents]);
 
-        var evt  = document.createEvent("HTMLEvents");
-            evt.initEvent("click");
-
-        $("<a>",{
-            download: name || 'document.txt',
+        var bogus_link = $("<a>",{
             href: URL.createObjectURL(blob),
-        }).get(0).dispatchEvent(evt);
+        });
+
+        bogus_link.click();
     },
 
     /* ---- Gui: EMAILS ---- */
