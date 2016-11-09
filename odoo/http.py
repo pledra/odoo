@@ -784,7 +784,7 @@ class HttpRequest(WebRequest):
         if request.httprequest.method == 'OPTIONS' and request.endpoint and request.endpoint.routing.get('cors'):
             headers = {
                 'Access-Control-Max-Age': 60 * 60 * 24,
-                'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, X-Debug-Mode'
+                'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
             }
             return Response(status=200, headers=headers)
 
