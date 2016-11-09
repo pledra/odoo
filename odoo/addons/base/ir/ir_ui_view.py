@@ -526,6 +526,7 @@ actual arch.
             if spec.tag == 'data':
                 specs += [c for c in spec]
                 continue
+
             node = self.locate_node(source, spec)
             if node is not None:
                 pos = spec.get('position', 'inside')

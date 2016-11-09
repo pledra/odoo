@@ -10,6 +10,10 @@ if(!$('.js_add_cart_variants[data-attribute_value_ids]').length) {
     return $.Deferred().reject("DOM doesn't contain '.js_add_cart_variants[data-attribute_value_ids]'");
 }
 
+if (window.outerWidth <= 468) {
+    return
+}
+
 $('.oe_website_sale #add_to_cart, .oe_website_sale #products_grid .a-submit')
     .off('click')
     .removeClass('a-submit')

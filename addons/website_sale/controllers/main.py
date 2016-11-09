@@ -759,15 +759,16 @@ class WebsiteSale(http.Controller):
                 return dict(success=False, error=_("Payment transaction failed (Contact Administrator)"))
         return dict(success=False, error='Tx missmatch')
 
-    @http.route(['/shop/payment/transaction_token'], type='http', methods=['GET'], auth="public", website=True)
+    @http.route(['/shop/payment/transaction_token'], type='http', methods=['POST'], auth="public", website=True)
     def payment_transaction_token(self, tx_id, **kwargs):
         tx = request.env['payment.transaction'].sudo().browse(int(tx_id))
-        # if (tx and request.website.sale_get_transaction() and
-        #         tx.id == request.website.sale_get_transaction().id and
-        #         tx.payment_token_id and
-        #         tx.partner_id == tx.sale_order_id.partner_id):
-        return request.render("website_sale.payment_token_form_confirm", dict(tx=tx))
-        
+        if (tx and request.website.sale_get_transaction() and
+                tx.id == request.website.sale_get_transaction().id and
+                tx.payment_token_id and
+                tx.partner_id == tx.sale_order_id.partner_id):
+            return request.render("website_sale.payment_token_form_confirm", dict(tx=tx))
+        else:
+            return request.redirect("/shop/payment?error=no_token_or_missmatch_tx")
 
     @http.route(['/shop/payment/transaction/<int:acquirer_id>'], type='json', auth="public", website=True)
     def payment_transaction(self, acquirer_id, tx_type='form', token=None, **kwargs):
