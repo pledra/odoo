@@ -107,7 +107,16 @@ class BaseEdi(models.Model, BaseJinja, BaseEtree):
         return pdf_content.encode('base64')
 
     @api.model
-    def edi_create_attachment_tree(self, template_path, template_data, xsd_path=None):
+    def edi_append_block(self, tree_node, block_path, template_data, block_index=None, insert_index=None):
+        if not block_index:
+            block_index = 0
+        if not insert_index:
+            insert_index = max(len(tree_node) - 1, 0)
+        block_tree_root = self.edi_load_template_tree(block_path, template_data)
+        tree_node.insert(insert_index, block_tree_root[block_index])
+
+    @api.model
+    def edi_load_template_tree(self, template_path, template_data, xsd_path=None):
         ''' This method is in charge to generate/fill/check the template and to
         return the node tree associated to the xml.
         '''
@@ -118,13 +127,13 @@ class BaseEdi(models.Model, BaseJinja, BaseEtree):
         return business_document_tree
 
     @api.model
-    def edi_create_attachment_content(
+    def edi_load_template_content(
         self, template_path, template_data, xsd_path=None):
         ''' This method is in charge to generate/fill/check the template and to
         return the content that will be added as attachment.
         '''
         business_document_tree = \
-            self.edi_create_attachment_tree(template_path, xsd_path=xsd_path)
+            self.edi_load_template_tree(template_path, xsd_path=xsd_path)
         business_document_content = \
             self.edi_create_str_from_tree(business_document_tree)
         return business_document_content
@@ -139,7 +148,7 @@ class BaseEdi(models.Model, BaseJinja, BaseEtree):
             if template_path:
                 if not template_data:
                     template_data = self.edi_create_template_data()
-                content = self._edi_create_attachment_content(
+                content = self._edi_load_template_content(
                     template_path, template_data, xsd_path=xsd_path)
             else:
                 raise UserError('To create an attachment, a template_path or a content must be provided!')

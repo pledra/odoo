@@ -8,15 +8,12 @@ UBL_INVOICE_ATTACHMENT = (
     'edi_ubl/data/xsd/2.1/maindoc/UBL-Invoice-2.1.xsd'
 )
 
-UBL_ADDITIONAL_REFERENCE_BLOCK = \
-    'edi_ubl/data/templates/2.1/UBL-Additional-Reference-Block.xml'
-
 class AccountInvoice(models.Model):
     _name = 'account.invoice'
     _inherit = 'account.invoice'
 
     @api.model
-    def _ubl_create_doc_reference(self, tree_node, content):
+    def _ubl_append_reference_block(self, tree_node, content, insert_index):
         ''' This method appends manually the additional document reference to
         the etree.
         '''
@@ -26,15 +23,9 @@ class AccountInvoice(models.Model):
             'binary_content': self.edi_create_embedded_pdf_in_xml_content(
                 'account.report_invoice', UBL_INVOICE_ATTACHMENT[0], content)
         }
-        # Creation of the etree
-        doc_reference_tree = self.edi_create_attachment_tree(
-            UBL_ADDITIONAL_REFERENCE_BLOCK, template_data)
-        # Append the element to the tree node
-        ns_cbc = '{urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2}'
-        doc_currency_element = tree_node.find(
-            ns_cbc + 'DocumentCurrencyCode')
-        insert_index = tree_node.index(doc_currency_element) + 1
-        tree_node.insert(insert_index, doc_reference_tree[0])
+        # Append block
+        self.edi_append_block(
+            tree_node, self.UBL_BLOCKS['REF'], template_data, insert_index=insert_index)
 
     @api.model
     def _ubl_create_attachment_with_embedding(
@@ -45,22 +36,36 @@ class AccountInvoice(models.Model):
         # Creation of the data
         template_data = self.edi_create_template_data()
         # Creation of the etree
-        business_document_tree = self.edi_create_attachment_tree(
+        ubl_tree = self.edi_load_template_tree(
             UBL_INVOICE_ATTACHMENT[1], template_data, UBL_INVOICE_ATTACHMENT[2])
-        # Creation of the content
-        business_document_content = \
-            self.edi_create_str_from_tree(business_document_tree)
-        # Alter the etree
-        self._ubl_create_doc_reference(
-            business_document_tree, business_document_content)
+
+        # ADD supplier party block
+        supplier_party_node = ubl_tree.find(
+            self.UBL_NAMESPACES['cac'] + 'AccountingSupplierParty')
+        com_supplier = self.company_id.partner_id.commercial_partner_id
+
+        self._ubl_append_party_block(com_supplier, supplier_party_node)
+
+        # ADD customer party block
+        customer_party_node = ubl_tree.find(
+            self.UBL_NAMESPACES['cac'] + 'AccountingCustomerParty')
+        com_customer = self.partner_id.commercial_partner_id
+        self._ubl_append_party_block(com_customer, customer_party_node)
+
+        # ADD reference block
+        content = self.edi_create_str_from_tree(ubl_tree)
+        doc_currency_node = ubl_tree.find(
+            self.UBL_NAMESPACES['cbc'] + 'DocumentCurrencyCode')
+        doc_currency_index = ubl_tree.index(doc_currency_node)
+        self._ubl_append_reference_block(
+            ubl_tree, content, doc_currency_index + 1)
 
         # Update the content
-        business_document_content = \
-            self.edi_create_str_from_tree(business_document_tree)
+        content = self.edi_create_str_from_tree(ubl_tree)
 
         # Create the attachment
         self.edi_create_attachment(
-            xml_filename, content=business_document_content)
+            xml_filename, content=content)
 
     @api.model
     def edi_generate_attachments(self):
