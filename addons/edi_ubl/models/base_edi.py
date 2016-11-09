@@ -26,21 +26,6 @@ class BaseEdi(models.Model):
         self.edi_append_block(
             tree_node, self.UBL_BLOCKS['PARTY'], template_data, insert_index=insert_index)
 
-
-    @api.model
-    def _ubl_append_party_data(self, partner_id, tag, template_data):
-        template_data[tag + '_com'] = \
-            partner_id.commercial_partner_id
-        template_data[tag + '_phone'] = \
-            partner_id.phone or \
-            template_data[tag + '_com'].phone
-        template_data[tag + '_fax'] = \
-            partner_id.fax or \
-            template_data[tag + '_com'].fax
-        template_data[tag + '_email'] = \
-            partner_id.email or \
-            template_data[tag + '_com'].email
-
     @api.model
     def edi_create_template_data(self):
         template_data = super(BaseEdi, self).edi_create_template_data()

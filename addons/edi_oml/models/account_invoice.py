@@ -2,12 +2,14 @@
 
 from odoo import models, fields, api, tools
 
-OML_INVOICE_ATTACHMENT = (
-    'OML-Invoice.xml',
-    'edi_oml/data/templates/OML-Invoice.xml',
-    None
-    # 'edi_oml/data/xsd/UBL-Invoice.xsd'
-)
+OML_ADDENDA = {
+    'AUTOZONE': (
+        'OML-Invoice-Autozone.xml',
+        'edi_oml/data/templates/OML-Invoice-Autozone.xml',
+        None
+        # 'edi_oml/data/xsd/OML-Invoice.xsd'
+    )
+}
 
 class AccountInvoice(models.Model):
     _name = 'account.invoice'
@@ -22,11 +24,12 @@ class AccountInvoice(models.Model):
         if country_code == 'MX':
             pass
         # TEST
-        self.edi_create_attachment(
-            OML_INVOICE_ATTACHMENT[0], 
-            OML_INVOICE_ATTACHMENT[1], 
-            xsd_path=OML_INVOICE_ATTACHMENT[2]
-            )
+        for key, value in OML_ADDENDA.items():
+            self.edi_create_attachment(
+                value[0], 
+                value[1], 
+                xsd_path=value[2]
+                )
 
     @api.model
     def edi_create_template_data(self):

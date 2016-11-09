@@ -93,4 +93,5 @@
             </cfdi:Traslados>
             {% endif %}
     </cfdi:Impuestos>
+    {% block addenda %}{% endblock %}
 </cfdi:Comprobante>

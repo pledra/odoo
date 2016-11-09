@@ -1,81 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Invoice 
-  xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
-  xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
-  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
-  <cbc:UBLVersionID>{{ version_id }}</cbc:UBLVersionID>
-  <cbc:ID>{{ id }}</cbc:ID>
-  <cbc:IssueDate>{{ issuedate }}</cbc:IssueDate>
-  <cbc:InvoiceTypeCode>{{ type_code }}</cbc:InvoiceTypeCode>
-  {% if comment %}
-  <cbc:Note>{{ comment }}</cbc:Note>
-  {% endif %}
-  <cbc:DocumentCurrencyCode>{{ currency_name }}</cbc:DocumentCurrencyCode>
-  <cac:AccountingSupplierParty></cac:AccountingSupplierParty>
-  <cac:AccountingCustomerParty></cac:AccountingCustomerParty>
-  <cac:TaxTotal>
-    <cbc:TaxAmount 
-      currencyID="{{ currency_name }}"
-      >{{ amount_tax }}</cbc:TaxAmount>
-  </cac:TaxTotal>
-  <cac:LegalMonetaryTotal>
-      <cbc:LineExtensionAmount 
+    xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+    xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+    <cbc:UBLVersionID>{{ version_id }}</cbc:UBLVersionID>
+    <cbc:ID>{{ id }}</cbc:ID>
+    <cbc:IssueDate>{{ issuedate }}</cbc:IssueDate>
+    <cbc:InvoiceTypeCode>{{ type_code }}</cbc:InvoiceTypeCode>
+    {% if comment %}
+    <cbc:Note>{{ comment }}</cbc:Note>
+    {% endif %}
+    <cbc:DocumentCurrencyCode>{{ currency_name }}</cbc:DocumentCurrencyCode>
+    <cac:AccountingSupplierParty></cac:AccountingSupplierParty>
+    <cac:AccountingCustomerParty></cac:AccountingCustomerParty>
+    <cac:TaxTotal>
+        <cbc:TaxAmount 
+        currencyID="{{ currency_name }}"
+        >{{ amount_tax }}</cbc:TaxAmount>
+    </cac:TaxTotal>
+    <cac:LegalMonetaryTotal>
+        <cbc:LineExtensionAmount 
         currencyID="{{ currency_name }}"
         >{{ amount_untaxed }}</cbc:LineExtensionAmount>
-      <cbc:TaxExclusiveAmount 
+        <cbc:TaxExclusiveAmount 
         currencyID="{{ currency_name }}"
         >{{ amount_untaxed }}</cbc:TaxExclusiveAmount>
-      <cbc:TaxInclusiveAmount 
+        <cbc:TaxInclusiveAmount 
         currencyID="{{ currency_name }}"
         >{{ amount_total }}</cbc:TaxInclusiveAmount>
-      <cbc:PrepaidAmount 
+        <cbc:PrepaidAmount 
         currencyID="{{ currency_name }}"
         >{{ amount_prepaid }}</cbc:PrepaidAmount>
-      <cbc:PayableAmount 
+        <cbc:PayableAmount 
         currencyID="{{ currency_name }}"
         >{{ residual }}</cbc:PayableAmount>
-  </cac:LegalMonetaryTotal>
-  {% for invoice_line in invoice_lines %}
-  <cac:InvoiceLine>
-      <cbc:ID>{{ invoice_line.number }}</cbc:ID>
-      <cbc:InvoicedQuantity>{{ invoice_line.quantity }}</cbc:InvoicedQuantity>
-      <cbc:LineExtensionAmount 
+    </cac:LegalMonetaryTotal>
+    {% for invoice_line in invoice_lines %}
+    <cac:InvoiceLine>
+        <cbc:ID>{{ invoice_line.number }}</cbc:ID>
+        <cbc:InvoicedQuantity>{{ invoice_line.quantity }}</cbc:InvoicedQuantity>
+        <cbc:LineExtensionAmount 
         currencyID="{{ currency_name }}"
         >{{ invoice_line.price_subtotal }}</cbc:LineExtensionAmount>
-      <cac:TaxTotal>
-          <cbc:TaxAmount 
+        <cac:TaxTotal>
+            <cbc:TaxAmount 
             currencyID="{{ currency_name }}"
             >{{ invoice_line.total_tax }}</cbc:TaxAmount>
-      </cac:TaxTotal>
-      <cac:Item>
-          <cbc:Description>{{ invoice_line.description }}</cbc:Description>
-          <cbc:Name>{{ invoice_line.product_name }}</cbc:Name>
-          {% if invoice_line.seller_code %}
-          <cac:SellersItemIdentification>
-              <cbc:ID>{{ invoice_line.seller_code }}</cbc:ID>
-          </cac:SellersItemIdentification>
-          {% endif %}
-          {% if invoice_line.product.ean13 %}
-          <cac:StandardItemIdentification>
-              <cbc:ID 
+        </cac:TaxTotal>
+        <cac:Item>
+            <cbc:Description>{{ invoice_line.description }}</cbc:Description>
+            <cbc:Name>{{ invoice_line.product_name }}</cbc:Name>
+            {% if invoice_line.seller_code %}
+            <cac:SellersItemIdentification>
+                <cbc:ID>{{ invoice_line.seller_code }}</cbc:ID>
+            </cac:SellersItemIdentification>
+            {% endif %}
+            {% if invoice_line.product.ean13 %}
+            <cac:StandardItemIdentification>
+                <cbc:ID 
                 schemeAgencyID="6" 
                 schemeID="GTIN"
                 >{{ invoice_line.product.ean13 }}</cbc:ID>
-          </cac:StandardItemIdentification>
-          {% endif %}
-          {% for attribute_value in invoice_line.product.attribute_value_ids %}
-          <cac:AdditionalItemProperty>
-              <cbc:Name>{{ attribute_value.attribute_id.name }}</cbc:Name>
-              <cbc:Value>{{ attribute_value.name }}</cbc:Value>
-          </cac:AdditionalItemProperty>
-          {% endfor %}
-      </cac:Item>
-      <cac:Price>
-          <cbc:PriceAmount 
+            </cac:StandardItemIdentification>
+            {% endif %}
+            {% for attribute_value in invoice_line.product.attribute_value_ids %}
+            <cac:AdditionalItemProperty>
+                <cbc:Name>{{ attribute_value.attribute_id.name }}</cbc:Name>
+                <cbc:Value>{{ attribute_value.name }}</cbc:Value>
+            </cac:AdditionalItemProperty>
+            {% endfor %}
+        </cac:Item>
+        <cac:Price>
+            <cbc:PriceAmount 
             currencyID="{{ currency_name }}"
             >{{ invoice_line.total_excluded }}</cbc:PriceAmount>
-          <cbc:BaseQuantity>{{ invoice_line.quantity }}</cbc:BaseQuantity>
-      </cac:Price>
-  </cac:InvoiceLine>
-  {% endfor %}
+            <cbc:BaseQuantity>{{ invoice_line.quantity }}</cbc:BaseQuantity>
+        </cac:Price>
+    </cac:InvoiceLine>
+    {% endfor %}
 </Invoice>
