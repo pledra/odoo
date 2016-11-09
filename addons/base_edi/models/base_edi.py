@@ -6,6 +6,8 @@ from StringIO import StringIO
 from lxml import etree
 from odoo import models, fields, api, tools
 from odoo.exceptions import UserError
+from tempfile import NamedTemporaryFile
+import PyPDF2
 
 class BaseJinja:
     def _edi_load_business_document(self, template_path, template_data):
@@ -27,7 +29,7 @@ class BaseJinja:
 
 
 class BaseEtree:
-    def _edi_create_str_from_tree(self, xml_tree):
+    def edi_create_str_from_tree(self, xml_tree):
         ''' Transforms a node tree into a well indended string.
         '''
         return etree.tostring(
@@ -70,7 +72,7 @@ class BaseEdi(models.Model, BaseJinja, BaseEtree):
     _name = 'base.edi'
 
     @api.model
-    def edi_generate_invoice_attachments(self):
+    def edi_generate_attachments(self):
         ''' Abstract method that is called when the business documents can
         be created as attachments. So, this method must be overrided for each
         king of documents.
@@ -86,29 +88,67 @@ class BaseEdi(models.Model, BaseJinja, BaseEtree):
         return {'item': self}
 
     @api.model
-    def _edi_create_attachment_content(self, template_path, xsd_path=None):
-        ''' This method is in charge to generate/fill/check the template and to
-        return the content that will be added as attachment.
+    def edi_create_embedded_pdf_in_xml_content(self, report_name, xml_filename, content):
+        ''' This method is usefull when a pdf content need to be embedded in a xml.
+        This is the case for the standard e-fff used in belgium.
         '''
-        template_data = self.edi_create_template_data()
+        pdf_content = self.env['report'].get_pdf(
+            [self.id], report_name, data=self._context)
+        original_pdf_file = StringIO(pdf_content)
+        original_pdf = PyPDF2.PdfFileReader(original_pdf_file)
+        new_pdf_filestream = PyPDF2.PdfFileWriter()
+        new_pdf_filestream.appendPagesFromReader(original_pdf)
+        new_pdf_filestream.addAttachment(xml_filename, content)
+        with NamedTemporaryFile(prefix='odoo-ubl-', suffix='.pdf') as f:
+            new_pdf_filestream.write(f)
+            f.seek(0)
+            pdf_content = f.read()
+            f.close()
+        return pdf_content.encode('base64')
+
+    @api.model
+    def edi_create_attachment_tree(self, template_path, template_data, xsd_path=None):
+        ''' This method is in charge to generate/fill/check the template and to
+        return the node tree associated to the xml.
+        '''
         business_document = \
             self._edi_load_business_document(template_path, template_data)
         business_document_tree = \
             self._edi_create_business_tree_node(business_document, xsd_path)
+        return business_document_tree
+
+    @api.model
+    def edi_create_attachment_content(
+        self, template_path, template_data, xsd_path=None):
+        ''' This method is in charge to generate/fill/check the template and to
+        return the content that will be added as attachment.
+        '''
+        business_document_tree = \
+            self.edi_create_attachment_tree(template_path, xsd_path=xsd_path)
         business_document_content = \
-            self._edi_create_str_from_tree(business_document_tree)
+            self.edi_create_str_from_tree(business_document_tree)
         return business_document_content
 
     @api.model
-    def edi_create_attachment(self, filename, template_path, xsd_path=None):
+    def edi_create_attachment(
+        self, xml_filename, template_path=None, template_data=None, xsd_path=None, content=None):
         ''' Creates an edi attachment.
         '''
-        content = self._edi_create_attachment_content(template_path, xsd_path)
+        # Look about the content or create it if necessary
+        if not content:
+            if template_path:
+                if not template_data:
+                    template_data = self.edi_create_template_data()
+                content = self._edi_create_attachment_content(
+                    template_path, template_data, xsd_path=xsd_path)
+            else:
+                raise UserError('To create an attachment, a template_path or a content must be provided!')
+        # Create the attachment      
         attachment = self.env['ir.attachment'].create({
-            'name': filename,
+            'name': xml_filename,
             'res_id': self.id,
             'res_model': unicode(self._name),
             'datas': content.encode('base64'),
-            'datas_fname': filename,
+            'datas_fname': xml_filename,
             'type': 'binary',
             })

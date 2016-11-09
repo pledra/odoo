@@ -904,7 +904,7 @@ class AccountInvoice(models.Model):
             if invoice.type in ('in_invoice', 'in_refund') and invoice.reference:
                 if self.search([('type', '=', invoice.type), ('reference', '=', invoice.reference), ('company_id', '=', invoice.company_id.id), ('commercial_partner_id', '=', invoice.commercial_partner_id.id), ('id', '!=', invoice.id)]):
                     raise UserError(_("Duplicated vendor reference detected. You probably encoded twice the same vendor bill/refund."))
-        self.edi_generate_invoice_attachments()
+        self.edi_generate_attachments()
         return self.write({'state': 'open'})
 
     @api.model
