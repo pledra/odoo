@@ -133,7 +133,7 @@ class BaseEdi(models.Model, BaseJinja, BaseEtree):
         return the content that will be added as attachment.
         '''
         business_document_tree = \
-            self.edi_load_template_tree(template_path, xsd_path=xsd_path)
+            self.edi_load_template_tree(template_path, template_data, xsd_path=xsd_path)
         business_document_content = \
             self.edi_create_str_from_tree(business_document_tree)
         return business_document_content
@@ -148,7 +148,7 @@ class BaseEdi(models.Model, BaseJinja, BaseEtree):
             if template_path:
                 if not template_data:
                     template_data = self.edi_create_template_data()
-                content = self._edi_load_template_content(
+                content = self.edi_load_template_content(
                     template_path, template_data, xsd_path=xsd_path)
             else:
                 raise UserError('To create an attachment, a template_path or a content must be provided!')

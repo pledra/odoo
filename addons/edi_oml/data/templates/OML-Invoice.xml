@@ -1,0 +1,96 @@
+<cfdi:Comprobante
+    xsi:schemaLocation="http://www.sat.gob.mx/cfd/3 http://www.sat.gob.mx/sitio_internet/cfd/3/cfdv32.xsd"
+    xmlns:cfdi="http://www.sat.gob.mx/cfd/3"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    version="3.2"
+    LugarExpedicion="{{ domicile }}"
+    Moneda="{{ currency_name }}"
+    NumCtaPago="{{ account }}"
+    TipoCambio="{{ rate }}"
+    certificado="{{ certificate }}"
+    descuento="{{ discount_amount }}"
+    fecha="{{ issuedate }}"
+    folio="{{ id }}"
+    formaDePago="{{ payment_policy }}"
+    metodoDePago="{{ payment_method }}"
+    noCertificado="{{ certificate_number }}"
+    sello=""
+    serie="{{ serie }}"
+    subTotal="{{ discount_amount_subtotal }}"
+    tipoDeComprobante="{{ document_type }}"
+    total="{{ amount_total }}">
+    <cfdi:Emisor
+        nombre="{{ supplier.name }}"
+        rfc="TODO">
+        <cfdi:DomicilioFiscal
+            calle="{{ supplier.street }}"
+            codigoPostal="{{ supplier.zip }}"
+            colonia="TODO"
+            estado="{{ supplier.state_id.name }}"
+            localidad="TODO"
+            municipio="TODO"
+            noExterior="TODO"
+            noInterior="TODO"
+            pais="{{ supplier.country_id.name }}"/>
+        <cfdi:ExpedidoEn
+            calle="TODO"
+            codigoPostal="TODO"
+            colonia="TODO"
+            estado="TODO"
+            localidad="TODO"
+            municipio="TODO"
+            noExterior="TODO"
+            noInterior="TODO"
+            pais="TODO"/>
+        <cfdi:RegimenFiscal
+            Regimen="TODO"/>
+    </cfdi:Emisor>
+    <cfdi:Receptor
+        nombre="{{ customer.name }}"
+        rfc="TODO">
+        <cfdi:Domicilio
+            calle="TODO"
+            codigoPostal="TODO"
+            colonia="TODO"
+            estado="TODO"
+            localidad="TODO"
+            municipio="TODO"
+            noExterior="TODO"
+            noInterior="TODO"
+            pais="TODO"/>
+    </cfdi:Receptor>
+    <cfdi:Conceptos>
+        {% for invoice_line in item.invoice_lines %}
+        <cfdi:Concepto
+            cantidad="{{ invoice_line.quantity }}"
+            descripcion="TODO"
+            importe="TODO"
+            noIdentificacion="TODO"
+            unidad="TODO"
+            valorUnitario="{{ invoice_line.price_unit }}"/>
+        {% endfor %}
+    </cfdi:Conceptos>
+    <cfdi:Impuestos
+        totalImpuestosTrasladados="TODO"
+        totalImpuestosRetenidos="TODO">
+            {%if False %}
+            <cfdi:Retenciones>
+                {%for withhold in item.taxes.withholding %}
+                    <cfdi:Retencion
+                        importe="{{ withhold.amount or 0.0 }}"
+                        impuesto="{{ withhold.name }}"/>
+                {% endfor %}
+            </cfdi:Retenciones>
+            {% endif %}
+            {% if False %}
+            <cfdi:Traslados>
+                {% for tax in item.taxes.transferred %}
+                    <cfdi:Traslado
+                        importe="{{ tax.amount or 0.0 }}"
+                        impuesto="{{ tax.name }}"
+                        tasa="{{ tax.rate or 0.0 }}"/>
+                {% endfor %}
+            </cfdi:Traslados>
+            {% endif %}
+    </cfdi:Impuestos>
+</cfdi:Comprobante>
