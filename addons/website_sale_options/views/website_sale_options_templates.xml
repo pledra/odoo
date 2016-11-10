@@ -38,7 +38,7 @@
                   <th colspan="2">Product</th>
                   <th style="min-width: 140px;"> </th>
                   <th width="100">Price</th>
-                  <th width="120">Quantity</th>
+                  <th width="130">Quantity</th>
               </tr>
           </thead>
           <tbody>
