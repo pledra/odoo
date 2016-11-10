@@ -31,5 +31,4 @@ class ResPartner(models.Model):
             self.browse(partner_id).write(partner)
         else:
             partner_id = self.create(partner).id
-        1/0
         return partner_id

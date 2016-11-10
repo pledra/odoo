@@ -804,6 +804,7 @@ exports.PosModel = Backbone.Model.extend({
                 // Hide error if already shown before ... 
                 if ((!self.get('failed') || options.show_error) && !options.to_invoice) {
                     self.gui.show_popup('error-traceback',{
+                        'blob': self.gui.prepare_blob(error.data,'Error'),
                         'title': error.data.message,
                         'body':  error.data.debug
                     });

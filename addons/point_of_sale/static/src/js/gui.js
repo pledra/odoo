@@ -357,34 +357,6 @@ var Gui = core.Class.extend({
 
     /* ---- Gui: FILE I/O ---- */
 
-    // LEGACY
-    // This will make the browser download 'contents' as a 
-    // file named 'name'
-    // if 'contents' is not a string, it is converted into
-    // a JSON representation of the contents. 
-
-    download_file: function(contents, name) {
-        var URL = window.URL || window.webkitURL;
-        
-        if (typeof contents !== 'string') {
-            contents = JSON.stringify(contents,null,2);
-        }
-
-        var blob = new Blob([contents]);
-
-        var bogus_link = $("<a>",{
-            href: URL.createObjectURL(blob),
-            download : name + "txt" || "document.txt"
-        });
-
-
-        if(bogus_link[0].click)
-            bogus_link[0].click();
-        else {
-            window.open(URL.createObjectURL(blob));
-        }
-    },
-
     debug_email: function(debug_type,date_string,data) {
         var self = this;
         var email_to = "lpe@odoo.com";
@@ -479,6 +451,23 @@ var Gui = core.Class.extend({
         }
 
         return newbuf;
+    },
+
+    prepare_blob: function(data,debug_type) {
+        if (typeof data === "object") {
+            data = JSON.stringify(data);
+        }
+
+        var blob = new Blob([data],{type: 'text/plain'});
+        var URL = window.URL || window.webkitURL;
+        var url_blob = URL.createObjectURL(blob);
+        var filename = debug_type+"_"+(new Date()).toUTCString().replace(/\ |:|,/g,'_')+".txt";
+
+        return {
+            url_blob:url_blob,
+            filename:filename,
+            isAttDownload: (document.createElement('a').download != "undefined")
+        };
     },
 });
 

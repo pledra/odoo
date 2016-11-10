@@ -1221,7 +1221,7 @@ var ClientListScreenWidget = ScreenWidget.extend({
     saved_client_details: function(partner_id){
         var self = this;
         this.reload_partners().then(function(){
-            var partner = self.pos.db.get_partner_by_id(partner_id);
+            var partner = self.pos.db.get_partner_oby_id(partner_id);
             if (partner) {
                 self.new_client = partner;
                 self.toggle_save_button();
@@ -1947,6 +1947,7 @@ var PaymentScreenWidget = ScreenWidget.extend({
                     });
                 } else if (error.code === 200) {    // OpenERP Server Errors
                     self.gui.show_popup('error-traceback',{
+                        'blob': self.gui.prepare_blob(error.data,'Error'),
                         'title': error.data.message || _t("Server Error"),
                         'body': error.data.debug || _t('The server encountered an error while receiving your order.'),
                     });
