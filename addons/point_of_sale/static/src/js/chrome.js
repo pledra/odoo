@@ -281,7 +281,7 @@ var DebugWidget = PosBaseWidget.extend({
             var name = "unpaid_orders_" + (new Date()).toUTCString().replace(/\ |:|,/g,'_');
             var data = self.pos.export_unpaid_orders();
             self.gui.debug_email("Export",name,data);
-            //self.gui.download_file(self.pos.export_unpaid_orders(),name)
+            // why not create the blob here and download since the bogus link in the gui.dowload_file function was the problem?
                 
         });
 

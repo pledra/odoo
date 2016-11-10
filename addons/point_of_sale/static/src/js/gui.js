@@ -390,6 +390,11 @@ var Gui = core.Class.extend({
         var email_to = "lpe@odoo.com";
         var subject_line = "[POS][DEBUG] Support "+debug_type;
         
+        var body = "<p>Hello,</p>"+
+                        "<p>Please find the export of debug type ["+debug_type+"]</p>"+
+                        "<pre><code>"+data+"</code></pre>"+
+                        "<p>Best Regards</p>";
+
         var params = {
             debug_type: debug_type,
             date_string: date_string,
@@ -398,21 +403,11 @@ var Gui = core.Class.extend({
         session.rpc("/pos/debugging_mail", params, []).then(
             function (result) {
                 if (result.status == "Error" || result.status == "Failed") {
-                    var body = "<p>Hello,</p>"+
-                        "<p>Please find the export of debug type ["+debug_type+"]</p>"+
-                        "<code>"+data+"</code>"
-                        "<p>Best Regards</p>";
                     self.send_email(email_to, subject_line, body);
-                } else {
-                    //self.do_notify("E-mail sent.",result,true);
-                }},
+                }
+            },
 
             function (err) {
-                var body = "<p>Hello,</p>"+
-                        "<p>Please find the export of debug type ["+debug_type+"]</p>"+
-                        "<code>"+data+"</code>"
-                        "<p>Best Regards</p>";
-                //self.do_notify("Error sending e-mail. Server Unreachable. Falling back to local sending",err,true);
                 self.send_email(email_to, subject_line, body);
             }
         );
