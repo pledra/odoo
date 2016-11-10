@@ -26,6 +26,46 @@
 .oe_website_sale ul ul {
   margin-left: 1.5em;
 }
+.oe_website_sale ul ul .td-product_name {
+  word-wrap: break-word;
+}
+.oe_website_sale ul ul .td-img {
+  width: 100px;
+}
+.oe_website_sale ul ul .td-qty {
+  width: 130px;
+}
+.oe_website_sale ul ul .td-price, .oe_website_sale ul ul .td-price-total {
+  width: 100px;
+}
+@media (max-width: 767px) {
+  .oe_website_sale ul ul .td-img, .oe_website_sale ul ul .td-price-total {
+    display: none;
+  }
+  .oe_website_sale ul ul .td-qty {
+    width: 80px;
+  }
+  .oe_website_sale ul ul .td-price {
+    width: 80px;
+  }
+}
+@media (max-width: 476px) {
+  .oe_website_sale ul ul .td-qty {
+    width: 60px;
+  }
+  .oe_website_sale ul ul .oe_cart table thead, .oe_website_sale ul ul #modal_optional_products table thead {
+    display: none;
+  }
+  .oe_website_sale ul ul .oe_cart table td.td-img, .oe_website_sale ul ul #modal_optional_products table td.td-img {
+    display: none;
+  }
+  .oe_website_sale ul ul .oe_cart a span.hidden-xs, .oe_website_sale ul ul #modal_optional_products a span.hidden-xs {
+    display: none !important;
+  }
+  .oe_website_sale ul ul .oe_cart a span.visible-xs-inline, .oe_website_sale ul ul #modal_optional_products a span.visible-xs-inline {
+    display: inline !important;
+  }
+}
 
 /* ---- Default Styles ---- */
 .o_alternative_product {
@@ -578,51 +618,6 @@ a.no-decoration {
   cursor: zoom-in;
 }
 
-/*# sourceMappingURL=website_sale.css.map */
-
 .break-word {
   word-wrap: break-word;
-}
-.td-product_name {
-  word-wrap: break-word;
-}
-.td-img {
-  width: 100px;
-}
-.td-qty {
-  width: 130px;
-}
-.td-price, .td-price-total {
-  width: 100px;
-}
-@media (max-width: 767px) { /* xs-max */
-  .td-img, .td-price-total {
-    display: none;
-  }
-  .td-qty {
-    width: 80px;
-  }
-  .td-price {
-    width: 80px;
-  }
-
-}
-
-@media (max-width: 476px) {
-  .oe_cart table thead, #modal_optional_products table thead {
-    display: none;
-  }
-  .oe_cart table td.td-img, #modal_optional_products table td.td-img {
-    display: none;
-  }
-
-  .oe_cart a span.hidden-xs, #modal_optional_products a span.hidden-xs {
-    display: none !important;
-  }
-  .oe_cart a span.visible-xs-inline, #modal_optional_products a span.visible-xs-inline {
-    display: inline !important;
-  }
-  .td-qty {
-    width: 60px;
-  }
 }
