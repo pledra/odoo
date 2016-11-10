@@ -31,8 +31,4 @@ class BaseEdi(models.Model):
         template_data = super(BaseEdi, self).edi_create_template_data()
         template_data['version_id'] = 2.1
         template_data['currency_name'] = self.currency_id.name
-        self._ubl_append_party_data(
-            self.company_id.partner_id, 'supplier', template_data)
-        self._ubl_append_party_data(
-            self.partner_id, 'customer', template_data)
         return template_data
