@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from os.path import dirname, join, basename
-import jinja2
 from StringIO import StringIO
 from lxml import etree
 from odoo import models, fields, api, tools
@@ -9,27 +8,8 @@ from odoo.exceptions import UserError
 from tempfile import NamedTemporaryFile
 import PyPDF2
 
-class BaseJinja:
-    def _edi_load_business_document(self, template_path, template_data):
-        ''' This method loads the right template and fills it with
-        data passed as parameter. This step is done using jinja2.
-        '''
-        addons_dir = join(dirname(tools.config['root_path']), 'addons')
-        template_dir = join(addons_dir, dirname(template_path))
-        template_name = basename(template_path)
-        loader = jinja2.FileSystemLoader(template_dir)
-        environment = jinja2.Environment(
-            loader=loader,
-            trim_blocks=True, 
-            lstrip_blocks=True
-            )
-        template = environment.get_template(template_name)
-        xml_content = template.render(template_data)
-        return xml_content
-
-
 class BaseEtree:
-    def edi_create_str_from_tree(self, xml_tree):
+    def edi_as_str(self, xml_tree):
         ''' Transforms a node tree into a well indended string.
         '''
         return etree.tostring(
@@ -38,37 +18,22 @@ class BaseEtree:
             encoding='UTF-8',
             xml_declaration=True)
 
-    def _edi_check_validity(self, xml_tree, xml_schema):
-        ''' Checks the validity of the node tree according to the schema.
-        '''
-        if not xml_schema.validate(xml_tree):
-            raise UserError('The generate file is unvalid')
-
-    def _edi_create_xml_tree(self, xml_content):
+    def edi_as_tree(self, document):
         ''' Transforms the content of the template into a node tree.
         '''
         xml_parser = etree.XMLParser(remove_blank_text=True)
-        xml_doc_str = xml_content.encode('utf-8')
-        xml_tree = etree.fromstring(xml_doc_str, parser=xml_parser)
+        xml_content = document.encode('utf-8')
+        xml_tree = etree.fromstring(xml_content, parser=xml_parser)
         return xml_tree
 
-    def _edi_load_xml_schema(self, xsd_path):
+    def edi_as_schema(self, xsd_path):
         ''' Load the xml schema from file.
         '''
         xml_schema_doc = etree.parse(tools.file_open(xsd_path))
         xml_schema = etree.XMLSchema(xml_schema_doc)
         return xml_schema
 
-    def _edi_create_business_tree_node(self, xml_content, xsd_path=None):
-        ''' Generates the tree node and checks it's validity.
-        '''
-        xml_tree = self._edi_create_xml_tree(xml_content)
-        if xsd_path:
-            xml_schema = self._edi_load_xml_schema(xsd_path)
-            self._edi_check_validity(xml_tree, xml_schema)
-        return xml_tree
-
-class BaseEdi(models.Model, BaseJinja, BaseEtree):
+class BaseEdi(models.Model, BaseEtree):
     _name = 'base.edi'
 
     @api.model
@@ -80,12 +45,95 @@ class BaseEdi(models.Model, BaseJinja, BaseEtree):
         return
 
     @api.model
-    def edi_create_template_data(self):
+    def edi_refactoring_ns_map(self):
+        ''' This method is used to restore the right namespaces inside the xml.
+        This method is necessary when using Qweb because the <t></t> elements cause some 
+        troubles when some namespaces are specified to etree. So, to avoid this problem,
+        the namespaces are encoded with a prefix in each tag and can be replaced as a namespace definition
+        after the Qweb rendering. For example, in case of UBL, the prefix is 'cbc__' or 
+        'cac__' and is replaced by 'cbc:' or 'cac:' respectively.
+        '''
+        return {}
+
+    @api.model
+    def edi_create_values(self):
         ''' This method returns the dictionary that will be used by jinja to fill
         the templates. This dictionary can contains various features of python like
         functions, lambda, etc.
         '''
-        return {'item': self}
+        return {'self': self}
+
+    @api.model
+    def edi_as_subvalues(self, dictionary):
+        ''' This method is usefull to bring more genericity during the rendering.
+        Sometimes, a subtemplate can get its values from a object or a dictionnary but
+        this is not supported by Qweb. So, this method create an object from a dict.
+        '''
+        class SubValues:
+            def __init__(self, dictionary):
+                for key, value in dictionary.items():
+                    setattr(self, key, value)
+        return SubValues(dictionary)
+
+    @api.model
+    def edi_load_rendered_template(
+        self, xml_id, values=None, xsd_path=None, as_tree=False, ns_refactoring=None):
+        ''' Load a template.
+        '''
+        # Compute values
+        if not values:
+            values = self.edi_create_values()
+        # Compute namespaces refactoring
+        if not ns_refactoring:
+            ns_refactoring = self.edi_refactoring_ns_map()
+
+        # Rendering
+        qweb = self.env['ir.qweb']
+        content = qweb.render(xml_id, values=values)
+
+        # Recompute the right namespaces
+        for key, value in ns_refactoring.items():
+            content = content.replace(key, value + ':')
+
+        # Rebuild the tree and check its validity if a xsd is specified
+        tree = self.edi_as_tree(content)
+        if xsd_path:
+            schema = self.edi_as_schema(xsd_path)
+            try:
+                schema.assertValid(tree)
+            except etree.DocumentInvalid, xml_errors:
+                raise UserError('The generate file is unvalid:\n' + 
+                    str(xml_errors.error_log))
+        if as_tree:
+            return tree
+        return self.edi_as_str(tree)
+
+    @api.model
+    def edi_create_attachment(
+        self, xml_filename, xml_id=None, values=None, xsd_path=None, content_tree=None, content=None, ns_refactoring=None):
+        ''' Creates an edi attachment.
+        '''
+        # Look about the content or create it if necessary
+        if not content:
+            if content_tree:
+                content = self.edi_as_str(content_tree)
+            elif xml_id:
+                content = self.edi_load_rendered_template(
+                    xml_id, 
+                    values=values, 
+                    xsd_path=xsd_path, 
+                    ns_refactoring=ns_refactoring)
+            else:
+                raise UserError('To create an attachment, a template_path or a content must be provided!')
+        # Create the attachment      
+        attachment = self.env['ir.attachment'].create({
+            'name': xml_filename,
+            'res_id': self.id,
+            'res_model': unicode(self._name),
+            'datas': content.encode('base64'),
+            'datas_fname': xml_filename,
+            'type': 'binary',
+            })
 
     @api.model
     def edi_create_embedded_pdf_in_xml_content(self, report_name, xml_filename, content):
@@ -105,59 +153,3 @@ class BaseEdi(models.Model, BaseJinja, BaseEtree):
             pdf_content = f.read()
             f.close()
         return pdf_content.encode('base64')
-
-    @api.model
-    def edi_append_block(self, tree_node, block_path, template_data, block_index=None, insert_index=None):
-        if not block_index:
-            block_index = 0
-        if not insert_index:
-            insert_index = max(len(tree_node) - 1, 0)
-        block_tree_root = self.edi_load_template_tree(block_path, template_data)
-        tree_node.insert(insert_index, block_tree_root[block_index])
-
-    @api.model
-    def edi_load_template_tree(self, template_path, template_data, xsd_path=None):
-        ''' This method is in charge to generate/fill/check the template and to
-        return the node tree associated to the xml.
-        '''
-        business_document = \
-            self._edi_load_business_document(template_path, template_data)
-        business_document_tree = \
-            self._edi_create_business_tree_node(business_document, xsd_path)
-        return business_document_tree
-
-    @api.model
-    def edi_load_template_content(
-        self, template_path, template_data, xsd_path=None):
-        ''' This method is in charge to generate/fill/check the template and to
-        return the content that will be added as attachment.
-        '''
-        business_document_tree = \
-            self.edi_load_template_tree(template_path, template_data, xsd_path=xsd_path)
-        business_document_content = \
-            self.edi_create_str_from_tree(business_document_tree)
-        return business_document_content
-
-    @api.model
-    def edi_create_attachment(
-        self, xml_filename, template_path=None, template_data=None, xsd_path=None, content=None):
-        ''' Creates an edi attachment.
-        '''
-        # Look about the content or create it if necessary
-        if not content:
-            if template_path:
-                if not template_data:
-                    template_data = self.edi_create_template_data()
-                content = self.edi_load_template_content(
-                    template_path, template_data, xsd_path=xsd_path)
-            else:
-                raise UserError('To create an attachment, a template_path or a content must be provided!')
-        # Create the attachment      
-        attachment = self.env['ir.attachment'].create({
-            'name': xml_filename,
-            'res_id': self.id,
-            'res_model': unicode(self._name),
-            'datas': content.encode('base64'),
-            'datas_fname': xml_filename,
-            'type': 'binary',
-            })

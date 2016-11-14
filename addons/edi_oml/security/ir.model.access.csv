@@ -1,2 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_edi_vauxoo_edi_vauxoo,edi_vauxoo.edi_vauxoo,model_edi_vauxoo_edi_vauxoo,,1,0,0,0

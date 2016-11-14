@@ -18,6 +18,8 @@ This is the base module for the implementation of the `Universal Business Langua
         'data/unece/unece_code_taxes.xml',
         'data/unece/unece_code_categories.xml',
         'views/account_tax_view.xml',
+        'views/ubl_cac_2_1.xml',
+        'views/ubl_invoice_2_1.xml',
     ],
     'installable': True,
     'auto_install': False,

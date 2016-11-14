@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- The invoice template according to UBL v2.1 -->
+        
+        <template id="ubl_invoice_line">
+            <cbc__ID t-esc="self.line_number"/>
+            <cbc__InvoicedQuantity t-esc="self.quantity"/>
+            <cbc__LineExtensionAmount
+                t-att-currencyID="currency_name"
+                t-esc="self.price_subtotal"/>
+            <cac__TaxTotal t-call="edi_ubl.ubl_tax_total"/>
+            <cac__Item t-call="edi_ubl.ubl_item"/>
+            <cac__Price t-call="edi_ubl.ubl_price"/>
+        </template>
+
+        <template id="ubl_invoice">
+            <Invoice
+                t-att="{
+                    'xmlns': 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2',
+                    'xmlns:cac': 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
+                    'xmlns:cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2'}">
+                <cbc__UBLVersionID t-esc="version_id"/>
+                <cbc__ID t-esc="self.number"/>
+                <cbc__IssueDate t-esc="self.date_invoice"/>
+                <cbc__InvoiceTypeCode t-esc="type_code"/>
+                <cbc__Note t-if="self.comment" t-esc="self.comment"/>
+                <cbc__DocumentCurrencyCode t-esc="currency_name"/>
+                <cac__AdditionalDocumentReference 
+                    t-call="edi_ubl.ubl_document_reference"/>
+                <cac__AccountingSupplierParty t-call="edi_ubl.ubl_party">
+                        <t t-set="self" t-value="supplier_party"/>
+                </cac__AccountingSupplierParty>
+                <cac__AccountingCustomerParty t-call="edi_ubl.ubl_party">
+                        <t t-set="self" t-value="customer_party"/>
+                </cac__AccountingCustomerParty>
+                <cac__TaxTotal t-call="edi_ubl.ubl_tax_total"/>
+                <cac__LegalMonetaryTotal t-call="edi_ubl.ubl_monetary_total"/>
+                <cac__InvoiceLine t-foreach="invoice_lines_values" t-as="self">
+                    <t t-call="edi_ubl.ubl_invoice_line"/>
+                </cac__InvoiceLine>
+            </Invoice>
+        </template>
+    </data>
+</odoo>

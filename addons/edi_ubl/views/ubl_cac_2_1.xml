@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- The various subtemplates from the CommonAggregateComponents -->
+
+        <template id="ubl_attachment">
+            <cbc__EmbeddedDocumentBinaryObject 
+                mimeCode="application/pdf"
+                t-esc="attach_binary"/>
+        </template>
+
+        <template id="ubl_document_reference">
+            <cbc__ID t-esc="doc_ref_id"/>
+            <cac__Attachment t-call="edi_ubl.ubl_attachment"/>
+        </template>
+
+        <template id="ubl_party_name">
+            <cbc__Name t-esc="self.name"/>
+        </template>
+
+        <template id="ubl_language">
+            <cbc__LocaleCode t-esc="self.lang"/>
+        </template>
+
+        <template id="ubl_country">
+            <cbc__IdentificationCode t-esc="self.code"/> 
+            <cbc__Name t-esc="self.name"/> 
+        </template>
+
+        <template id="ubl_address">
+            <cbc__StreetName 
+                t-if="self.street" 
+                t-esc="self.street"/>
+            <cbc__AdditionalStreetName
+                t-if="self.street2" 
+                t-esc="self.street2"/>
+            <cbc__CityName 
+                t-if="self.city" 
+                t-esc="self.city"/>
+            <cbc__PostalZone 
+                t-if="self.zip" 
+                t-esc="self.zip"/>
+            <cbc__CountrySubentity 
+                t-if="self.state_id" 
+                t-esc="self.state_id.name"/>
+            <cbc__CountrySubentityCode 
+                t-if="self.state_id" 
+                t-esc="self.state_id.code"/>
+            <cac__Country 
+                t-if="self.country_id"
+                t-call="edi_ubl.ubl_country">
+                    <t t-set="self" t-value="self.country_id"/>
+            </cac__Country>
+        </template>
+
+        <template id="ubl_tax_scheme">
+            <cbc__ID 
+                t-att-schemeID="unece_code_tax_id.type_id.name" 
+                t-att-schemeAgencyID="unece_code_tax_id.type_id.agency_id.code"
+                t-esc="unece_code_tax_id.code"/>
+        </template>
+
+        <template id="ubl_party_tax_scheme">
+            <cbc__RegistrationName t-esc="self.name"/>
+            <cbc__CompanyID t-esc="self.sanitized_vat"/>
+            <t 
+                t-foreach="self.unece_code_tax_ids" 
+                t-as="unece_code_tax_id"
+                t-call="ubl_tax_scheme"/>
+        </template>
+
+        <template id="ubl_contact">
+            <cbc__Name t-esc="self.name"/>
+            <cbc__Telephone t-if="self.phone" t-esc="self.phone"/>
+            <cbc__Telefax t-if="self.fax" t-esc="self.fax"/>
+            <cbc__ElectronicMail t-if="self.email" t-esc="self.email"/>
+        </template>
+
+        <template id="ubl_party">
+            <cac__Party>
+                <cbc__WebsiteURI
+                    t-if="self.website"
+                    t-esc="self.website"/>
+                <cac__PartyName 
+                    t-call="edi_ubl.ubl_party_name"/>
+                <cac__Language 
+                    t-if="self.lang" 
+                    t-call="edi_ubl.ubl_language"/>
+                <cac__PostalAddress 
+                    t-call="edi_ubl.ubl_address"/>
+                <cac__PartyTaxScheme 
+                    t-if="self.vat"
+                    t-call="edi_ubl.ubl_party_tax_scheme"/>
+                <cac__Contact>
+                    <t t-call="edi_ubl.ubl_contact"/>
+                </cac__Contact>
+            </cac__Party>
+        </template>
+
+        <template id="ubl_tax_total">
+            <cbc__TaxAmount 
+                t-att-currencyID="currency_name"
+                t-esc="self.amount_tax"/>
+        </template>
+
+        <template id="ubl_monetary_total">
+            <cbc__LineExtensionAmount 
+            t-att-currencyID="currency_name"
+            t-esc="amount_untaxed"/>
+            <cbc__TaxExclusiveAmount 
+            t-att-currencyID="currency_name"
+            t-esc="amount_untaxed"/>
+            <cbc__TaxInclusiveAmount 
+            t-att-currencyID="currency_name"
+            t-esc="amount_total"/>
+            <cbc__PrepaidAmount 
+            t-att-currencyID="currency_name"
+            t-esc="amount_prepaid"/>
+            <cbc__PayableAmount 
+            t-att-currencyID="currency_name"
+            t-esc="residual"/>
+        </template>
+
+        <template id="ubl_item_identification">
+            <cbc__ID t-esc="identification_id"/>
+        </template>
+
+        <template id="ubl_item_property">
+            <cbc__Name t-esc="property_name"/>
+            <cbc__Value t-esc="property_value"/>
+        </template>
+
+        <template id="ubl_item">
+            <cbc__Description t-esc="self.description"/>
+            <cbc__Name t-esc="self.name"/>
+            <cac__SellersItemIdentification
+                t-if="self.identification_id"
+                t-call="edi_ubl.ubl_item_identification">
+                <t t-set="identification_id" t-value="self.identification_id"/>
+            </cac__SellersItemIdentification>
+            <cac__AdditionalItemProperty 
+                t-foreach="self.product_id.attribute_value_ids"
+                t-as="attribute_value_id">
+                <t t-call="edi_ubl.ubl_item_property">
+                    <t 
+                        t-set="property_name"
+                        t-value="attribute_value_id.attribute_id.name"/>
+                    <t 
+                        t-set="property_value"
+                        t-value="attribute_value_id.name"/>
+                </t>
+            </cac__AdditionalItemProperty>
+        </template>
+
+        <template id="ubl_price">
+            <cbc__PriceAmount 
+                t-att-currencyID="currency_name"
+                t-esc="self.total_excluded"/>
+            <cbc__BaseQuantity t-esc="self.quantity"/>
+        </template>
+    </data>
+</odoo>
