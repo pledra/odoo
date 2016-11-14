@@ -117,6 +117,12 @@
             <field name="category_id" ref="product_uom_categ_vol"/>
             <field name="factor">1.0</field>
         </record>
+        <record id="product_uom_millilitre" model="product.uom">
+            <field name="name">Milliliter(s)</field>
+            <field name="category_id" ref="product_uom_categ_vol"/>
+            <field name="factor">1000</field>
+            <field name="uom_type">smaller</field>
+        </record>
 
         <!--Americanization of units of measure-->
         <record id="product_uom_lb" model="product.uom">
