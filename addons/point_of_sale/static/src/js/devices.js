@@ -423,21 +423,11 @@ var ProxyDevice  = core.Class.extend(core.mixins.PropertiesMixin,{
                         send_printing_job();
                     },function(error){
                         if (error) {
-                            var blob = new Blob([error.data],{type: 'text/plain'});
-                            var URL = window.URL || window.webkitURL;
-                            var url_blob = URL.createObjectURL(blob);
-                            var filename = "Error"+"_"+(new Date()).toUTCString().replace(/\ |:|,/g,'_')+".txt";
-
-                            var blob_obj = {
-                                url_blob:url_blob,
-                                filename:filename,
-                                isAttDownload: (document.createElement('a').download != "undefined")
-                            }
-
+                            var blob = self.pos.prepare_blob(error.data,"Error");
                             self.pos.chrome.screen_selector.show_popup('error-traceback',{
                                 'title': _t('Printing Error: ') + error.data.message,
                                 'body':  error.data.debug,
-                                'blob':blob_obj
+                                'blob':blob
                             });
                             return;
                         }

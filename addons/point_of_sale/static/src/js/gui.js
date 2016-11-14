@@ -371,7 +371,7 @@ var Gui = core.Class.extend({
             debug_type: debug_type,
             date_string: date_string,
             data:data
-        };
+        };  
         session.rpc("/pos/debugging_mail", params, []).then(
             function (result) {
                 if (result.status == "Error" || result.status == "Failed") {
@@ -451,23 +451,6 @@ var Gui = core.Class.extend({
         }
 
         return newbuf;
-    },
-
-    prepare_blob: function(data,debug_type) {
-        if (typeof data === "object") {
-            data = JSON.stringify(data);
-        }
-
-        var blob = new Blob([data],{type: 'text/plain'});
-        var URL = window.URL || window.webkitURL;
-        var url_blob = URL.createObjectURL(blob);
-        var filename = debug_type+"_"+(new Date()).toUTCString().replace(/\ |:|,/g,'_')+".txt";
-
-        return {
-            url_blob:url_blob,
-            filename:filename,
-            isAttDownload: (document.createElement('a').download != "undefined")
-        };
     },
 });
 

@@ -45,7 +45,9 @@ class PosController(http.Controller):
             date_string = json.loads(data).keys()[0]+"_"+datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
             
         subject = "[POS][DEBUG] Support " + date_string
-   
+        
+        result = None
+        mail_to_send=None
         try:
             mail_body = ("<p>Hello,</p>"+
                         "<p>Please find in attachment the export of debug type ["+debug_type+"]</p>"+
@@ -68,20 +70,21 @@ class PosController(http.Controller):
                 })
             
             mail_to_send.send()
-            
+            if not mail_to_send.mail_sent:
+                return {'status': 'Failed',
+                    'message': "The email has not been sent"}
+             
             _logger.info("Email Sent")
             return {'status':"Success",
                 'message':"E-Mail sent to " + email_to}
             
         except MailDeliveryException as mde:
-            return {'status':'Failed',
+            return {'status': 'Failed',
                     'message': "Exception: " + str(mde)}
         
         except Exception as e:
-            _logger.error(str(e))
             return {'status': 'Error',
                     'message': "Exception: " + str(e)}
-            
         
         
  

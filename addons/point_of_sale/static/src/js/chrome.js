@@ -278,7 +278,7 @@ var DebugWidget = PosBaseWidget.extend({
 
         this.$('.button.export_unpaid_orders').click(function(){
             var data = self.pos.export_unpaid_orders();
-            var blob = self.gui.prepare_blob(data,'unpaid_orders');
+            var blob = self.pos.prepare_blob(data,'unpaid_orders');
 
             self.gui.show_popup('exportconfirmwidget', {
                 'title': 'Export unpaid orders',
@@ -289,7 +289,7 @@ var DebugWidget = PosBaseWidget.extend({
 
         this.$('.button.export_paid_orders').click(function() {
             var data = self.pos.export_paid_orders();
-            var blob = self.gui.prepare_blob(data,'paid_orders');
+            var blob = self.pos.prepare_blob(data,'paid_orders');
 
             self.gui.show_popup('exportconfirmwidget', {
                 'title': 'Export paid orders',
@@ -531,7 +531,7 @@ var Chrome = PosBaseWidget.extend({
     show_error: function(error) {
         var self = this;
         this.gui.show_popup('error-traceback',{
-            'blob': self.gui.prepare_blob(error,'Error'),
+            'blob': self.pos.prepare_blob(error,'Error'),
             'title': error.message,
             'body':  error.message + '\n' + error.data.debug + '\n',
         });

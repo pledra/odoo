@@ -804,7 +804,7 @@ exports.PosModel = Backbone.Model.extend({
                 // Hide error if already shown before ... 
                 if ((!self.get('failed') || options.show_error) && !options.to_invoice) {
                     self.gui.show_popup('error-traceback',{
-                        'blob': self.gui.prepare_blob(error.data,'Error'),
+                        'blob': self.prepare_blob(error.data,'Error'),
                         'title': error.data.message,
                         'body':  error.data.debug
                     });
@@ -956,6 +956,23 @@ exports.PosModel = Backbone.Model.extend({
         if (orders.length) {
             this.get('orders').add(orders);
         }
+    },
+
+    prepare_blob: function(data,debug_type) {
+        if (typeof data === "object") {
+            data = JSON.stringify(data);
+        }
+
+        var blob = new Blob([data],{type: 'text/plain'});
+        var URL = window.URL || window.webkitURL;
+        var url_blob = URL.createObjectURL(blob);
+        var filename = debug_type+"_"+(new Date()).toUTCString().replace(/\ |:|,/g,'_')+".txt";
+
+        return {
+            url_blob:url_blob,
+            filename:filename,
+            isAttDownload: (document.createElement('a').download != "undefined")
+        };
     },
         
 });

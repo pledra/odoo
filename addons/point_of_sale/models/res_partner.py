@@ -27,6 +27,7 @@ class ResPartner(models.Model):
         if partner.get('image'):
             partner['image'] = partner['image'].split(',')[1]
         partner_id = partner.pop('id', False)
+        1/0
         if partner_id:  # Modifying existing partner
             self.browse(partner_id).write(partner)
         else:

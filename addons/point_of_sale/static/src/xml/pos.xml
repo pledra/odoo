@@ -979,7 +979,7 @@
                     <div class="button icon download">
                         <t t-if="widget.options.blob.isAttDownload">
                     <a t-attf-href="{{ widget.options.blob.url_blob }}" t-attf-download="{{ widget.options.blob.filename }}">
-                        <i class="fa fa-download"></i>
+                        <i class="fa fa-download" style="color: rgb(168,89,89);"></i>
                     </a>
                 </t>
                 </div>
