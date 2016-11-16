@@ -37,7 +37,6 @@ browser.
 """,
     'author': 'OpenERP SA',
     'depends': ['hw_proxy'],
-    'external_dependencies': {'python': ['websocket_client']},
     'installable': False,
     'auto_install': False,
 }
