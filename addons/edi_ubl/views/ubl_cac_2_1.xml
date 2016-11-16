@@ -6,11 +6,11 @@
         <template id="ubl_attachment">
             <cbc__EmbeddedDocumentBinaryObject 
                 mimeCode="application/pdf"
-                t-esc="attach_binary"/>
+                t-esc="self.attach_binary"/>
         </template>
 
         <template id="ubl_document_reference">
-            <cbc__ID t-esc="doc_ref_id"/>
+            <cbc__ID t-esc="self.doc_ref_id"/>
             <cac__Attachment t-call="edi_ubl.ubl_attachment"/>
         </template>
 
@@ -105,6 +105,15 @@
             </cac__Party>
         </template>
 
+        <template id="ubl_payment_means">
+            <cbc__PaymentMeansCode 
+                t-att-listID="self.unece_code.type_id.name"
+                t-att-listAgencyID="self.unece_code.type_id.agency_id.code"
+                t-esc="self.unece_code.code"/>
+            <cbc__PaymentDueDate
+                t-esc="self.date_due"/>
+        </template>
+
         <template id="ubl_tax_category">
             <cbc__ID
                 t-if="get(self, 'unece_code')"
@@ -139,14 +148,14 @@
             <cbc__TaxAmount 
                 t-att-currencyID="currency_name"
                 t-esc="self.amount_tax"/>
-            <t t-if="get(self, 'taxes_values')">
+            <t t-if="get(self, 'taxes')">
                 <t 
-                    t-foreach="self.taxes_values"
-                    t-as="tax_values">
-                    <t t-if="get(tax_values, 'unece_code')">
+                    t-foreach="self.taxes"
+                    t-as="tax">
+                    <t t-if="get(taxes, 'unece_code')">
                         <cac__TaxSubtotal
                             t-call="edi_ubl.ubl_tax_subtotal">
-                                <t t-set="self" t-value="tax_values"/>
+                                <t t-set="self" t-value="tax"/>
                         </cac__TaxSubtotal>
                     </t>
                 </t>
@@ -160,19 +169,19 @@
         <template id="ubl_monetary_total">
             <cbc__LineExtensionAmount 
             t-att-currencyID="currency_name"
-            t-esc="amount_untaxed"/>
+            t-esc="self.amount_untaxed"/>
             <cbc__TaxExclusiveAmount 
             t-att-currencyID="currency_name"
-            t-esc="amount_untaxed"/>
+            t-esc="self.amount_untaxed"/>
             <cbc__TaxInclusiveAmount 
             t-att-currencyID="currency_name"
-            t-esc="amount_total"/>
+            t-esc="self.amount_total"/>
             <cbc__PrepaidAmount 
             t-att-currencyID="currency_name"
-            t-esc="amount_prepaid"/>
+            t-esc="self.amount_prepaid"/>
             <cbc__PayableAmount 
             t-att-currencyID="currency_name"
-            t-esc="residual"/>
+            t-esc="self.residual"/>
         </template>
 
         <template id="ubl_item_identification">
@@ -209,7 +218,7 @@
         <template id="ubl_price">
             <cbc__PriceAmount 
                 t-att-currencyID="currency_name"
-                t-esc="self.price_subtotal"/>
+                t-esc="self.subtotal"/>
             <cbc__BaseQuantity t-esc="self.quantity"/>
         </template>
     </data>

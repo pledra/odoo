@@ -3,7 +3,6 @@
 from odoo import models, fields, api, tools
 from lxml import etree
 import copy
-import uuid
 
 UBL_INVOICE_DOC_REF_ID = 'edi_ubl.ubl_document_reference'
 
@@ -17,21 +16,140 @@ class AccountInvoice(models.Model):
     _name = 'account.invoice'
     _inherit = 'account.invoice'
 
-    @api.model
-    def _ubl_get_uuid(self):
-        '''UBL recommendations:
-        - UUID should be used whenever possible.
-        - When using UUID in a document, it is important that the UUID is 
-        generated every time the document is generated, i.e. this UUID 
-        identifies this instance specifically.
-        '''
-        return uuid.uuid1()
+    unece_code_payment_means_ids = fields.Many2many('unece.code',
+        string='UNECE Tax Type',
+        domain=[('type_id.name', '=', 'UN/ECE 4461')],
+        help="Select the Payment Means Code of the official "
+        "nomenclature of the United Nations Economic "
+        "Commission for Europe (UNECE), DataElement 4461")
 
     @api.model
     def _ubl_get_type_code(self):
         ''' Get the type of the invoice.
         '''
         return 380 if self.type == 'out_invoice' else 381
+
+    @api.model
+    def _ubl_get_notes(self):
+        return [self.comment] if self.comment else []
+
+    @api.model
+    def _ubl_get_add_document_ref(self):
+        return self.edi_as_subvalues({
+            'doc_ref_id': 'Invoice-' + self.number + '.pdf',
+            'attach_binary': ''
+        })
+
+    @api.model
+    def _ubl_get_payment_means(self):
+        return [
+            self.edi_as_subvalues({'date_due': self.date_due, 'unece_code': i}) 
+            for i in self.unece_code_payment_means_ids]
+
+    @api.model
+    def _ubl_get_tax_total(self):
+        return self.edi_as_subvalues({'amount_tax': self.amount_tax})
+
+    @api.model
+    def _ubl_get_monetary(self):
+        precision_digits = self.env['decimal.precision'].precision_get('Account')
+        return self.edi_as_subvalues({
+            'amount_untaxed': '%0.*f' % (precision_digits, self.amount_untaxed),
+            'amount_total': '%0.*f' % (precision_digits, self.amount_total),
+            'residual': '%0.*f' % (precision_digits, self.residual),
+            'amount_prepaid': '%0.*f' % (precision_digits, self.amount_total - self.residual),
+        })
+
+    @api.model
+    def _ubl_get_iline_notes(self, invoice_line_id):
+        # TODO: if discount, promotions, lots...etc ... add infos here
+        # The result must be an array
+        notes = []
+
+        # Check for discount
+        if invoice_line_id.discount:
+            notes.append('Discount (%s %)' % invoice_line_id.discount)
+
+        return notes
+
+    @api.model
+    def _ubl_get_iline_description(self, invoice_line_id):
+        ''' Return an one-line description
+        '''
+        lines = map(lambda line: line.strip(), invoice_line_id.name.split('\n'))
+        return ', '.join(lines)
+
+    @api.model
+    def _ubl_get_iline_product_name(self, invoice_line_id):
+        ''' Return a product name more advanced if the product has variants
+        '''
+        product_id = invoice_line_id.product_id
+        variants = [variant.name for variant in product_id.attribute_value_ids]
+        if variants:
+            return "%s (%s)" % (product_id.name, ', '.join(variants))
+        else:
+            return product_id.name
+
+    @api.model
+    def _ubl_get_iline_item(self, invoice_line_id):
+        return self.edi_as_subvalues({
+            'description': self._ubl_get_iline_description(invoice_line_id),
+            'name': self._ubl_get_iline_product_name(invoice_line_id),
+            'identification_id': invoice_line_id.product_id.default_code,
+            'product_id': invoice_line_id.product_id,
+        })
+
+    @api.model
+    def _ubl_get_iline_amount_tax(self, tax_ids, invoice_line_id):
+        res_taxes = tax_ids.compute_all(
+            invoice_line_id.price_unit, 
+            quantity=invoice_line_id.quantity, 
+            product=invoice_line_id.product_id, 
+            partner=invoice_line_id.invoice_id.partner_id)
+
+        amount_tax = res_taxes['total_included'] - invoice_line_id.price_subtotal
+
+        values_array = []
+        for tax in res_taxes['taxes']:
+            tax_id = self.env['account.tax'].browse(tax['id'])
+            values = {
+                'amount_tax': amount_tax,
+                'taxable_amount': res_taxes['base'],
+                'unece_code': tax_id.unece_code_category_id,
+                'tax_name': tax_id.name,
+                }
+            if tax_id.amount_type == 'percent':
+                values['tax_percent'] = tax_id.amount
+                values['taxes'] = []
+            elif tax_id.amount_type == 'group':
+                tax_id.children_tax_ids.with_context(
+                    base_values=(
+                        res_taxes['total_excluded'], 
+                        res_taxes['total_included'], 
+                        res_taxes['base']))
+                values['taxes'] = \
+                    self._ubl_get_amount_tax(
+                        tax_id.children_tax_ids, invoice_line_id)
+            values_array.append(self.edi_as_subvalues(values))
+        return values_array
+
+    @api.model
+    def _ubl_get_invoice_lines(self):
+        values = []
+        identifier = 0
+        for invoice_line_id in self.invoice_line_ids:
+            identifier += 1
+            values.append(self.edi_as_subvalues({
+                'id': identifier,
+                'uuid': self._ubl_get_uuid(),
+                'notes': self._ubl_get_iline_notes(invoice_line_id),
+                'quantity': invoice_line_id.quantity,
+                'subtotal': invoice_line_id.price_subtotal,
+                'taxes': self._ubl_get_iline_amount_tax(
+                    invoice_line_id.invoice_line_tax_ids, invoice_line_id),
+                'item': self._ubl_get_iline_item(invoice_line_id),
+            }))
+        return values
 
     @api.model
     def _ubl_generate_attachment_with_embedding(self):
@@ -83,132 +201,17 @@ class AccountInvoice(models.Model):
             self._ubl_generate_attachment_with_embedding()
 
     @api.model
-    def _ubl_create_invoice_line_values(self, invoice_line_id, identifier):
-        values = invoice_line_id.ubl_create_values(identifier)
-        return self.edi_as_subvalues(values)
-
-    @api.model
     def ubl_create_values(self):
         '''Override'''
         values = super(AccountInvoice, self).ubl_create_values()
-        precision_digits = self.env['decimal.precision'].precision_get('Account')
-
-        values['uuid'] = self._ubl_get_uuid()
+        values['id'] = self.number
+        values['issue_date'] = self.date_invoice
         values['type_code'] = self._ubl_get_type_code()
-
-        # Append values related to taxes
-        values['amount_tax'] = self.amount_tax
-        values['amount_untaxed'] = \
-            '%0.*f' % (precision_digits, self.amount_untaxed)
-        values['amount_total'] = \
-            '%0.*f' % (precision_digits, self.amount_total)
-        values['residual'] = \
-            '%0.*f' % (precision_digits, self.residual)
-        values['amount_prepaid'] = \
-            '%0.*f' % (precision_digits, self.amount_total - self.residual)
-
-        # Append values related to document reference
-        values['doc_ref_id'] = 'Invoice-' + self.number + '.pdf'
-        values['attach_binary'] = 'TO FILL MANUALLY'
-
-        # Append values related to invoice lines
-        values['invoice_lines_values'] = []
-        identifier = 0
-        for invoice_line_id in self.invoice_line_ids:
-            identifier += 1
-            subvalues = self._ubl_create_invoice_line_values(invoice_line_id, identifier)
-            values['invoice_lines_values'].append(subvalues)
-
+        values['notes'] = self._ubl_get_notes()
+        values['doc_ref'] = self._ubl_get_add_document_ref()
+        values['payment_means'] = self._ubl_get_payment_means()
+        values['tax_total'] = self._ubl_get_tax_total()
+        values['monetary'] = self._ubl_get_monetary()
+        values['invoice_lines'] = self._ubl_get_invoice_lines()
+        values['vat_unece'] = self.env.ref('edi_ubl.code_type_tax_vat')
         return values
-
-class AccountInvoiceLine(models.Model):
-    _inherit = 'account.invoice.line'
-
-    @api.model
-    def _ubl_get_uuid(self):
-        '''UBL recommendations:
-        - UUID should be used whenever possible.
-        - When using UUID in a document, it is important that the UUID is 
-        generated every time the document is generated, i.e. this UUID 
-        identifies this instance specifically.
-        '''
-        return uuid.uuid1()
-
-    @api.model
-    def _ubl_get_notes(self):
-        # TODO: if discount, promotions, lots...etc ... add infos here
-        # The result must be an array
-        notes = []
-
-        # Check for discount
-        if self.discount:
-            notes.append('Discount (%s %)' % self.discount)
-
-        return notes
-
-    @api.model
-    def _ubl_get_amount_tax(self, tax_ids):
-        res_taxes = tax_ids.compute_all(
-            self.price_unit, 
-            quantity=self.quantity, 
-            product=self.product_id, 
-            partner=self.invoice_id.partner_id)
-
-        amount_tax = res_taxes['total_included'] - self.price_subtotal
-
-        values_array = []
-        for tax in res_taxes['taxes']:
-            tax_id = self.env['account.tax'].browse(tax['id'])
-            values = {
-                'amount_tax': amount_tax,
-                'taxable_amount': res_taxes['base'],
-                'unece_code': tax_id.unece_code_category,
-                'tax_name': tax_id.name,
-                }
-            if tax_id.amount_type == 'percent':
-                values['tax_percent'] = tax_id.amount
-                values['sub_taxes'] = []
-            elif tax_id.amount_type == 'group':
-                tax_id.children_tax_ids.with_context(
-                    base_values=(
-                        res_taxes['total_excluded'], 
-                        res_taxes['total_included'], 
-                        res_taxes['base']))
-                values['taxes_values'] = \
-                    self._ubl_get_amount_tax(tax_id.children_tax_ids)
-            values_array.append(self.invoice_id.edi_as_subvalues(values))
-        return values_array
-
-    @api.model
-    def _ubl_get_description(self):
-        ''' Return an one-line description
-        '''
-        lines = map(lambda line: line.strip(), self.name.split('\n'))
-        return ', '.join(lines)
-
-    @api.model
-    def _ubl_get_product_name(self):
-        ''' Return a product name more advanced if the product has variants
-        '''
-        variants = [variant.name for variant in self.product_id.attribute_value_ids]
-        if variants:
-            return "%s (%s)" % (self.product_id.name, ', '.join(variants))
-        else:
-            return self.product_id.name
-
-    @api.model
-    def ubl_create_values(self, identifier):
-        ''' This method returns the values about the invoice_line.
-        '''
-        return {
-            'id': identifier,
-            'uuid': self._ubl_get_uuid(),
-            'notes': self._ubl_get_notes(),
-            'quantity': self.quantity,
-            'price_subtotal': self.price_subtotal,
-            'description': self._ubl_get_description(),
-            'name': self._ubl_get_product_name(),
-            'identification_id': self.product_id.default_code,
-            'product_id': self.product_id,
-            'taxes_values': self._ubl_get_amount_tax(self.invoice_line_tax_ids),
-        }

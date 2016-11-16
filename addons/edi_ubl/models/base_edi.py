@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api, tools
-
+import uuid
 
 class BaseEdi(models.Model):
     _inherit = 'base.edi'
@@ -28,14 +28,24 @@ class BaseEdi(models.Model):
     }
 
     @api.model
+    def _ubl_get_uuid(self):
+        '''UBL recommendations:
+        - UUID should be used whenever possible.
+        - When using UUID in a document, it is important that the UUID is 
+        generated every time the document is generated, i.e. this UUID 
+        identifies this instance specifically.
+        '''
+        return uuid.uuid1()
+
+    @api.model
     def ubl_create_values(self):
         ''' This method returns the dictionary that will be used by to fill
         the templates.
         '''
         return {
-            'self': self,
             'get': lambda o, f: getattr(o, f, None),
             'version_id': 2.1,
+            'uuid': self._ubl_get_uuid(),
             'currency_name': self.currency_id.name,
             'supplier_party': self.company_id.partner_id.commercial_partner_id,
             'customer_party': self.partner_id.commercial_partner_id,

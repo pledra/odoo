@@ -13,14 +13,16 @@
             <cbc__InvoicedQuantity t-esc="self.quantity"/>
             <cbc__LineExtensionAmount
                 t-att-currencyID="currency_name"
-                t-esc="self.price_subtotal"/>
+                t-esc="self.subtotal"/>
             <cac__TaxTotal 
-                t-foreach="self.taxes_values"
-                t-as="tax_values"
+                t-foreach="self.taxes"
+                t-as="tax"
                 t-call="edi_ubl.ubl_tax_total">
-                <t t-set="self" t-value="tax_values"/>
+                <t t-set="self" t-value="tax"/>
             </cac__TaxTotal>
-            <cac__Item t-call="edi_ubl.ubl_item"/>
+            <cac__Item t-call="edi_ubl.ubl_item">
+                <t t-set="self" t-value="self.item"/>
+            </cac__Item>
             <cac__Price t-call="edi_ubl.ubl_price"/>
         </template>
 
@@ -31,24 +33,44 @@
                     'xmlns:cac': 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2',
                     'xmlns:cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2'}">
                 <cbc__UBLVersionID t-esc="version_id"/>
-                <cbc__ID t-esc="self.number"/>
-                <cbc__UUID t-if="self.uuid" t-esc="self.uuid"/>
-                <cbc__IssueDate t-esc="self.date_invoice"/>
+                <cbc__ID t-esc="id"/>
+                <cbc__UUID t-if="uuid" t-esc="uuid"/>
+                <cbc__IssueDate t-esc="issue_date"/>
                 <cbc__InvoiceTypeCode t-esc="type_code"/>
-                <cbc__Note t-if="self.comment" t-esc="self.comment"/>
+                <cbc__Note 
+                    t-foreach="notes"
+                    t-as="note"
+                    t-esc="note"/>
                 <cbc__DocumentCurrencyCode t-esc="currency_name"/>
                 <cac__AdditionalDocumentReference 
-                    t-call="edi_ubl.ubl_document_reference"/>
+                    t-call="edi_ubl.ubl_document_reference">
+                    <t t-set="self" t-value="doc_ref"/>
+                </cac__AdditionalDocumentReference>
                 <cac__AccountingSupplierParty t-call="edi_ubl.ubl_party">
                         <t t-set="self" t-value="supplier_party"/>
                 </cac__AccountingSupplierParty>
                 <cac__AccountingCustomerParty t-call="edi_ubl.ubl_party">
                         <t t-set="self" t-value="customer_party"/>
                 </cac__AccountingCustomerParty>
-                <cac__TaxTotal t-call="edi_ubl.ubl_tax_total"/>
-                <cac__LegalMonetaryTotal t-call="edi_ubl.ubl_monetary_total"/>
-                <cac__InvoiceLine t-foreach="invoice_lines_values" t-as="self">
-                    <t t-call="edi_ubl.ubl_invoice_line"/>
+                <cac__PaymentMeans
+                    t-foreach="payment_means" 
+                    t-as="payment_mean"
+                    t-call="edi_ubl.ubl_payment_means">
+                    <t t-set="self" t-value="payment_mean"/>
+                </cac__PaymentMeans>
+                <cac__TaxTotal 
+                    t-call="edi_ubl.ubl_tax_total">
+                    <t t-set="self" t-value="tax_total"/>
+                </cac__TaxTotal>
+                <cac__LegalMonetaryTotal 
+                    t-call="edi_ubl.ubl_monetary_total">
+                    <t t-set="self" t-value="monetary"/>
+                </cac__LegalMonetaryTotal>
+                <cac__InvoiceLine 
+                    t-foreach="invoice_lines" 
+                    t-as="invoice_line"
+                    t-call="edi_ubl.ubl_invoice_line">
+                        <t t-set="self" t-value="invoice_line"/>
                 </cac__InvoiceLine>
             </Invoice>
         </template>
