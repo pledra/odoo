@@ -247,18 +247,11 @@ function formatMonetary(value, field, options) {
         currency = session.get_currency(currency_id);
     }
 
-    var formatted_value = formatFloat(value, field, {
-        digits:  (currency && currency.digits) || options.digits,
-    });
+    if (currency) {
+        currency.digits = currency.digits || options.digits || field.digits;
+    }
 
-    if (!currency) {
-        return formatted_value;
-    }
-    if (currency.position === "after") {
-        return formatted_value += '&nbsp;' + currency.symbol;
-    } else {
-        return currency.symbol + '&nbsp;' + formatted_value;
-    }
+    return formatMeasure(value, currency);
 }
 
 function formatSelection(value, field) {
@@ -434,6 +427,45 @@ function parseMany2one(value) {
     return value;
 }
 
+
+//------------------------------------------------------------------------------
+// Helpers
+//------------------------------------------------------------------------------
+
+/**
+ * Returns a string representing a measured value. The result takes into account
+ * the user settings (to display the correct decimal separator, symbol, ...).
+ *
+ * @param {float} value the value that should be formatted
+ * @param {Object} [options]
+ *        additional options to configure the field formatting
+ * @param {string} [options.symbol]
+ *        the symbol to be prepended or appended to the value string
+ * @param {string} [options.position]
+ *        whether to prepend ('before') or append ('after') the symbol
+ * @param {integer[]} [options.digits]
+ *        the number of digits that should be used, instead of the default
+ *        digits precision in the field. Note: if the currency defines a
+ *        precision, the currency's one is used.
+ * @returns {string}
+ */
+function formatMeasure(value, options) {
+    options = options || {};
+
+    var formatted_value = formatFloat(value, false, {
+        digits: options.digits,
+    });
+
+    if (!options.symbol) {
+        return formatted_value;
+    }
+    if (options.position === "after") {
+        return formatted_value += '&nbsp;' + options.symbol;
+    } else {
+        return options.symbol + '&nbsp;' + formatted_value;
+    }
+}
+
 return {
     format: {
         binary: _.identity, // todo
@@ -471,6 +503,9 @@ return {
         selection: _.identity, // todo
         text: _.identity, // todo
     },
+    helper: {
+        format_measure: formatMeasure,
+    }
 };
 
 });
