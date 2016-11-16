@@ -74,11 +74,11 @@ class ProductTemplate(models.Model):
 
     volume = fields.Float(
         'Volume', compute='_compute_volume', inverse='_set_volume',
-        help="The volume in m3.", store=True)
+        help="The volume of this product.", store=True)
     weight = fields.Float(
         'Weight', compute='_compute_weight', digits=dp.get_precision('Stock Weight'),
         inverse='_set_weight', store=True,
-        help="The weight of the contents in Kg, not including any packaging, etc.")
+        help="The weight of the contents, not including any packaging, etc.")
 
     warranty = fields.Float('Warranty')
     sale_ok = fields.Boolean(
