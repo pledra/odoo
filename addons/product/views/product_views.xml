@@ -221,8 +221,7 @@
                                     </div>
                                     <label for="weight"/>
                                     <div class="o_row">
-                                        <field name="weight"/>
-                                        <span>kg</span>
+                                        <field name="weight" widget="weight"/>
                                     </div>
                                 </group>
                             </group>
