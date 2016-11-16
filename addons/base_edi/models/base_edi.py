@@ -45,25 +45,6 @@ class BaseEdi(models.Model, BaseEtree):
         return
 
     @api.model
-    def edi_refactoring_ns_map(self):
-        ''' This method is used to restore the right namespaces inside the xml.
-        This method is necessary when using Qweb because the <t></t> elements cause some 
-        troubles when some namespaces are specified to etree. So, to avoid this problem,
-        the namespaces are encoded with a prefix in each tag and can be replaced as a namespace definition
-        after the Qweb rendering. For example, in case of UBL, the prefix is 'cbc__' or 
-        'cac__' and is replaced by 'cbc:' or 'cac:' respectively.
-        '''
-        return {}
-
-    @api.model
-    def edi_create_values(self):
-        ''' This method returns the dictionary that will be used by jinja to fill
-        the templates. This dictionary can contains various features of python like
-        functions, lambda, etc.
-        '''
-        return {'self': self}
-
-    @api.model
     def edi_as_subvalues(self, dictionary):
         ''' This method is usefull to bring more genericity during the rendering.
         Sometimes, a subtemplate can get its values from a object or a dictionnary but
@@ -76,27 +57,7 @@ class BaseEdi(models.Model, BaseEtree):
         return SubValues(dictionary)
 
     @api.model
-    def edi_load_rendered_template(
-        self, xml_id, values=None, xsd_path=None, as_tree=False, ns_refactoring=None):
-        ''' Load a template.
-        '''
-        # Compute values
-        if not values:
-            values = self.edi_create_values()
-        # Compute namespaces refactoring
-        if not ns_refactoring:
-            ns_refactoring = self.edi_refactoring_ns_map()
-
-        # Rendering
-        qweb = self.env['ir.qweb']
-        content = qweb.render(xml_id, values=values)
-
-        # Recompute the right namespaces
-        for key, value in ns_refactoring.items():
-            content = content.replace(key, value + ':')
-
-        # Rebuild the tree and check its validity if a xsd is specified
-        tree = self.edi_as_tree(content)
+    def edi_check_tree_validity(self, tree, xsd_path=None):
         if xsd_path:
             schema = self.edi_as_schema(xsd_path)
             try:
@@ -104,6 +65,25 @@ class BaseEdi(models.Model, BaseEtree):
             except etree.DocumentInvalid, xml_errors:
                 raise UserError('The generate file is unvalid:\n' + 
                     str(xml_errors.error_log))
+
+    @api.model
+    def edi_load_rendered_template(
+        self, xml_id, values, xsd_path=None, as_tree=False, ns_refactoring=None):
+        ''' Load a template.
+        '''
+        # Rendering
+        qweb = self.env['ir.qweb']
+        content = qweb.render(xml_id, values=values)
+
+        # Recompute the right namespaces
+        if ns_refactoring:
+            for key, value in ns_refactoring.items():
+                content = content.replace(key, value + ':')
+
+        # Rebuild the tree and check its validity
+        tree = self.edi_as_tree(content)
+        self.edi_check_tree_validity(tree, xsd_path=xsd_path)
+
         if as_tree:
             return tree
         return self.edi_as_str(tree)
@@ -116,6 +96,7 @@ class BaseEdi(models.Model, BaseEtree):
         # Look about the content or create it if necessary
         if not content:
             if content_tree:
+                self.edi_check_tree_validity(content_tree, xsd_path=xsd_path)
                 content = self.edi_as_str(content_tree)
             elif xml_id:
                 content = self.edi_load_rendered_template(

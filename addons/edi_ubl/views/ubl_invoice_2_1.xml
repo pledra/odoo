@@ -4,12 +4,22 @@
         <!-- The invoice template according to UBL v2.1 -->
         
         <template id="ubl_invoice_line">
-            <cbc__ID t-esc="self.line_number"/>
+            <cbc__ID t-esc="self.id"/>
+            <cbc__UUID t-if="self.uuid" t-esc="self.uuid"/>
+            <cbc__Note 
+                t-foreach="self.notes"
+                t-as="note"
+                t-esc="note"/>
             <cbc__InvoicedQuantity t-esc="self.quantity"/>
             <cbc__LineExtensionAmount
                 t-att-currencyID="currency_name"
                 t-esc="self.price_subtotal"/>
-            <cac__TaxTotal t-call="edi_ubl.ubl_tax_total"/>
+            <cac__TaxTotal 
+                t-foreach="self.taxes_values"
+                t-as="tax_values"
+                t-call="edi_ubl.ubl_tax_total">
+                <t t-set="self" t-value="tax_values"/>
+            </cac__TaxTotal>
             <cac__Item t-call="edi_ubl.ubl_item"/>
             <cac__Price t-call="edi_ubl.ubl_price"/>
         </template>
@@ -22,6 +32,7 @@
                     'xmlns:cbc': 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2'}">
                 <cbc__UBLVersionID t-esc="version_id"/>
                 <cbc__ID t-esc="self.number"/>
+                <cbc__UUID t-if="self.uuid" t-esc="self.uuid"/>
                 <cbc__IssueDate t-esc="self.date_invoice"/>
                 <cbc__InvoiceTypeCode t-esc="type_code"/>
                 <cbc__Note t-if="self.comment" t-esc="self.comment"/>
