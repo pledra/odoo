@@ -359,7 +359,7 @@ var Gui = core.Class.extend({
 
     debug_email: function(debug_type,date_string,data) {
         var self = this;
-        var email_to = "lpe@odoo.com";
+        var email_to = this.pos.get_cashier().email || "";
         var subject_line = "[POS][DEBUG] Support "+debug_type;
         
         var body = "<p>Hello,</p>"+

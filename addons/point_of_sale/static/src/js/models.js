@@ -248,7 +248,7 @@ exports.PosModel = Backbone.Model.extend({
        },
     },{
         model:  'res.users',
-        fields: ['name','pos_security_pin','groups_id','barcode'],
+        fields: ['name','pos_security_pin','groups_id','barcode','email'],
         domain: function(self){ return [['company_id','=',self.user.company_id[0]],'|', ['groups_id','=', self.config.group_pos_manager_id[0]],['groups_id','=', self.config.group_pos_user_id[0]]]; },
         loaded: function(self,users){ 
             // we attribute a role to the user, 'cashier' or 'manager', depending
