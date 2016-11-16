@@ -137,7 +137,7 @@
                             <field name="tracking" widget="radio" attrs="{'invisible':[('type', 'in', ['service', 'digital'])]}" groups="stock.group_production_lot"/>
                             <label for="volume" attrs="{'invisible':['|', ('type', 'not in', ['product', 'consu']), ('product_variant_count', '&gt;', 1)]}"/>
                             <div class="o_row" name="volume" attrs="{'invisible':['|', ('type', 'not in', ['product', 'consu']), ('product_variant_count', '&gt;', 1)]}">
-                                <field name="volume" string="Volume"/>
+                                <field name="volume" string="Volume" widget="volume"/>
                             </div>
                         </group>
                         <group>

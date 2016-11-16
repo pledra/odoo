@@ -216,8 +216,7 @@
                                 <group name="weight" string="Weights">
                                     <label for="volume"/> 
                                     <div class="o_row">
-                                        <field digits="(14, 3)" name="volume"/>
-                                        <span>m³</span>
+                                        <field name="volume" widget="volume"/>
                                     </div>
                                     <label for="weight"/>
                                     <div class="o_row">

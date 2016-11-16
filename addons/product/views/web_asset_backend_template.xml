@@ -2,7 +2,9 @@
 <odoo>
     <template id="assets_backend" name="product assets" inherit_id="web.assets_backend">
         <xpath expr="." position="inside">
+            <script type="text/javascript" src="/product/static/src/js/uom_widget.js"></script>
             <script type="text/javascript" src="/product/static/src/js/weight_widget.js"></script>
+            <script type="text/javascript" src="/product/static/src/js/volume_widget.js"></script>
         </xpath>
     </template>
 </odoo>
