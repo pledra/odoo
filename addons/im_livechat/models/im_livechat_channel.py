@@ -27,12 +27,12 @@ class ImLivechatChannel(models.Model):
         return [(6, 0, [self._uid])]
 
     # attribute fields
-    name = fields.Char('Name', required=True, help="The name of the channel")
-    button_text = fields.Char('Text of the Button', default='Have a Question? Chat with us.',
+    name = fields.Char('Name', required=True, help="The name of the channel", translate=True)
+    button_text = fields.Char('Text of the Button', default='Have a Question? Chat with us.', translate=True,
         help="Default text displayed on the Livechat Support Button")
-    default_message = fields.Char('Welcome Message', default='How may I help you?',
+    default_message = fields.Char('Welcome Message', default='How may I help you?', translate=True,
         help="This is an automated 'welcome' message that your visitor will see when they initiate a new conversation.")
-    input_placeholder = fields.Char('Chat Input Placeholder')
+    input_placeholder = fields.Char('Chat Input Placeholder', translate=True)
 
     # computed fields
     web_page = fields.Char('Web Page', compute='_compute_web_page_link', store=False, readonly=True,
