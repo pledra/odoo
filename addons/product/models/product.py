@@ -156,9 +156,7 @@ class ProductProduct(models.Model):
         help="Cost of the product template used for standard stock valuation in accounting and used as a base price on purchase orders. "
              "Expressed in the default unit of measure of the product.")
     volume = fields.Float('Volume', help="The volume of this product.")
-    weight = fields.Float(
-        'Weight', digits=dp.get_precision('Stock Weight'),
-        help="The weight of the contents, not including any packaging, etc.")
+    weight = fields.Float('Weight', help="The weight of the contents, not including any packaging, etc.")
 
     pricelist_item_ids = fields.Many2many(
         'product.pricelist.item', 'Pricelist Items', compute='_get_pricelist_items')
