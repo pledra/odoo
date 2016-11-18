@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script type="text/javascript">
+    
+    $().ready(function() {
+
+        (function worker() {
+            $.ajax({
+                type: "GET",
+                url: '/point_of_sale/get_serialized_order',
+                dataType: "json",
+                    success: function(data) {
+                        $('.cust_logo').html(data.cust_logo);
+                        $('.cust_message').html(data.cust_message);
+                        console.log(data);
+                        var orders_html = "";
+                        for (order in data.orders) {
+                            orders_html += "<h1>"+order+" "+"</h1>";
+                        }
+
+                        $('.display').html(orders_html);
+                    },
+
+                    complete: function() {
+                        setTimeout(worker, 1000);
+                    }
+            });
+        })();
+    });
+
+</script>
+    <title></title>
+</head>
+<body>
+<div class="wrap">
+    <div class="display"></div>
+    <div class="prices"></div>
+    <div class="cust_logo"></div>
+    <div class="cust_message"></div>
+
+</div>
+</body>
+</html>

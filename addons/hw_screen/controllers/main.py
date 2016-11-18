@@ -19,52 +19,75 @@
 #
 ##############################################################################
 
-import json
-import logging
-import urllib2
-import websocket
-from threading import Lock
 
-import openerp
+import logging
+
 from openerp import http
+import openerp
+import os
+from json import dumps
 
 _logger = logging.getLogger(__name__)
 
+
+# def _launch_browser():
+#     # TODO
+#     json.load()
+
+
+browser_pid = None
+# if not browser_pid:
+#    _launch_browser()
+# invoke shell command to launch the browser full screen
+
+# Maintains data about the client (Cashier)
+# Form:
+# {ip_from,
+# datetime,
+# sale_order}
+pos_client_data = None
+
+
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
-    def __init__(self):
-        self.chromium_websocket_lock = Lock()
-        self.chromium_connection = None
 
-    def _open_chromium_connection(self):
-        # locally running chromium with --remote-debugging-port=9222
-        url = 'http://localhost:9222/json'
-
-        resp = urllib2.urlopen(url).read()
-        resp = json.loads(resp)
-
-        websocket_address = resp[0]['webSocketDebuggerUrl']
-        _logger.info('opening websocket address: %s' % websocket_address)
-
-        return websocket.create_connection(websocket_address)
-
+    # POS CASHIER'S ROUTES
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
-    def update_user_facing_display(self, html):
-        # chromium only supports one remote debugging client per websocket,
-        # so make sure we don't try to handle multiple requests at the same time
-        with self.chromium_websocket_lock:
-            if not self.chromium_connection:
-                self.chromium_connection = self._open_chromium_connection()
+    def update_user_facing_display(self, pos_data_html):
+        # process pos_data from the cashier's JS to make it a file
+        # file contains metadata and html
+        request_ip = None
+        if not pos_client_data | request_ip == pos_client_data.ip_from:
+            global pos_client_data
+            pos_client_data = pos_data_html
+            return {'status': 'updated'}
+        else:
+            return {'status': 'failed',
+                    'message': 'Somebody else is using the display'}
 
-            # quoting is a bit tricky, single quotes are used inside the evaled
-            # js and double quotes are used inside the JSON, so quotes inside of the
-            # html need to all turn into an escaped " which is \\"
-            html = html.replace('"', '\\"')
-            html = html.replace("'", '\\"')
+    @http.route('/point_of_sale/take_control')
+    def take_control(self):
+        # ALLOW A CASHIER TO TAKE CONTROL OVER THE POSBOX, IN CASE OF MULTIPLE CASHIER PER POSBOX
+        global pos_client_data
+        pos_client_data = None
+        return {'status': 'success',
+                'message': 'You now have access to the display'}
 
-            # newlines are illegal tokens in javascript strings
-            html = html.replace('\n', ' ')
+    # POSBOX ROUTES (SELF)
+    @http.route('/point_of_sale/display', type='http', auth='none', website=True)
+    def render_main_display(self):
+        html = None
+        with open(os.path.join(os.path.dirname(__file__), "template.html")) as template:
+            html = template.read()
+        return html
 
-            js_to_eval = "var doc = document.open('text/html', 'replace'); doc.write('%s'); doc.close();" % html
+    @http.route('/point_of_sale/get_serialized_order', type='http', auth='none')
+    def get_serialized_order(self):
+        # CHECK IP AND SESSION AND CONTROL
+        # RETURN THE ENTIRE ORDER
+        global pos_client_data
+        pos_client_data = {'cust_logo': 'cust_logo',
+                           'cust_message': 'cust_mess',
+                           'orders': [{'order_id': '1', 'product': 'tamere'}, {'order_id': '2', 'product':'tasoeur'}]
+                           }
 
-            request = '{"id": 1, "method": "Runtime.evaluate", "params": {"expression": "%s" }}' % js_to_eval
-            self.chromium_connection.send(request)
+        return dumps(pos_client_data)
