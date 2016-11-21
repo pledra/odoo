@@ -26,39 +26,59 @@ from openerp import http
 import openerp
 import os
 from json import dumps
+from datetime import datetime
+import subprocess
 
 _logger = logging.getLogger(__name__)
 
-
-# def _launch_browser():
-#     # TODO
-#     json.load()
-
-
 browser_pid = None
-# if not browser_pid:
-#    _launch_browser()
-# invoke shell command to launch the browser full screen
 
-# Maintains data about the client (Cashier)
-# Form:
-# {ip_from,
-# datetime,
-# sale_order}
+
+def check_pid(pid):
+    """ Check For the existence of a unix pid. """
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
+
+
+def _launch_browser():
+    global browser_pid
+    browser_pid = subprocess.Popen(["firefox", "localhost:9069/point_of_sale/display"]).pid
+
+
+def _test_browser():
+    global browser_pid
+    if not browser_pid:
+        _launch_browser()
+    if not check_pid(browser_pid):
+        _launch_browser()
+    # invoke shell command to launch the browser full screen
+
+
+_test_browser()
+
+
 pos_client_data = None
+last_poll = None
 
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
     # POS CASHIER'S ROUTES
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
-    def update_user_facing_display(self, pos_data_html):
+    def update_user_facing_display(self, html=None):
         # process pos_data from the cashier's JS to make it a file
         # file contains metadata and html
-        request_ip = None
-        if not pos_client_data | request_ip == pos_client_data.ip_from:
-            global pos_client_data
-            pos_client_data = pos_data_html
+        _test_browser()
+        global pos_client_data
+        request_ip = http.request.httprequest.remote_addr
+        if not pos_client_data or request_ip == pos_client_data.get('ip_from', ''):
+            pos_client_data = {'rendered_html': html,
+                               'ip_from': request_ip}
+
             return {'status': 'updated'}
         else:
             return {'status': 'failed',
@@ -68,26 +88,59 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     def take_control(self):
         # ALLOW A CASHIER TO TAKE CONTROL OVER THE POSBOX, IN CASE OF MULTIPLE CASHIER PER POSBOX
         global pos_client_data
-        pos_client_data = None
+        pos_client_data = {'ip_from': http.request.httprequest.remote_addr,
+                           'rendered_html': ''}
         return {'status': 'success',
                 'message': 'You now have access to the display'}
 
     # POSBOX ROUTES (SELF)
     @http.route('/point_of_sale/display', type='http', auth='none', website=True)
     def render_main_display(self):
-        html = None
-        with open(os.path.join(os.path.dirname(__file__), "template.html")) as template:
-            html = template.read()
-        return html
+        return self._get_html()
 
     @http.route('/point_of_sale/get_serialized_order', type='http', auth='none')
     def get_serialized_order(self):
-        # CHECK IP AND SESSION AND CONTROL
-        # RETURN THE ENTIRE ORDER
         global pos_client_data
-        pos_client_data = {'cust_logo': 'cust_logo',
-                           'cust_message': 'cust_mess',
-                           'orders': [{'order_id': '1', 'product': 'tamere'}, {'order_id': '2', 'product':'tasoeur'}]
-                           }
+        global last_poll
+        last_poll = datetime.now()
 
-        return dumps(pos_client_data)
+        if pos_client_data:
+            return dumps(pos_client_data)
+        else:
+            return dumps({'rendered_html': "<p>Nothing to display</p>"})
+
+    def _get_html(self):
+        cust_js = None
+        jquery = None
+        bootstrap = None
+
+        with open(os.path.join(os.path.dirname(__file__), "../static/src/js/worker.js")) as js:
+            cust_js = js.read()
+
+        with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/jquery-3.1.1.min.js")) as jq:
+            jquery = jq.read()
+
+        with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/bootstrap.css")) as btst:
+            bootstrap = btst.read()
+
+        html = """
+            <!DOCTYPE html>
+            <html>
+                <head>
+                <script type="text/javascript">
+                    """ + jquery + """
+                </script>
+                <script type="text/javascript">
+                    """ + cust_js + """
+                </script>
+                <style>
+                    """ + bootstrap + """
+                </style>
+                </head>
+                <body>
+                    <div class="wrap"></div>
+                </body>
+                </html>
+            """
+
+        return html
