@@ -34,6 +34,13 @@ _logger = logging.getLogger(__name__)
 browser_pid = None
 
 
+def proc_status(pid):
+    for line in open("/proc/%d/status" % pid).readlines():
+        if line.startswith("State:"):
+            return line.split(":", 1)[1].strip().split(' ')[0]
+    return None
+
+
 def check_pid(pid):
     """ Check For the existence of a unix pid. """
     try:
@@ -55,7 +62,9 @@ def _test_browser():
         _launch_browser()
     if not check_pid(browser_pid):
         _launch_browser()
-    # invoke shell command to launch the browser full screen
+    elif proc_status(browser_pid) == 'Z':
+        os.kill(browser_pid, 9)
+        _launch_browser()
 
 
 _test_browser()
@@ -70,14 +79,13 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     # POS CASHIER'S ROUTES
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
     def update_user_facing_display(self, html=None):
-        # process pos_data from the cashier's JS to make it a file
-        # file contains metadata and html
         _test_browser()
         global pos_client_data
         request_ip = http.request.httprequest.remote_addr
         if not pos_client_data or request_ip == pos_client_data.get('ip_from', ''):
             pos_client_data = {'rendered_html': html,
-                               'ip_from': request_ip}
+                               'ip_from': request_ip,
+                               'isNew': True}
 
             return {'status': 'updated'}
         else:
@@ -89,7 +97,9 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         # ALLOW A CASHIER TO TAKE CONTROL OVER THE POSBOX, IN CASE OF MULTIPLE CASHIER PER POSBOX
         global pos_client_data
         pos_client_data = {'ip_from': http.request.httprequest.remote_addr,
-                           'rendered_html': ''}
+                           'rendered_html': '',
+                           'isNew': True}
+
         return {'status': 'success',
                 'message': 'You now have access to the display'}
 
@@ -104,10 +114,14 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         global last_poll
         last_poll = datetime.now()
 
+        # IMPLEMENTATION OF LONGPOLLING
         if pos_client_data:
-            return dumps(pos_client_data)
+            while True:
+                if pos_client_data.get('isNew'):
+                    pos_client_data["isNew"] = False
+                    return dumps(pos_client_data)
         else:
-            return dumps({'rendered_html': "<p>Nothing to display</p>"})
+            return dumps({'rendered_html': ''})
 
     def _get_html(self):
         cust_js = None
