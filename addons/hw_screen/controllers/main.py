@@ -28,10 +28,13 @@ import os
 from json import dumps
 from datetime import datetime
 import subprocess
+import openerp.tools.config as config
 
 _logger = logging.getLogger(__name__)
 
 browser_pid = None
+self_ip = config['xmlrpc_interface'] or '127.0.0.1'
+self_port = config['xmlrpc_port'] or 8069
 
 
 def proc_status(pid):
@@ -53,7 +56,7 @@ def check_pid(pid):
 
 def _launch_browser():
     global browser_pid
-    browser_pid = subprocess.Popen(["firefox", "localhost:9069/point_of_sale/display"]).pid
+    browser_pid = subprocess.Popen(["firefox", "--safe-mode", self_ip + ":" + str(self_port) + "/point_of_sale/display"]).pid
 
 
 def _test_browser():
@@ -92,16 +95,18 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
             return {'status': 'failed',
                     'message': 'Somebody else is using the display'}
 
-    @http.route('/point_of_sale/take_control')
-    def take_control(self):
+    @http.route('/point_of_sale/take_control', type='json', auth='none', cors='*')
+    def take_control(self, session_id=None):
         # ALLOW A CASHIER TO TAKE CONTROL OVER THE POSBOX, IN CASE OF MULTIPLE CASHIER PER POSBOX
         global pos_client_data
-        pos_client_data = {'ip_from': http.request.httprequest.remote_addr,
-                           'rendered_html': '',
-                           'isNew': True}
 
-        return {'status': 'success',
-                'message': 'You now have access to the display'}
+        if pos_client_data and not pos_client_data.get('ip_from') == http.request.httprequest.remote_addr:
+            pos_client_data = {'ip_from': http.request.httprequest.remote_addr,
+                               'rendered_html': '',
+                               'isNew': True}
+
+        return dumps({'status': 'success',
+                      'message': 'You now have access to the display'})
 
     # POSBOX ROUTES (SELF)
     @http.route('/point_of_sale/display', type='http', auth='none', website=True)
@@ -116,12 +121,15 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
         # IMPLEMENTATION OF LONGPOLLING
         if pos_client_data:
+            _logger.info(str(pos_client_data))
             while True:
                 if pos_client_data.get('isNew'):
+                    _logger.info(str(pos_client_data.get('isNew')))
                     pos_client_data["isNew"] = False
                     return dumps(pos_client_data)
         else:
-            return dumps({'rendered_html': ''})
+            client_data = {'rendered_html': ''}
+            return dumps(client_data)
 
     def _get_html(self):
         cust_js = None

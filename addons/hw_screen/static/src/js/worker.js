@@ -6,13 +6,11 @@
                 dataType: 'json',
 
                 success: function(data) {
-                    var parsedHTML = $('head').html($.parseHTML(data.rendered_html));
-                    var pos_display_contents = parsedHTML.find('.container-fluid').detach();
-                    $('.wrap').html(pos_display_contents);                        
+                    var parsedHTML = $('.wrap').html($.parseHTML(data.rendered_html));                        
                 },
 
-                complete: function() {
-                        worker();
+                complete: function(jqXHR,err) {
+                    worker();
                 },
 
                 timeout: 30000,
