@@ -10,6 +10,7 @@ var BarcodeHandlerMixin = require('barcodes.BarcodeHandlerMixin');
 
 var ButtonBarcodeHandlerMixin = _.extend({}, BarcodeHandlerMixin, {
     init: function(field_manager, node) {
+        this._super.apply(this, arguments);
         if (node.attrs.barcode_trigger) {
             BarcodeHandlerMixin.init.call(this, field_manager, node);
             var self = this;
@@ -20,8 +21,6 @@ var ButtonBarcodeHandlerMixin = _.extend({}, BarcodeHandlerMixin, {
                     self.on_click();
                 }
             };
-        } else {
-            this._super(field_manager, node);
         }
     },
 });

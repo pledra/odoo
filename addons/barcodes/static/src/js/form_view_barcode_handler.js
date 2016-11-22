@@ -25,10 +25,9 @@ KanbanRecord.include({
 
 var FormViewBarcodeHandler = common.AbstractField.extend(BarcodeHandlerMixin, {
     init: function(parent, context) {
+        this._super.apply(this, arguments);
         this.__quantity_listener = _.bind(this._set_quantity_listener, this);
         BarcodeHandlerMixin.init.apply(this, arguments);
-
-        return this._super.apply(this, arguments);
     },
 
     start: function() {
@@ -51,11 +50,6 @@ var FormViewBarcodeHandler = common.AbstractField.extend(BarcodeHandlerMixin, {
             this.map_barcode_method['O-CMD.PAGER-PREV'] = _.bind(this.form_view.pager.previous, this.form_view.pager);
             this.map_barcode_method['O-CMD.PAGER-NEXT'] = _.bind(this.form_view.pager.next, this.form_view.pager);
         }
-    },
-
-    destroy: function () {
-        this.stop_listening();
-        this._super.apply(this, arguments);
     },
 
     _display_no_edit_mode_warning: function() {

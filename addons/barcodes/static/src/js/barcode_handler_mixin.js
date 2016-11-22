@@ -12,7 +12,6 @@ var View = require('web.View');
 return {
     init: function() {
         var self = this;
-        this._super.apply(this, arguments);
         this.__on_barcode_scanned = function (barcode, target) {
             // Handle the case where there are several barcode widgets on the same page. Since the
             // event is global on the page, all barcode widgets will be triggered. However, we only
