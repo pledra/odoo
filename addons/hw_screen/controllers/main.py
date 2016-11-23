@@ -29,6 +29,7 @@ from json import dumps
 from datetime import datetime
 import subprocess
 import openerp.tools.config as config
+import time
 
 _logger = logging.getLogger(__name__)
 
@@ -56,7 +57,9 @@ def check_pid(pid):
 
 def _launch_browser():
     global browser_pid
-    browser_pid = subprocess.Popen(["firefox", "--safe-mode", self_ip + ":" + str(self_port) + "/point_of_sale/display"]).pid
+    browser_pid = subprocess.Popen(["chromium-browser", self_ip + ":" + str(self_port) + "/point_of_sale/display"]).pid
+    win_id = subprocess.check_output(['wmctrl', '-l', '-p', '|', 'grep ' + str(browser_pid), '|', 'cut', '-d " "', "-f0"])
+    _logger.info(str(win_id))
 
 
 def _test_browser():
@@ -105,8 +108,8 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                                'rendered_html': '',
                                'isNew': True}
 
-        return dumps({'status': 'success',
-                      'message': 'You now have access to the display'})
+        return {'status': 'success',
+                'message': 'You now have access to the display'}
 
     # POSBOX ROUTES (SELF)
     @http.route('/point_of_sale/display', type='http', auth='none', website=True)
@@ -121,7 +124,6 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
         # IMPLEMENTATION OF LONGPOLLING
         if pos_client_data:
-            _logger.info(str(pos_client_data))
             while True:
                 if pos_client_data.get('isNew'):
                     _logger.info(str(pos_client_data.get('isNew')))
