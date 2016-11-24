@@ -522,7 +522,7 @@ class Holidays(models.Model):
             recipients. Indeed those will have specific action in their notification
             emails.
         """
-        group_hr_user = self.env.ref('base.group_hr_user')
+        group_hr_user = self.env.ref('base.group_hr_user').id
         for recipient in recipients:
             if recipient.id in done_ids:
                 continue
