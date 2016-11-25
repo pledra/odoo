@@ -80,16 +80,15 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     def get_serialized_order(self):
         global event_data
         global pos_client_data
-
+	result = pos_client_data
         # IMPLEMENTATION OF LONGPOLLING
-        while not event_data.is_set():
+        if not event_data.is_set():
             if event_data.wait():
-                result = pos_client_data
                 event_data.clear()
                 return result
-
-        event_data.clear()
-        return pos_client_data
+	else:
+        	event_data.clear()
+        	return result
 
     def _get_html(self):
         cust_js = None
