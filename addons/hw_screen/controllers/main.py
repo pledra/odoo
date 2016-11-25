@@ -26,7 +26,6 @@ from openerp import http
 import openerp
 import os
 from json import dumps
-from datetime import datetime
 import subprocess
 import openerp.tools.config as config
 import time
@@ -57,9 +56,14 @@ def check_pid(pid):
 
 def _launch_browser():
     global browser_pid
-    browser_pid = subprocess.Popen(["chromium-browser", self_ip + ":" + str(self_port) + "/point_of_sale/display"]).pid
-    win_id = subprocess.check_output(['wmctrl', '-l', '-p', '|', 'grep ' + str(browser_pid), '|', 'cut', '-d " "', "-f0"])
-    _logger.info(str(win_id))
+    browser_pid = subprocess.Popen(["firefox", self_ip + ":" + str(self_port) + "/point_of_sale/display"]).pid
+    time.sleep(2)
+    win_ids = subprocess.check_output(['wmctrl', '-l', '-p'])
+    browser_win_id = None
+    for line in win_ids.split('\n'):
+        if str(browser_pid) in line:
+            browser_win_id = line.split(' ')[0]
+    subprocess.call(['xdotool', 'key', '--window', browser_win_id, 'F11'])
 
 
 def _test_browser():
@@ -73,9 +77,6 @@ def _test_browser():
         _launch_browser()
 
 
-_test_browser()
-
-
 pos_client_data = None
 last_poll = None
 
@@ -85,28 +86,25 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     # POS CASHIER'S ROUTES
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
     def update_user_facing_display(self, html=None):
-        _test_browser()
         global pos_client_data
         request_ip = http.request.httprequest.remote_addr
         if not pos_client_data or request_ip == pos_client_data.get('ip_from', ''):
             pos_client_data = {'rendered_html': html,
                                'ip_from': request_ip,
                                'isNew': True}
-
+            _test_browser()
             return {'status': 'updated'}
         else:
             return {'status': 'failed',
                     'message': 'Somebody else is using the display'}
 
     @http.route('/point_of_sale/take_control', type='json', auth='none', cors='*')
-    def take_control(self, session_id=None):
+    def take_control(self, html=None):
         # ALLOW A CASHIER TO TAKE CONTROL OVER THE POSBOX, IN CASE OF MULTIPLE CASHIER PER POSBOX
         global pos_client_data
-
-        if pos_client_data and not pos_client_data.get('ip_from') == http.request.httprequest.remote_addr:
-            pos_client_data = {'ip_from': http.request.httprequest.remote_addr,
-                               'rendered_html': '',
-                               'isNew': True}
+        pos_client_data = {'ip_from': http.request.httprequest.remote_addr,
+                           'rendered_html': html,
+                           'isNew': True}
 
         return {'status': 'success',
                 'message': 'You now have access to the display'}
@@ -119,14 +117,11 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     @http.route('/point_of_sale/get_serialized_order', type='http', auth='none')
     def get_serialized_order(self):
         global pos_client_data
-        global last_poll
-        last_poll = datetime.now()
 
         # IMPLEMENTATION OF LONGPOLLING
         if pos_client_data:
             while True:
                 if pos_client_data.get('isNew'):
-                    _logger.info(str(pos_client_data.get('isNew')))
                     pos_client_data["isNew"] = False
                     return dumps(pos_client_data)
         else:
@@ -166,12 +161,14 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 </body>
                 </html>
             """
-
         return html
 
     @http.route('/point_of_sale/test_ownership', type='json', auth='none', cors='*')
     def test_ownership(self):
         global pos_client_data
+        global browser_pid
+        if not browser_pid:
+            return {'status': 'NOWNER'}
         if pos_client_data and pos_client_data.get('ip_from'):
             if not pos_client_data.get('ip_from') == http.request.httprequest.remote_addr:
                 return {'status': 'NOWNER'}
