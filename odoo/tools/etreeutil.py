@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from lxml import etree
+
 from odoo.tools.misc import file_open
 
 def dict_to_obj(dictionary):
@@ -25,10 +26,10 @@ def tree_as_str(tree, pretty_print=True, xml_declaration=True):
     ''' Transforms a node tree into a well indended string.
     '''
     return etree.tostring(
-        tree, 
-        pretty_print=pretty_print,        
-        xml_declaration=xml_declaration,
-        encoding='UTF-8',)
+        tree,
+        pretty_print=True, 
+        encoding='UTF-8',
+        xml_declaration=True)
 
 def get_parent_node(node):
     ''' Return the parent of the node
