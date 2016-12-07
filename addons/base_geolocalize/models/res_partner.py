@@ -52,12 +52,13 @@ class ResPartner(models.Model):
                                                 city=partner.city,
                                                 state=partner.state_id.name,
                                                 country=partner.country_id.name))
-            if not result:
+            if result is None:
                 result = geo_find(geo_query_address(
                     city=partner.city,
                     state=partner.state_id.name,
                     country=partner.country_id.name
                 ))
+                print "$$$ FALLBACK $$$", result
 
             if result:
                 partner.write({
