@@ -52,6 +52,13 @@ class ResPartner(models.Model):
                                                 city=partner.city,
                                                 state=partner.state_id.name,
                                                 country=partner.country_id.name))
+            if not result:
+                result = geo_find(geo_query_address(
+                    city=partner.city,
+                    state=partner.state_id.name,
+                    country=partner.country_id.name
+                ))
+
             if result:
                 partner.write({
                     'partner_latitude': result[0],
