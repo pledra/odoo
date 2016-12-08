@@ -6045,6 +6045,8 @@ class BaseModel(object):
             :param fnames: the list of modified fields, or ``None`` for all fields
             :param ids: the list of modified record ids, or ``None`` for all
         """
+        print "%s.invalidate_cache(%r, %r)" % (self, fnames, ids)
+
         if fnames is None:
             if ids is None:
                 return self.env.invalidate_all()
@@ -6360,6 +6362,8 @@ class RecordCache(MutableMapping):
         """ Return the cached value of ``field`` for `records[0]`. """
         if isinstance(field, basestring):
             field = self._recs._fields[field]
+        # if self._recs._name == 'res.users' and self._recs.id == 68 and field == 'res.users.signup_valid':
+        #     import pdb;pdb.set_trace()
         value = self._recs.env.cache[field][self._recs.id]
         return value.get() if isinstance(value, SpecialValue) else value
 

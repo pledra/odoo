@@ -34,6 +34,7 @@ class ResPartner(models.Model):
 
     @api.multi
     def _compute_signup_valid(self):
+        print "%s._compute_signup_valid()" % (self,)
         dt = now()
         for partner in self:
             partner.signup_valid = bool(partner.signup_token) and \

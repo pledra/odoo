@@ -831,10 +831,18 @@ class Field(object):
                 value = record._cache[self]
             except KeyError:
                 # cache miss, determine value and retrieve it
+                if str(self) == 'res.users.signup_valid':
+                    import pudb; pu.db
                 if record.id:
                     self.determine_value(record)
                 else:
                     self.determine_draft_value(record)
+
+                # if record._name == "res.users" and record.id in [32] and self == 'res.users.sign_valid':
+                #   import pdb;pdb.set_trace()
+                    #_logger.warn(str(record)+"    " + str(record._cache))
+                    #for key in record._cache:
+                    #   _logger.warn(str(key))
                 value = record._cache[self]
         else:
             # null record -> return the null value for this field
@@ -888,13 +896,15 @@ class Field(object):
         for field in computed:
             for record in records:
                 record._cache[field] = field.convert_to_cache(False, record, validate=False)
+        backup = {}
+        for field in computed:
+            backup[field] = set(records.env.computed[field])
             records.env.computed[field].update(records._ids)
         if isinstance(self.compute, basestring):
             getattr(records, self.compute)()
         else:
             self.compute(records)
-        for field in computed:
-            records.env.computed[field].difference_update(records._ids)
+        records.env.computed.update(backup)
 
     def compute_value(self, records):
         """ Invoke the compute method on ``records``; the results are in cache. """
