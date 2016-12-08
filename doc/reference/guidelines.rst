@@ -206,13 +206,14 @@ Use the following pattern :
   lowercase string briefly explaining the action.
   This is used only if multiple actions are declared for the
   model.
-* For a group: :samp:`{<model_name>}_group_{<group_name>}` where *group_name*
+* For a group: :samp:`group_{<module_name>}_{<group_name>}` where *group_name*
   is the name of the group, generally 'user', 'manager', ...
 * For a rule: :samp:`{<model_name>}_rule_{<concerned_group>}` where
   *concerned_group* is the short name of the concerned group ('user'
   for the 'model_name_group_user', 'public' for public user, 'company'
   for multi-company rules, ...).
-* For a group : :samp:`{<model_name>}_group_{<group_name>}` where *group_name* is the name of the group, generally 'user', 'manager', ...
+* For other records: :samp:`{<model_name>}_data_{<detail>}` where *detail*
+  is a lowercase string briefly describing the record.
 
 .. code-block:: xml
 
@@ -248,7 +249,7 @@ Use the following pattern :
     </record>
 
     <!-- security -->
-    <record id="module_name_group_user" model="res.groups">
+    <record id="group_module_name_user" model="res.groups">
         ...
     </record>
 
@@ -257,6 +258,10 @@ Use the following pattern :
     </record>
 
     <record id="model_name_rule_company" model="ir.rule">
+        ...
+    </record>
+
+    <record id="model_name_data_example" model="model_name">
         ...
     </record>
 
