@@ -86,7 +86,6 @@ last_poll = None
 
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
-    lock = threading.Lock()
 
     lock_data = threading.Lock()
     # POS CASHIER'S ROUTES
@@ -100,9 +99,6 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 pos_client_data['rendered_html'] = html
                 pos_client_data['isNew'] = isNew
 
-                pos_client_data["isNew"] = True
-
-                # _test_browser()
                 return {'status': 'updated'}
             else:
                 return {'status': 'failed',
@@ -132,8 +128,9 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         # IMPLEMENTATION OF LONGPOLLING
         while True:
             with self.lock_data:
-                pos_client_data["isNew"] = False
-                return dumps(pos_client_data)
+                if pos_client_data.get('isNew'):
+                    pos_client_data["isNew"] = False
+                    return dumps(pos_client_data)
 
     def _get_html(self):
         cust_js = None
