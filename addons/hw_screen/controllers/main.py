@@ -29,6 +29,7 @@ from json import dumps
 import subprocess
 import openerp.tools.config as config
 import time
+import threading
 
 _logger = logging.getLogger(__name__)
 
@@ -77,37 +78,43 @@ def _test_browser():
         _launch_browser()
 
 
-pos_client_data = None
+pos_client_data = {'rendered_html': '',
+                   'ip_from': '',
+                   'isNew': False}
+
 last_poll = None
 
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
+    lock_data = threading.Lock()
     # POS CASHIER'S ROUTES
+
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
-    def update_user_facing_display(self, html=None):
+    def update_user_facing_display(self, html=None, isNew=False):
         global pos_client_data
         request_ip = http.request.httprequest.remote_addr
-        if not pos_client_data or request_ip == pos_client_data.get('ip_from', ''):
-            pos_client_data = {'rendered_html': html,
-                               'ip_from': request_ip,
-                               'isNew': True}
-            _test_browser()
-            return {'status': 'updated'}
-        else:
-            return {'status': 'failed',
-                    'message': 'Somebody else is using the display'}
+        with self.lock_data:
+            if request_ip == pos_client_data.get('ip_from', ''):
+                pos_client_data['rendered_html'] = html
+                pos_client_data['isNew'] = isNew
+
+                return {'status': 'updated'}
+            else:
+                return {'status': 'failed',
+                        'message': 'Somebody else is using the display'}
 
     @http.route('/point_of_sale/take_control', type='json', auth='none', cors='*')
-    def take_control(self, html=None):
+    def take_control(self, html=None, isNew=False):
         # ALLOW A CASHIER TO TAKE CONTROL OVER THE POSBOX, IN CASE OF MULTIPLE CASHIER PER POSBOX
         global pos_client_data
-        pos_client_data = {'ip_from': http.request.httprequest.remote_addr,
-                           'rendered_html': html,
-                           'isNew': True}
+        with self.lock_data:
+            pos_client_data['rendered_html'] = html
+            pos_client_data['ip_from'] = http.request.httprequest.remote_addr
+            pos_client_data['isNew'] = isNew
 
-        return {'status': 'success',
-                'message': 'You now have access to the display'}
+            return {'status': 'success',
+                    'message': 'You now have access to the display'}
 
     # POSBOX ROUTES (SELF)
     @http.route('/point_of_sale/display', type='http', auth='none', website=True)
@@ -119,14 +126,11 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         global pos_client_data
 
         # IMPLEMENTATION OF LONGPOLLING
-        if pos_client_data:
+        with self.lock_data:
             while True:
                 if pos_client_data.get('isNew'):
                     pos_client_data["isNew"] = False
                     return dumps(pos_client_data)
-        else:
-            client_data = {'rendered_html': ''}
-            return dumps(client_data)
 
     def _get_html(self):
         cust_js = None
