@@ -1,4 +1,6 @@
     $().ready(function() {
+        var mergedHead = false;
+
         (function worker() {
             $.ajax({
                 type: 'GET',
@@ -6,15 +8,15 @@
                 dataType: 'json',
 
                 success: function(data) {
-                    var mergedHead = false;
-
-                    var parsedHTML = $('.shadow').html($.parseHTML(data.rendered_html));
+                    var trimmed = $.trim(data.rendered_html);
+                    var parsedHTML = $('.shadow').html($.parseHTML(trimmed,true));
                     if (!mergedHead) {
                         mergedHead = true;
-                        $("head").append(parsedHTML.$(".resources"));
+                        $("head").append($(".resources",parsedHTML).html());
                     }
-                    parsedHTML.$(".resources").remove();
-                    $(".wrap").html(parsedHTML);
+                    
+                    $(".resources",parsedHTML).remove();
+                    $(".wrap").html(parsedHTML.html());
                     $(".shadow").html("");                    
                 },
 

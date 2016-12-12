@@ -87,7 +87,9 @@ last_poll = None
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
-    lock_data = threading.Lock()
+    def __init__(self):
+        super(HardwareScreen, self).__init__()
+        self.lock_data = threading.Lock()
     # POS CASHIER'S ROUTES
 
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
