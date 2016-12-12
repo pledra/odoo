@@ -303,13 +303,12 @@
                     $("#oe_editzone button").show();
                 }
 
-                if ($('html').data('website-id')) {
-                    website.id = $('html').data('website-id');
-                    website.session = new openerp.Session();
-                    return openerp.jsonRpc('/website/translations', 'call', {'lang': website.get_context().lang})
-                    .then(function(trans) {
-                        openerp._t.database.set_bundle(trans);});
-                }
+                website.id = $('html').data('website-id') || 1; // crappy fallback
+                website.session = new openerp.Session();
+                return openerp.jsonRpc('/website/translations', 'call', {'lang': website.get_context().lang})
+                .then(function(trans) {
+                    openerp._t.database.set_bundle(trans);
+                });
             }).then(function () {
                 var templates = openerp.qweb.templates;
                 var keys = _.keys(templates);
