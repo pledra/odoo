@@ -126,8 +126,8 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         global pos_client_data
 
         # IMPLEMENTATION OF LONGPOLLING
-        with self.lock_data:
-            while True:
+        while True:
+            with self.lock_data:
                 if pos_client_data.get('isNew'):
                     pos_client_data["isNew"] = False
                     return dumps(pos_client_data)
@@ -171,9 +171,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     def test_ownership(self):
         global pos_client_data
         global browser_pid
-        if not browser_pid:
-            return {'status': 'NOWNER'}
-        if pos_client_data and pos_client_data.get('ip_from'):
+        with self.lock_data:
             if not pos_client_data.get('ip_from') == http.request.httprequest.remote_addr:
                 return {'status': 'NOWNER'}
         return {'status': 'OWNER'}
