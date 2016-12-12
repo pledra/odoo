@@ -6,7 +6,16 @@
                 dataType: 'json',
 
                 success: function(data) {
-                    var parsedHTML = $('.wrap').html($.parseHTML(data.rendered_html));                        
+                    var mergedHead = false;
+
+                    var parsedHTML = $('.shadow').html($.parseHTML(data.rendered_html));
+                    if (!mergedHead) {
+                        mergedHead = true;
+                        $("head").append(parsedHTML.$(".resources"));
+                    }
+                    parsedHTML.$(".resources").remove();
+                    $(".wrap").html(parsedHTML);
+                    $(".shadow").html("");                    
                 },
 
                 complete: function(jqXHR,err) {

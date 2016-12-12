@@ -161,6 +161,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 </style>
                 </head>
                 <body>
+                    <div class="shadow"></div>
                     <div class="wrap"></div>
                 </body>
                 </html>
