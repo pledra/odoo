@@ -1052,6 +1052,68 @@ var FieldReference = common.AbstractField.extend(common.ReinitializeFieldMixin, 
     },
 });
 
+var FieldMany2OneReference = common.AbstractField.extend(common.ReinitializeFieldMixin, {
+    className: 'o_row',
+    init: function(field_manager, node) {
+        this._super(field_manager, node);
+        this.reference_ready = true;
+    },
+    destroy_content: function() {
+        if (this.fm) {
+            this.fm.destroy();
+            this.fm = undefined;
+        }
+    },
+    initialize_content: function() {
+        var self = this;
+        var default_relation = this.field_manager.get_field_desc(this.name).selection[0][0];
+        this.fm = new common.DefaultFieldManager(this);
+        this.fm.extend_field_desc({
+            "m2o": {
+                relation: default_relation,
+                type: "many2one",
+            },
+        });
+        var FieldMany2One = core.form_widget_registry.get('many2one');
+        this.m2o = new FieldMany2One(this.fm, { attrs: {
+            name: 'Referenced Document',
+            modifiers: JSON.stringify({readonly: this.get('effective_readonly')}),
+            options: this.node.attrs.options,
+        }});
+        this.m2o.on("change:value", this, this.data_changed);
+        this.m2o.appendTo(this.$el);
+        this.m2o
+            .on('focused', null, function () {self.trigger('focused');})
+            .on('blurred', null, function () {self.trigger('blurred');});
+    },
+    data_changed: function() {
+        if (this.reference_ready) {
+            this.internal_set_value([this.m2o.field.relation, this.m2o.get_value()]);
+        }
+    },
+    set_value: function(val) {
+        if (val) {
+            val = val.split(',');
+            val[0] = val[0] || false;
+            val[1] = val[0] ? (val[1] ? parseInt(val[1], 10) : val[1]) : false;
+        }
+        this._super(val || [false, false]);
+    },
+    get_value: function() {
+        return this.get('value')[0] && this.get('value')[1] ? (this.get('value')[0] + ',' + this.get('value')[1]) : false;
+    },
+    render_value: function() {
+        this.reference_ready = false;
+        this.m2o.field.relation = this.get('value')[0];
+        this.m2o.set_value(this.get('value')[1]);
+        this.m2o.do_toggle(!!this.get('value')[0]);
+        this.reference_ready = true;
+    },
+    is_false: function() {
+        return !this.get_value();
+    },
+});
+
 var FieldBinary = common.AbstractField.extend(common.ReinitializeFieldMixin, {
     init: function(field_manager, node) {
         var self = this;
@@ -1690,6 +1752,7 @@ core.form_widget_registry
     .add('selection', FieldSelection)
     .add('radio', FieldRadio)
     .add('reference', FieldReference)
+    .add('reference_m2o', FieldMany2OneReference)
     .add('boolean', FieldBoolean)
     .add('boolean_button', FieldBooleanButton)
     .add('toggle_button', FieldToggleBoolean)
