@@ -85,7 +85,7 @@ class StockPicking(models.Model):
     weight = fields.Float(compute='_cal_weight', digits=dp.get_precision('Stock Weight'), store=True)
     carrier_tracking_ref = fields.Char(string='Tracking Reference', copy=False)
     number_of_packages = fields.Integer(string='Number of Packages', copy=False)
-    weight_uom_id = fields.Many2one('product.uom', string='Unit of Measure', required=True, readonly="1", help="Unit of measurement for Weight", default=_default_uom)
+    weight_uom_id = fields.Many2one('product.uom', string='Unit of Measure', required=True, readonly="1", help="Unit of measurement for Weight", default=_default_uom) # to remove ... can I consider it's always kg ? 
     package_ids = fields.Many2many('stock.quant.package', compute='_compute_packages', string='Packages')
     weight_bulk = fields.Float('Bulk Weight', compute='_compute_bulk_weight')
     shipping_weight = fields.Float("Weight for Shipping", compute='_compute_shipping_weight')
