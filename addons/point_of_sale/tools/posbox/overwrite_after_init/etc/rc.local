@@ -22,6 +22,10 @@ chown pi:pi /var/run/odoo
 
 /home/pi/odoo/addons/point_of_sale/tools/posbox/configuration/led_status.sh &
 /home/pi/odoo/addons/point_of_sale/tools/posbox/configuration/wireless_ap.sh &
-/home/pi/odoo/addons/point_of_sale/tools/posbox/configuration/start_x.sh &
+
+# Let's launch X properly
+# What to do is in the global xinitrc
+# Openbox is in charge of starting Firefox in its global autostart
+startx -- -nocursor &
 
 exit 0
