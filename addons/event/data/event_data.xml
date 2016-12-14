@@ -9,7 +9,7 @@
         </function>
 
         <!-- Automatic confirmation of events by default -->
-        <function id="default_auto_confirmation" model="ir.values" name="set_default" eval="('event.config.settings', 'auto_confirmation', True)"/>
+        <function id="default_manual_confirmation" model="ir.values" name="set_default" eval="('event.config.settings', 'manual_confirmation', False)"/>
 
         <!-- Event Mail Scheduler-->
         <record model="ir.cron" forcecreate="True" id="event_mail_scheduler">

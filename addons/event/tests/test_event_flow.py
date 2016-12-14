@@ -16,7 +16,7 @@ class TestEventFlow(TestEventCommon):
     def test_00_basic_event_auto_confirm(self):
         """ Basic event management with auto confirmation """
         event_config = self.env['event.config.settings'].sudo(self.user_eventmanager).create({
-            'auto_confirmation': 1
+            'manual_confirmation': False
         })
         event_config.execute()
 
@@ -71,7 +71,7 @@ class TestEventFlow(TestEventCommon):
     def test_10_advanced_event_flow(self):
         """ Avanced event flow: no auto confirmation, manage minimum / maximum
         seats, ... """
-        self.env['ir.values'].set_default('event.config.settings', 'auto_confirmation', False)
+        self.env['ir.values'].set_default('event.config.settings', 'manual_confirmation', True)
 
         # EventUser creates a new event: ok
         test_event = self.Event.sudo(self.user_eventmanager).create({
@@ -114,7 +114,7 @@ class TestEventFlow(TestEventCommon):
         ]})
         with self.assertRaises(AccessError):
             event_config = self.env['event.config.settings'].sudo(self.user_eventmanager).create({
-                'auto_confirmation': 1
+                'manual_confirmation': False
             })
             event_config.execute()
 
