@@ -1,0 +1,2 @@
+#!/bin/bash
+/usr/bin/firefox http://localhost:8069/point_of_sale/display &
