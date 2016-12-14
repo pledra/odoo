@@ -35,7 +35,7 @@
                                 </div>
                             </div>
                     </div>
-                    <div class="col-md-6 o_setting_box o_left" id="pricelists_setting">
+                    <div class="col-md-6 o_setting_box" id="pricelists_setting">
                             <div class="o_setting_left_pane">
                                 <field name="sale_pricelist_setting_split_1"/>
                             </div>

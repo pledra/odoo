@@ -58,7 +58,7 @@
                                             </div>
                                         </div>
                                 </div>
-                                <div class="col-md-6 o_setting_box o_left" id="google_analytics_setting">
+                                <div class="col-md-6 o_setting_box" id="google_analytics_setting">
                                         <div class="o_setting_left_pane">
                                             <field name="has_google_analytics"/>
                                         </div>
@@ -102,7 +102,7 @@
                                             </div>
                                         </div>
                                 </div>
-                                <div class="col-md-6 o_setting_box o_left" id="google_maps_setting">
+                                <div class="col-md-6 o_setting_box" id="google_maps_setting">
                                         <div class="o_setting_left_pane">
                                             <field name="has_google_maps"/>
                                         </div>
@@ -271,21 +271,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6 o_setting_box" id="custom_forms_install_setting" groups="base.group_no_one">
-                                    <div title="Build up your own forms and get requests as emails, leads or issues.
-You can also edit the fields of the Extra Step page in eCommerce checkout.">
-                                        <div class="o_setting_left_pane">
-                                            <field name="module_website_form_editor" widget="upgrade_boolean"/>
-                                        </div>
-                                        <div class="o_setting_right_pane">
-                                            <label for="module_website_form_editor"/>
-                                            <div class="text-muted">
-                                                Build up customized forms on your website
-                                            </div>
-                                            <div class="content-group"></div>
-                                        </div>
-                                    </div>
-                                </div>
                                 <div class="col-md-6 o_setting_box" id="live_chat_install_setting">
                                     <div>
                                         <div class="o_setting_left_pane">
@@ -311,6 +296,21 @@ You can also edit the fields of the Extra Step page in eCommerce checkout.">
                                             <label for="module_website_forum"/>
                                             <div class="text-muted">
                                                 Reduce resources spent on support with a website forum
+                                            </div>
+                                            <div class="content-group"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 o_setting_box" id="custom_forms_install_setting" groups="base.group_no_one">
+                                    <div title="Build up your own forms and get requests as emails, leads or issues.
+You can also edit the fields of the Extra Step page in eCommerce checkout.">
+                                        <div class="o_setting_left_pane">
+                                            <field name="module_website_form_editor" widget="upgrade_boolean"/>
+                                        </div>
+                                        <div class="o_setting_right_pane">
+                                            <label for="module_website_form_editor"/>
+                                            <div class="text-muted">
+                                                Build up customized forms on your website
                                             </div>
                                             <div class="content-group"></div>
                                         </div>
