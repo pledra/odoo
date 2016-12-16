@@ -1,14 +1,16 @@
     $().ready(function() {
         var mergedHead = false;
 
-        (function worker() {
+        (function longpolling() {
             $.ajax({
-                type: 'GET',
+                type: 'POST',
                 url: 'http://'+window.location.host+'/point_of_sale/get_serialized_order',
                 dataType: 'json',
+                beforeSend: function(xhr){xhr.setRequestHeader('Content-Type', 'application/json');},
+                data: JSON.stringify({jsonrpc: '2.0'}),
 
                 success: function(data) {
-                    var trimmed = $.trim(data.rendered_html);
+                    var trimmed = $.trim(data.result.rendered_html);
                     var parsedHTML = $('.shadow').html($.parseHTML(trimmed,true));
                     if (!mergedHead) {
                         mergedHead = true;
@@ -21,7 +23,7 @@
                 },
 
                 complete: function(jqXHR,err) {
-                    worker();
+                    longpolling();
                 },
 
                 timeout: 30000,
