@@ -66,13 +66,7 @@ openbox-session &" >> /etc/X11/xinit/xinitrc
 systemctl daemon-reload
 systemctl enable ramdisks.service
 systemctl disable dphys-swapfile.service
-
-
-# Install r-kiosk extension for firefox
-wget https://addons.mozilla.org/firefox/downloads/latest/r-kiosk/addon-1659-latest.xpi -O /home/pi/r-kiosk.xpi
-#xstart openbox -- &
-#export DISPLAY=:0
-#firefox -silent -install-global-extension addon-1659-latest.xpi -setDefaultBrowser http://localhost:8069/point_of_sale/display
+service ssh enable
 
 # disable overscan in /boot/config.txt, we can't use
 # overwrite_after_init because it's on a different device

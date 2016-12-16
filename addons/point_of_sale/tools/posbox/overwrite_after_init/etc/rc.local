@@ -26,6 +26,7 @@ chown pi:pi /var/run/odoo
 # Let's launch X properly
 # What to do is in the global xinitrc
 # Openbox is in charge of starting Firefox in its global autostart
+export HOME="/tmp"
 startx -- -nocursor &
 
 exit 0

@@ -31,17 +31,17 @@ CLONE_DIR="${OVERWRITE_FILES_BEFORE_INIT_DIR}/home/pi/odoo"
 
 if [ ! -d $CLONE_DIR ]; then
     echo "Clone Github repo"
-mkdir "${CLONE_DIR}"
-git clone -b 8.0-pos-new-impl-display-lpe --no-local --no-checkout --depth 1 file:///home/odoo/devel/posbox/odoo "${CLONE_DIR}"
-cd "${CLONE_DIR}"
-git config core.sparsecheckout true
-echo "addons/web
-addons/web_kanban
-addons/hw_*
-addons/point_of_sale/tools/posbox/configuration
-openerp/
-odoo.py" | tee --append .git/info/sparse-checkout > /dev/null
-git read-tree -mu HEAD
+    mkdir "${CLONE_DIR}"
+    git clone -b 8.0-pos-new-impl-display-lpe --no-local --no-checkout --depth 1 file:///home/odoo/devel/posbox/odoo "${CLONE_DIR}"
+    cd "${CLONE_DIR}"
+    git config core.sparsecheckout true
+    echo "addons/web
+    addons/web_kanban
+    addons/hw_*
+    addons/point_of_sale/tools/posbox/configuration
+    openerp/
+    odoo.py" | tee --append .git/info/sparse-checkout > /dev/null
+    git read-tree -mu HEAD
 fi
 
 #cd "${__dir}"
