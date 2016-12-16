@@ -44,7 +44,7 @@ if [ ! -d $CLONE_DIR ]; then
     git read-tree -mu HEAD
 fi
 
-#cd "${__dir}"
+cd "${__dir}"
 #USR_BIN="${OVERWRITE_FILES_BEFORE_INIT_DIR}/usr/bin/"
 #mkdir -p "${USR_BIN}"
 #cd "/tmp"
