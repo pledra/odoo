@@ -1,19 +1,22 @@
 DEVICE?=sdc
 ODOO_CLONE=overwrite_before_init/home/pi/odoo
+.RECIPEPREFIX= >
 
-repo: odoo;
-    cd $(ODOO_CLONE) && git clone -b 8.0-pos-new-impl-display-lpe --no-local --no-checkout --depth 1 file:///home/odoo/devel/posbox/odoo && \
-    git config core.sparsecheckout true && \
-    echo "addons/web
-addons/web_kanban
-addons/hw_*
-addons/point_of_sale/tools/posbox/configuration
-openerp/
+
+repo: odoo
+>cd $(ODOO_CLONE) && git clone -b 8.0-pos-new-impl-display-lpe --no-local --no-checkout --depth 1 file:///home/odoo/devel/posbox/odoo && \
+git config core.sparsecheckout true && \
+echo "addons/web \
+addons/web_kanban \
+addons/hw_* \
+addons/point_of_sale/tools/posbox/configuration \
+openerp/ \
 odoo.py" | tee --append .git/info/sparse-checkout > /dev/null && \
-    git read-tree -mu HEAD ;
-
+git read-tree -mu HEAD
+ 
 odoo:
-    mkdir $(ODOO_CLONE)
+>test -d $(ODOO_CLONE) || mkdir $(ODOO_CLONE)
 
-dd: posbox-inited.img;
-    sudo dd if=posbox-inited.img of=/dev/$(DEVICE) bs=4M status=progress
+dd: posbox-inited.img
+>sudo dd if=posbox-inited.img of=/dev/$(DEVICE) bs=4M status=progress
+
