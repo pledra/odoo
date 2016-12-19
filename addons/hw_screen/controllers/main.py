@@ -129,6 +129,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     @http.route('/point_of_sale/test_ownership', type='json', auth='none', cors='*')
     def test_ownership(self):
         global pos_client_data
-        if not pos_client_data.get('ip_from') == http.request.httprequest.remote_addr:
+        if pos_client_data.get('ip_from') == http.request.httprequest.remote_addr:
+            return {'status': 'OWNER'}
+        else:
             return {'status': 'NOWNER'}
-        return {'status': 'OWNER'}
