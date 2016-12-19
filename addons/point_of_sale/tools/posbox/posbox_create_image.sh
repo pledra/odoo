@@ -86,7 +86,7 @@ mount "${LOOP_MAPPER_PATH}" "${MOUNT_POINT}"
 cp -a "${OVERWRITE_FILES_BEFORE_INIT_DIR}"/* "${MOUNT_POINT}"
 
 # get rid of the git clone
-rm -rf "${CLONE_DIR}"
+# rm -rf "${CLONE_DIR}"
 # and the ngrok usr/bin
 rm -rf "${OVERWRITE_FILES_BEFORE_INIT_DIR}/usr"
 

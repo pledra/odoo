@@ -44,6 +44,8 @@ usermod -a -G lp pi
 sudo -u postgres createuser -s pi
 mkdir /var/log/odoo
 chown pi:pi /var/log/odoo
+chown root:pi -R /home/pi/odoo/
+chmod 770 -R /home/pi/odoo/
 
 # logrotate is very picky when it comes to file permissions
 chown -R root:root /etc/logrotate.d/
@@ -66,7 +68,7 @@ openbox-session &" >> /etc/X11/xinit/xinitrc
 systemctl daemon-reload
 systemctl enable ramdisks.service
 systemctl disable dphys-swapfile.service
-service ssh enable
+systemctl enable ssh
 
 # disable overscan in /boot/config.txt, we can't use
 # overwrite_after_init because it's on a different device
