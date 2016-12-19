@@ -83,7 +83,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
         # IMPLEMENTATION OF LONGPOLLING
         while not event_data.is_set():
-            if event_data.wait(5):
+            if event_data.wait():
                 event_data.clear()
                 return pos_client_data
 
