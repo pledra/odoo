@@ -627,6 +627,17 @@
         t-att-placeholder="widget.node.attrs.placeholder"
         t-att-maxlength="widget.field.size"/>
 </t>
+<t t-name="FieldFloatIncrement">
+    <button t-if="!widget.get('effective_readonly')" class="btn btn-default o_float_decrement" type="button">-</button>
+
+    <span t-if="widget.get('effective_readonly') || widget.options.input_readonly"/>
+
+    <input t-if="!widget.get('effective_readonly') &amp;&amp; !widget.options.input_readonly" class="o_form_input"
+        t-att-id="widget.id_for_label"
+        t-att-maxlength="widget.field.size"/>
+
+    <button t-if="!widget.get('effective_readonly')" class="btn btn-default o_float_increment" type="button">+</button>
+</t>
 <t t-name="FormSelection">
     <div class="btn-group o_kanban_selection">
         <a href="#" data-toggle="dropdown"><span class="oe_kanban_status"/></a>

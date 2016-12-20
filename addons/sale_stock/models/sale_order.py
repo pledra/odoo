@@ -87,7 +87,8 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    product_packaging = fields.Many2one('product.packaging', string='Packaging', default=False)
+    product_packaging = fields.Many2one('product.packaging', string='Packaging', default=False, domain="[('product_tmpl_id', '=', product_tmpl_id)]")
+    product_packaging_qty = fields.Integer(store=False)
     route_id = fields.Many2one('stock.location.route', string='Route', domain=[('sale_selectable', '=', True)])
     product_tmpl_id = fields.Many2one('product.template', related='product_id.product_tmpl_id', string='Product Template', readonly=True)
 
@@ -119,10 +120,28 @@ class SaleOrderLine(models.Model):
     def _onchange_product_id_set_customer_lead(self):
         self.customer_lead = self.product_id.sale_delay
 
-    @api.onchange('product_packaging')
-    def _onchange_product_packaging(self):
+    @api.onchange('product_packaging', 'product_uom_qty')
+    def _check_packaging(self):
+        """ Checks that the quantity sold is a multiple of the package quantity. Returns a warning if not.
+        """
         if self.product_packaging:
-            return self._check_package()
+            quantity_by_package = self.product_id.uom_id._compute_quantity(self.product_packaging.qty, self.product_uom)
+            if self.product_uom_qty % quantity_by_package:
+                package_name = self.product_packaging.name
+                package_quantity = self.product_packaging.qty
+                self.product_packaging = False
+                return {
+                    'warning': {
+                        'title': _('Error'),
+                        'message': _("You cannot sell this product packaged in %s if the ordered quantity is not a "
+                                     "multiple of %.2f %s.") % (package_name, package_quantity, self.product_uom.name),
+                    },
+                }
+
+    @api.onchange('product_id')
+    def _onchange_product_id_product_packaging(self):
+        if self.product_packaging:
+            self.product_packaging = False
 
     @api.onchange('product_id')
     def _onchange_product_id_uom_check_availability(self):
@@ -187,22 +206,6 @@ class SaleOrderLine(models.Model):
             elif move.location_dest_id.usage == "internal" and move.to_refund_so:
                 qty -= move.product_uom._compute_quantity(move.product_uom_qty, self.product_uom)
         return qty
-
-    @api.multi
-    def _check_package(self):
-        default_uom = self.product_id.uom_id
-        pack = self.product_packaging
-        qty = self.product_uom_qty
-        q = default_uom._compute_quantity(pack.qty, self.product_uom)
-        if qty and q and (qty % q):
-            newqty = qty - (qty % q) + q
-            return {
-                'warning': {
-                    'title': _('Warning'),
-                    'message': _("This product is packaged by %.2f %s. You should sell %.2f %s.") % (pack.qty, default_uom.name, newqty, self.product_uom.name),
-                },
-            }
-        return {}
 
     def _check_routing(self):
         """ Verify the route of the product based on the warehouse

@@ -388,6 +388,15 @@ var FieldFloat = FieldChar.extend({
     }
 });
 
+var FieldFloatIncrement = FieldFloat.extend({
+    template: 'FieldFloatIncrement',
+    init: function() {
+        this._super.apply(this, arguments);
+        debugger
+    }
+});
+
+
 var FieldCharDomain = common.AbstractField.extend(common.ReinitializeFieldMixin, {
     template: "FieldCharDomain",
     events: {
@@ -1694,6 +1703,7 @@ core.form_widget_registry
     .add('boolean_button', FieldBooleanButton)
     .add('toggle_button', FieldToggleBoolean)
     .add('float', FieldFloat)
+    .add('float_increment', FieldFloatIncrement)
     .add('percentpie', FieldPercentPie)
     .add('integer', FieldFloat)
     .add('float_time', FieldFloat)

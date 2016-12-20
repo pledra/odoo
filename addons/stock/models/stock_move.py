@@ -636,6 +636,22 @@ class StockMove(models.Model):
                 qty = move.product_qty - qty_already_assigned
                 
                 quants = Quant.quants_get_preferred_domain(qty, move, domain=main_domain[move.id], preferred_domain_list=[])
+
+                # if not move.move_orig_ids and move.procurement_id.product_packaging_id:
+                #
+                # # If a product packaging is set on the order line, only apply the constraint on the first move
+                # # but only the last move has a link to the sale line where the product packaging is defined
+                # if not move.move_orig_ids:
+                #     last_move = move
+                #     while last_move.move_dest_id:
+                #         last_move = last_move.move_dest_id
+                #
+                #     product_packaging_id = last_move.procurement_id.sale_line_id.product_packaging
+                #
+                #     # work on quants
+                #     if product_packaging_id:
+                #         # only reserve quants that fit in the package
+
                 Quant.quants_reserve(quants, move)
 
         # force assignation of consumable products and incoming from supplier/inventory/production
