@@ -21,7 +21,7 @@ MOUNT_POINT="${__dir}/root_mount"
 OVERWRITE_FILES_BEFORE_INIT_DIR="${__dir}/overwrite_before_init"
 OVERWRITE_FILES_AFTER_INIT_DIR="${__dir}/overwrite_after_init"
 
-if [ ! -f kernel-qemu ] || ! file_exists *raspbian*.img ; then
+if [ ! -f kernel-qqemu ] || ! file_exists *raspbian*.img ; then
     ./posbox_download_images.sh
 fi
 
@@ -31,7 +31,7 @@ CLONE_DIR="${OVERWRITE_FILES_BEFORE_INIT_DIR}/home/pi/odoo"
 
 if [ ! -d $CLONE_DIR ]; then
     echo "Clone Github repo"
-    mkdir "${CLONE_DIR}"
+    mkdir -p "${CLONE_DIR}"
     git clone -b 8.0-pos-new-impl-display-lpe --no-local --no-checkout --depth 1 file:///home/odoo/devel/posbox/odoo "${CLONE_DIR}"
     cd "${CLONE_DIR}"
     git config core.sparsecheckout true
@@ -88,7 +88,7 @@ cp -a "${OVERWRITE_FILES_BEFORE_INIT_DIR}"/* "${MOUNT_POINT}"
 # get rid of the git clone
 # rm -rf "${CLONE_DIR}"
 # and the ngrok usr/bin
-rm -rf "${OVERWRITE_FILES_BEFORE_INIT_DIR}/usr"
+#rm -rf "${OVERWRITE_FILES_BEFORE_INIT_DIR}/usr"
 
 # get rid of the mount, we have to remount it anyway because we have
 # to "refresh" the filesystem after qemu modified it
