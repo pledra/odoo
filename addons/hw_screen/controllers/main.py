@@ -25,10 +25,7 @@ import logging
 from openerp import http
 import openerp
 import os
-from json import dumps
-import subprocess
 import openerp.tools.config as config
-import time
 import threading
 
 _logger = logging.getLogger(__name__)
