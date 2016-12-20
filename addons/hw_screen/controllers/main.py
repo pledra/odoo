@@ -27,6 +27,7 @@ import openerp
 import os
 import openerp.tools.config as config
 import threading
+import netifaces as ni
 
 _logger = logging.getLogger(__name__)
 
@@ -77,19 +78,20 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     def get_serialized_order(self):
         global event_data
         global pos_client_data
-	result = pos_client_data
+        result = pos_client_data
         # IMPLEMENTATION OF LONGPOLLING
         if event_data.wait():
-        	event_data.clear()
-                return result
-	else:
-        	event_data.clear()
-        	return result
+            event_data.clear()
+            return result
+        else:
+            event_data.clear()
+            return result
 
     def _get_html(self):
         cust_js = None
         jquery = None
         bootstrap = None
+        interfaces = ni.interfaces()
 
         with open(os.path.join(os.path.dirname(__file__), "../static/src/js/worker.js")) as js:
             cust_js = js.read()
@@ -99,6 +101,14 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
         with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/bootstrap.css")) as btst:
             bootstrap = btst.read()
+
+        display_ifaces = ""
+        for iface_id in interfaces:
+            iface_obj = ni.ifaddresses(iface_id)
+            if iface_obj.get(ni.AF_INET):
+                addr = iface_obj.get(ni.AF_INET)
+                display_ifaces += "<tr><td>" + iface_id + "</td>"
+                display_ifaces += "<td>" + str(addr) + "</td></tr>"
 
         html = """
             <!DOCTYPE html>
@@ -115,8 +125,21 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 </style>
                 </head>
                 <body>
-                    <div class="shadow"></div>
-                    <div class="wrap"></div>
+                    <div hidden class="shadow"></div>
+                    <div class="wrap">
+                        <div class="temp" style="text-align: center;"
+                            <h1>Odoo Point of Sale</h1>
+                            <h2>POS-Box</h2>
+                            <h3>My IPs</h3>
+                                <table id="table_ip">
+                                    <tr>
+                                        <th>Interface</th>
+                                        <th>IP</th>
+                                    </tr>
+                                    """ + display_ifaces + """
+                                </table>
+                        </div>
+                    </div>
                 </body>
                 </html>
             """
