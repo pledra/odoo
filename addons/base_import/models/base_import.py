@@ -66,7 +66,7 @@ class Import(models.TransientModel):
     file_type = fields.Char('File Type')
 
     @api.model
-    def get_fields(self, model, depth=FIELDS_RECURSION_LIMIT, full=False):
+    def get_fields(self, model, depth=FIELDS_RECURSION_LIMIT):
         """ Recursively get fields for the provided model (through
         fields_get) and filter them according to importability
 
@@ -120,7 +120,7 @@ class Import(models.TransientModel):
             'type': 'id',
         }]
         model_fields = Model.fields_get()
-        blacklist = ([] if full else models.MAGIC_COLUMNS) + [Model.CONCURRENCY_CHECK_FIELD]
+        blacklist = ([] if self.env.context.get('with_magic_columns') else models.MAGIC_COLUMNS) + [Model.CONCURRENCY_CHECK_FIELD]
 
         for name, field in model_fields.iteritems():
             if name in blacklist:
@@ -153,7 +153,7 @@ class Import(models.TransientModel):
                     dict(field_value, name='.id', string=_("Database ID"), type='id'),
                 ]
             elif field['type'] == 'one2many' and depth:
-                field_value['fields'] = self.get_fields(field['relation'], depth=depth - 1, full=full)
+                field_value['fields'] = self.get_fields(field['relation'], depth=depth - 1)
                 if self.user_has_groups('base.group_no_one'):
                     field_value['fields'].append({'id': '.id', 'name': '.id', 'string': _("Database ID"), 'required': False, 'fields': [], 'type': 'id'})
 
@@ -677,7 +677,7 @@ class Import(models.TransientModel):
 
     @api.multi
     def _parse_import_data(self, data, import_fields, options):
-        all_fields = self.get_fields(self.res_model, full=True)
+        all_fields = self.with_context(with_magic_columns=True).get_fields(self.res_model)
 
         # preprocess all_field to have: ('<field>', ('fields'={ <recursive> }, type='<type>'))
         all_fields = dict(map(lambda d: (d['name'], (d['fields'], d['type'])), all_fields))
