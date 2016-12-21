@@ -102,6 +102,9 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/bootstrap.css")) as btst:
             bootstrap = btst.read()
 
+        with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/cust_css.css")) as css:
+            cust_css = css.read()
+
         display_ifaces = ""
         for iface_id in interfaces:
             iface_obj = ni.ifaddresses(iface_id)
@@ -123,6 +126,9 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 <style>
                     """ + bootstrap + """
                 </style>
+                <style>
+                    """ + cust_css + """
+                </style>
                 </head>
                 <body>
                     <div hidden class="shadow"></div>
@@ -131,7 +137,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                             <h1>Odoo Point of Sale</h1>
                             <h2>POS-Box</h2>
                             <h3>My IPs</h3>
-                                <table id="table_ip">
+                                <table id="table_ip" class="table table-condensed">
                                     <tr>
                                         <th>Interface</th>
                                         <th>IP</th>
