@@ -21,7 +21,7 @@ MOUNT_POINT="${__dir}/root_mount"
 OVERWRITE_FILES_BEFORE_INIT_DIR="${__dir}/overwrite_before_init"
 OVERWRITE_FILES_AFTER_INIT_DIR="${__dir}/overwrite_after_init"
 
-if [ ! -f kernel-qqemu ] || ! file_exists *raspbian*.img ; then
+if [ ! -f kernel-qemu ] || ! file_exists *raspbian*.img ; then
     ./posbox_download_images.sh
 fi
 
@@ -45,14 +45,14 @@ odoo.py" | tee --append .git/info/sparse-checkout > /dev/null
 fi
 
 cd "${__dir}"
-#USR_BIN="${OVERWRITE_FILES_BEFORE_INIT_DIR}/usr/bin/"
-#mkdir -p "${USR_BIN}"
-#cd "/tmp"
-#curl 'https://dl.ngrok.com/ngrok_2.0.19_linux_arm.zip' > ngrok.zip
-#unzip ngrok.zip
-#rm ngrok.zip
-#cd "${__dir}"
-#mv /tmp/ngrok "${USR_BIN}"
+USR_BIN="${OVERWRITE_FILES_BEFORE_INIT_DIR}/usr/bin/"
+mkdir -p "${USR_BIN}"
+cd "/tmp"
+curl 'https://dl.ngrok.com/ngrok_2.0.19_linux_arm.zip' > ngrok.zip
+unzip ngrok.zip
+rm ngrok.zip
+cd "${__dir}"
+mv /tmp/ngrok "${USR_BIN}"
 
 # zero pad the image to be around 3.5 GiB, by default the image is only ~1.3 GiB
 echo "Enlarging the image..."

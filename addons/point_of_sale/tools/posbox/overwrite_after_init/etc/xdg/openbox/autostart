@@ -1,6 +1,5 @@
 #!/bin/bash
 @xset s off
 @xset -dpms
-@xset s noblank
 
 /usr/bin/firefox http://localhost:8069/point_of_sale/display &
