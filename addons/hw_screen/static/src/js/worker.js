@@ -16,6 +16,8 @@
                         mergedHead = true;
                         $("head").append($(".resources",parsedHTML).html());
                     }
+
+                    var current_client_ip = $("head > base");
                     
                     $(".resources",parsedHTML).remove();
                     $(".wrap").html(parsedHTML.html());
