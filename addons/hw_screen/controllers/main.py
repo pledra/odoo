@@ -108,15 +108,18 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         display_ifaces = ""
         for iface_id in interfaces:
             iface_obj = ni.ifaddresses(iface_id)
-            if iface_obj.get(ni.AF_INET):
-                addr = iface_obj.get(ni.AF_INET)
-                display_ifaces += "<tr><td>" + iface_id + "</td>"
-                display_ifaces += "<td>" + str(addr) + "</td></tr>"
+            ifconfigs = iface_obj.get(ni.AF_INET, [])
+            for conf in ifconfigs:
+                if conf.get('addr'):
+                    display_ifaces += "<tr><td>" + iface_id + "</td>"
+                    display_ifaces += "<td>" + conf.get('addr') + "</td>"
+                    display_ifaces += "<td>" + conf.get('netmask') + "</td></tr>"
 
         html = """
             <!DOCTYPE html>
             <html>
                 <head>
+                <title>Odoo -- Point of Sale</title>
                 <script type="text/javascript">
                     """ + jquery + """
                 </script>
@@ -132,19 +135,22 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 </head>
                 <body>
                     <div hidden class="shadow"></div>
-                    <div class="wrap">
-                        <div class="temp" style="text-align: center;"
+                    <div class="container">
+                    <div class="row">
+                        <div class="col-md-4 col-md-offset-4">
                             <h1>Odoo Point of Sale</h1>
-                            <h2>POS-Box</h2>
+                            <h2>POSBox Client display</h2>
                             <h3>My IPs</h3>
                                 <table id="table_ip" class="table table-condensed">
                                     <tr>
                                         <th>Interface</th>
                                         <th>IP</th>
+                                        <th>Netmask</th>
                                     </tr>
                                     """ + display_ifaces + """
                                 </table>
                         </div>
+                    </div>
                     </div>
                 </body>
                 </html>
@@ -158,3 +164,4 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
             return {'status': 'OWNER'}
         else:
             return {'status': 'NOWNER'}
+
