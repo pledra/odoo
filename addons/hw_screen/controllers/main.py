@@ -72,7 +72,8 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         global event_data
         pos_client_data['rendered_html'] = html
         pos_client_data['ip_from'] = http.request.httprequest.remote_addr
-        event_data.set()
+        event_data.clear()
+        self.refresh()
 
         return {'status': 'success',
                 'message': 'You now have access to the display'}
