@@ -28,6 +28,7 @@ import os
 import openerp.tools.config as config
 import threading
 import netifaces as ni
+from subprocess import call
 
 _logger = logging.getLogger(__name__)
 
@@ -42,6 +43,19 @@ pos_client_data = {'rendered_html': '',
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
+    def screen_wake_up(self):
+        os.environ['DISPLAY'] = ":0"
+        os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
+        call(['sudo', 'xdotool', 'key', 'ctrl'])
+
+    @http.route('/hw_proxy/display_refresh', type='json', auth='none', cors='*')
+    def display_refresh(self):
+        os.environ['DISPLAY'] = ":0"
+        os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
+        call(['sudo', 'xdotool', 'key', 'F5'])
+        return "Display Refreshed"
+
+
     # POS CASHIER'S ROUTES
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
     def update_user_facing_display(self, html=None):
@@ -50,6 +64,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         if request_ip == pos_client_data.get('ip_from', ''):
             pos_client_data['rendered_html'] = html
             global event_data
+            self.screen_wake_up()
             event_data.set()
 
             return {'status': 'updated'}
@@ -102,21 +117,24 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/bootstrap.css")) as btst:
             bootstrap = btst.read()
 
-        with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/cust_css.css")) as css:
+        with open(os.path.join(os.path.dirname(__file__), "../static/src/css/cust_css.css")) as css:
             cust_css = css.read()
 
         display_ifaces = ""
         for iface_id in interfaces:
             iface_obj = ni.ifaddresses(iface_id)
-            if iface_obj.get(ni.AF_INET):
-                addr = iface_obj.get(ni.AF_INET)
-                display_ifaces += "<tr><td>" + iface_id + "</td>"
-                display_ifaces += "<td>" + str(addr) + "</td></tr>"
+            ifconfigs = iface_obj.get(ni.AF_INET, [])
+            for conf in ifconfigs:
+                if conf.get('addr'):
+                    display_ifaces += "<tr><td>" + iface_id + "</td>"
+                    display_ifaces += "<td>" + conf.get('addr') + "</td>"
+                    display_ifaces += "<td>" + conf.get('netmask') + "</td></tr>"
 
         html = """
             <!DOCTYPE html>
             <html>
                 <head>
+                <title>Odoo -- Point of Sale</title>
                 <script type="text/javascript">
                     """ + jquery + """
                 </script>
@@ -132,19 +150,22 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 </head>
                 <body>
                     <div hidden class="shadow"></div>
-                    <div class="wrap">
-                        <div class="temp" style="text-align: center;"
+                    <div class="container">
+                    <div class="row">
+                        <div class="col-md-4 col-md-offset-4">
                             <h1>Odoo Point of Sale</h1>
-                            <h2>POS-Box</h2>
+                            <h2>POSBox Client display</h2>
                             <h3>My IPs</h3>
                                 <table id="table_ip" class="table table-condensed">
                                     <tr>
                                         <th>Interface</th>
                                         <th>IP</th>
+                                        <th>Netmask</th>
                                     </tr>
                                     """ + display_ifaces + """
                                 </table>
                         </div>
+                    </div>
                     </div>
                 </body>
                 </html>
@@ -158,3 +179,4 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
             return {'status': 'OWNER'}
         else:
             return {'status': 'NOWNER'}
+

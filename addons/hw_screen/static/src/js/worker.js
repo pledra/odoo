@@ -1,7 +1,8 @@
-    $().ready(function() {
+    $(function() {
         var mergedHead = false;
+        var current_client_url = "";
 
-        (function longpolling() {
+        function longpolling() {
             $.ajax({
                 type: 'POST',
                 url: 'http://'+window.location.host+'/point_of_sale/get_serialized_order',
@@ -12,16 +13,20 @@
                 success: function(data) {
                     var trimmed = $.trim(data.result.rendered_html);
                     var parsedHTML = $('.shadow').html($.parseHTML(trimmed,true));
-                    if (!mergedHead) {
-                        mergedHead = true;
-                        $("head").append($(".resources",parsedHTML).html());
-                    }
+                    var new_client_url = $(".resources > base",parsedHTML).attr('href');
 
-                    var current_client_ip = $("head > base");
-                    
+                    mergedHead = (current_client_url === new_client_url);
+
+                    if (!mergedHead ) {
+                        mergedHead = true;
+                        current_client_url = new_client_url;
+                        $("body").css("color", 'black');
+                        $("head").append($(".resources",parsedHTML).html());
+                    } 
+
                     $(".resources",parsedHTML).remove();
-                    $(".wrap").html(parsedHTML.html());
-                    $(".shadow").html("");                    
+                    $(".container").html(parsedHTML.html());
+                    $(".shadow").html("");           
                 },
 
                 complete: function(jqXHR,err) {
@@ -30,5 +35,7 @@
 
                 timeout: 30000,
             });
-        })();
+        };
+
+        longpolling();
     });
