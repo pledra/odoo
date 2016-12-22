@@ -102,7 +102,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/bootstrap.css")) as btst:
             bootstrap = btst.read()
 
-        with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/cust_css.css")) as css:
+        with open(os.path.join(os.path.dirname(__file__), "../static/src/css/cust_css.css")) as css:
             cust_css = css.read()
 
         display_ifaces = ""
