@@ -43,11 +43,10 @@ pos_client_data = {'rendered_html': '',
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
-    def refresh(self):
-        os.environ['HOME'] = "/tmp"
+    def screen_wake_up(self):
         os.environ['DISPLAY'] = ":0"
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
-        call(['xdotool', 'key', 'F5'])
+        call(['sudo', 'xdotool', 'key', 'ctrl'])
 
 
     # POS CASHIER'S ROUTES
@@ -58,6 +57,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         if request_ip == pos_client_data.get('ip_from', ''):
             pos_client_data['rendered_html'] = html
             global event_data
+            self.screen_wake_up()
             event_data.set()
 
             return {'status': 'updated'}
@@ -72,8 +72,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         global event_data
         pos_client_data['rendered_html'] = html
         pos_client_data['ip_from'] = http.request.httprequest.remote_addr
-        event_data.clear()
-        self.refresh()
+        event_data.set()
 
         return {'status': 'success',
                 'message': 'You now have access to the display'}
