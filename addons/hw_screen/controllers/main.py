@@ -48,6 +48,12 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
         call(['sudo', 'xdotool', 'key', 'ctrl'])
 
+    @http.route('/hw_proxy/display_refresh', type='http', auth='none', cors='*')
+    def display_refresh(self):
+        os.environ['DISPLAY'] = ":0"
+        os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
+        call(['sudo', 'xdotool', 'key', 'F5'])
+
 
     # POS CASHIER'S ROUTES
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
