@@ -45,7 +45,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
     def refresh(self):
         os.environ['HOME'] = "/tmp"
-         os.environ['DISPLAY'] = ":0"
+        os.environ['DISPLAY'] = ":0"
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
         call(['xdotool', 'key', 'F5'])
 
