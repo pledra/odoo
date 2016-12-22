@@ -28,6 +28,7 @@ import os
 import openerp.tools.config as config
 import threading
 import netifaces as ni
+from subprocess import call
 
 _logger = logging.getLogger(__name__)
 
@@ -41,6 +42,12 @@ pos_client_data = {'rendered_html': '',
 
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
+
+    def refresh(self)
+        os.environ['HOME'] = "/tmp"
+        os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
+        call(['xdotool', 'key', 'F5'])
+
 
     # POS CASHIER'S ROUTES
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
