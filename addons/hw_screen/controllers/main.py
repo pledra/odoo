@@ -53,7 +53,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         os.environ['DISPLAY'] = ":0"
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
         call(['sudo', 'xdotool', 'key', 'F5'])
-        return True
+        return "Display Refreshed"
 
 
     # POS CASHIER'S ROUTES
