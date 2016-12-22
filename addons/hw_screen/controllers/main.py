@@ -43,7 +43,7 @@ pos_client_data = {'rendered_html': '',
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
-    def refresh(self)
+    def refresh(self):
         os.environ['HOME'] = "/tmp"
          os.environ['DISPLAY'] = ":0"
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
