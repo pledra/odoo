@@ -72,7 +72,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
             return {'status': 'failed',
                     'message': 'Somebody else is using the display'}
 
-    @http.route('/point_of_sale/take_control', type='json', auth='none', cors='*')
+    @http.route('/hw_proxy/take_control', type='json', auth='none', cors='*')
     def take_control(self, html=None):
         # ALLOW A CASHIER TO TAKE CONTROL OVER THE POSBOX, IN CASE OF MULTIPLE CASHIER PER POSBOX
         global pos_client_data
@@ -83,6 +83,14 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
         return {'status': 'success',
                 'message': 'You now have access to the display'}
+
+    @http.route('/hw_proxy/test_ownership', type='json', auth='none', cors='*')
+    def test_ownership(self):
+        global pos_client_data
+        if pos_client_data.get('ip_from') == http.request.httprequest.remote_addr:
+            return {'status': 'OWNER'}
+        else:
+            return {'status': 'NOWNER'}
 
     # POSBOX ROUTES (SELF)
     @http.route('/point_of_sale/display', type='http', auth='none', website=True)
@@ -171,12 +179,4 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 </html>
             """
         return html
-
-    @http.route('/point_of_sale/test_ownership', type='json', auth='none', cors='*')
-    def test_ownership(self):
-        global pos_client_data
-        if pos_client_data.get('ip_from') == http.request.httprequest.remote_addr:
-            return {'status': 'OWNER'}
-        else:
-            return {'status': 'NOWNER'}
 
