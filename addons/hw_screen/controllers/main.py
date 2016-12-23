@@ -46,13 +46,13 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     def screen_wake_up(self):
         os.environ['DISPLAY'] = ":0"
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
-        call(['sudo', 'xdotool', 'key', 'ctrl'])
+        call(['xdotool', 'key', 'ctrl'])
 
     @http.route('/hw_proxy/display_refresh', type='json', auth='none', cors='*')
     def display_refresh(self):
         os.environ['DISPLAY'] = ":0"
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
-        call(['sudo', 'xdotool', 'key', 'F5'])
+        call(['xdotool', 'key', 'F5'])
         return "Display Refreshed"
 
 

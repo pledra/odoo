@@ -44,7 +44,7 @@ usermod -a -G lp pi
 sudo -u postgres createuser -s pi
 mkdir /var/log/odoo
 chown pi:pi /var/log/odoo
-chown root:pi -R /home/pi/odoo/
+chown pi:pi -R /home/pi/odoo/
 chmod 770 -R /home/pi/odoo/
 
 # logrotate is very picky when it comes to file permissions
@@ -69,6 +69,24 @@ systemctl daemon-reload
 systemctl enable ramdisks.service
 systemctl disable dphys-swapfile.service
 systemctl enable ssh
+
+# USER PI AUTO LOGIN (from nano raspi-config)
+if command -v systemctl > /dev/null && systemctl | grep -q '\-\.mount'; then
+        SYSTEMD=1
+elif [ -f /etc/init.d/cron ] && [ ! -h /etc/init.d/cron ]; then
+        SYSTEMD=0
+else
+        echo "Unrecognised init system"
+        return 1
+fi
+
+if [ $SYSTEMD -eq 1 ]; then
+    systemctl set-default multi-user.target
+    ln -fs /etc/systemd/system/autologin@.service /etc/systemd/system/getty.target.wants/getty@tty1.service
+else
+    [ -e /etc/init.d/lightdm ] && update-rc.d lightdm disable 2
+    sed /etc/inittab -i -e "s/1:2345:respawn:\/sbin\/getty --noclear 38400 tty1/1:2345:respawn:\/bin\/login -f pi tty1 <\/dev\/tty1 >\/dev\/tty1 2>&1/"
+fi
 
 # disable overscan in /boot/config.txt, we can't use
 # overwrite_after_init because it's on a different device
