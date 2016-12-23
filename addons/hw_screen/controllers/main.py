@@ -48,7 +48,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
         call(['sudo', 'xdotool', 'key', 'ctrl'])
 
-    @http.route('/hw_proxy/display_refresh', type='http', auth='none', cors='*')
+    @http.route('/hw_proxy/display_refresh', type='json', auth='none', cors='*')
     def display_refresh(self):
         os.environ['DISPLAY'] = ":0"
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
