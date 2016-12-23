@@ -3,6 +3,11 @@ body {
     color: white;
 }
 
-svg #odoo_logo_rgb {
-    visibility: hidden;
+.payment-info {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background-color: #3E3E3E;
+    color: white;
+    width: 100%;
 }
