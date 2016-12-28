@@ -70,36 +70,32 @@ class AccountInvoice(models.Model):
         # Build main tree
         tree = tools.str_as_tree(content)
 
-        # A copy of the tree is generated but without the AdditionalDocumentReference block 
-        tree_wo_doc_ref = copy.deepcopy(tree)
-        ref_node = tree_wo_doc_ref.find(
-            './/' + UBL_NAMESPACES['cac'] + 'AdditionalDocumentReference')
-        ref_node_parent = tools.get_parent_node(ref_node)
-        ref_node_parent.remove(ref_node)
+        if self.ubl_doc_ref:
+            # A copy of the tree is generated but without the AdditionalDocumentReference block 
+            tree_wo_doc_ref = copy.deepcopy(tree)
+            ref_node = tree_wo_doc_ref.find(
+                './/' + UBL_NAMESPACES['cac'] + 'AdditionalDocumentReference')
+            ref_node_parent = tools.get_parent_node(ref_node)
+            ref_node_parent.remove(ref_node)
 
-        # We check if the ubl_doc_ref is not empty.
-        # This field is loaded when the report is generated
-        if not self.ubl_doc_ref:
-            raise UserError(_('Fail during the embedding of original pdf for UBL'))
+            # In e-fff protocol, a copy of the document pdf must be embedded to the xml.
+            b64_content = base64.decodestring(self.ubl_doc_ref)
+            pdf_file = StringIO(b64_content)
+            reader = PdfFileReader(pdf_file)
+            writer = PdfFileWriter()
+            writer.appendPagesFromReader(reader)
+            writer.addAttachment(filename, tools.tree_as_str(tree_wo_doc_ref))
+            with NamedTemporaryFile(prefix='odoo-ubl-', suffix='.pdf') as f:
+                writer.write(f)
+                f.seek(0)
+                b64_content = f.read()
+                f.close()
+            b64_content = base64.encodestring(b64_content)
 
-        # In e-fff protocol, a copy of the document pdf must be embedded to the xml.
-        b64_content = base64.decodestring(self.ubl_doc_ref)
-        pdf_file = StringIO(b64_content)
-        reader = PdfFileReader(pdf_file)
-        writer = PdfFileWriter()
-        writer.appendPagesFromReader(reader)
-        writer.addAttachment(filename, tools.tree_as_str(tree_wo_doc_ref))
-        with NamedTemporaryFile(prefix='odoo-ubl-', suffix='.pdf') as f:
-            writer.write(f)
-            f.seek(0)
-            b64_content = f.read()
-            f.close()
-        b64_content = base64.encodestring(b64_content)
-
-        # Add the binary content to the main tree
-        ref_node = tree.find(
-            './/' + UBL_NAMESPACES['cbc'] + 'EmbeddedDocumentBinaryObject')
-        ref_node.text = b64_content
+            # Add the binary content to the main tree
+            ref_node = tree.find(
+                './/' + UBL_NAMESPACES['cbc'] + 'EmbeddedDocumentBinaryObject')
+            ref_node.text = b64_content
 
         # Create attachment
         content = tools.tree_as_str(tree)
