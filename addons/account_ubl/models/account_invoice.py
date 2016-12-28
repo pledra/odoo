@@ -28,11 +28,23 @@ UBL_NS_REFACTORING = {
     'cac__': 'cac',
 }
 
+UBL_XSD = 'account_ubl/data/xsd/2.1/maindoc/UBL-Invoice-2.1.xsd'
+
+def create_list_html(array):
+    '''Create a html list of error for the chatter.
+    '''
+    if not array:
+        return ''
+    msg = ''
+    for item in array:
+        msg += '<li>' + item + '</li>'
+    return '<ul>' + msg + '</ul>'
+
 class AccountInvoice(models.Model):
     _name = 'account.invoice'
     _inherit = 'account.invoice'
 
-    ubl_doc_ref = fields.Binary(
+    l10n_be_edi_doc_ref = fields.Binary(
         string='The document reference content as binary',
         help='contains the report as .pdf to embed in the document reference node for e-fff (UBL)',
         readonly=True)
@@ -42,24 +54,25 @@ class AccountInvoice(models.Model):
         # We need to save this content as field because the report is generated only once.
         if values:
             for record in self:
-                if not record.ubl_doc_ref:
-                    record.ubl_doc_ref = values['datas']
+                if not record.l10n_be_edi_doc_ref:
+                    record.l10n_be_edi_doc_ref = values['datas']
         return super(AccountInvoice, self).prepare_pdf(values=values)
 
     @api.multi
-    def get_edi_filenames_BE(self):
+    def l10n_be_edi_filenames(self):
         ''' The filename for e-fff doesn't seem to have an official pattern, so
         this filename is defined arbitrarily.
         '''
         return [('%s-UBL-Invoice-2.1.xml' % self.number).replace('/', '')]
 
     @api.model
-    def generate_edi_BE(self):
-        ''' Generate the EDI file for belgium,
-        following the UBL protocol e-fff
+    def l10n_be_edi_generate(self):
+        ''' Generate the EDI file for belgium, following the UBL protocol e-fff. 
+        This method is call by the method _get_edi_attachments in account.invoice that
+        looks for method l10n_<country_code>_edi_filenames and l10n_<country_code>_edi_generate.
         '''
         filename = self.get_edi_filenames_BE()[0]
-        values = self._create_ubl_values_BE()
+        values = self._l10n_be_edi_create_values()
         qweb = self.env['ir.qweb']
         content = qweb.render('account_ubl.ubl_invoice_e_fff', values=values)
         
@@ -70,7 +83,8 @@ class AccountInvoice(models.Model):
         # Build main tree
         tree = tools.str_as_tree(content)
 
-        if self.ubl_doc_ref:
+        # If no doc ref, skip for testing without generate the report
+        if self.l10n_be_edi_doc_ref:
             # A copy of the tree is generated but without the AdditionalDocumentReference block 
             tree_wo_doc_ref = copy.deepcopy(tree)
             ref_node = tree_wo_doc_ref.find(
@@ -79,7 +93,7 @@ class AccountInvoice(models.Model):
             ref_node_parent.remove(ref_node)
 
             # In e-fff protocol, a copy of the document pdf must be embedded to the xml.
-            b64_content = base64.decodestring(self.ubl_doc_ref)
+            b64_content = base64.decodestring(self.l10n_be_edi_doc_ref)
             pdf_file = StringIO(b64_content)
             reader = PdfFileReader(pdf_file)
             writer = PdfFileWriter()
@@ -97,6 +111,14 @@ class AccountInvoice(models.Model):
                 './/' + UBL_NAMESPACES['cbc'] + 'EmbeddedDocumentBinaryObject')
             ref_node.text = b64_content
 
+        # Check with xsd
+        error_log = tools.check_with_xsd(tree, UBL_XSD)
+        if error_log:
+            self.message_post(
+                body=_('UBL document failed to be generated') + create_list_html(error_log),
+                subtype='account.mt_invoice_edi_created')
+            return []
+
         # Create attachment
         content = tools.tree_as_str(tree)
 
@@ -111,7 +133,7 @@ class AccountInvoice(models.Model):
             })]
 
     @api.model
-    def _create_ubl_values(self):
+    def _l10n_be_edi_create_values(self):
         ''' Create the common values for UBL.
         '''
         precision_digits = self.env['decimal.precision'].precision_get('Account')
@@ -140,15 +162,21 @@ class AccountInvoice(models.Model):
         identifier = 0
         for invoice_line_id in self.invoice_line_ids:
             identifier += 1
-            iline_values = self._create_ubl_iline_values(invoice_line_id, identifier)
+            iline_values = self._l10n_be_edi_create_iline_values(invoice_line_id, identifier)
             values['invoice_lines'].append(tools.dict_to_obj(iline_values))
         
         values['line_count'] = len(values['invoice_lines'])
 
+        values['version_id'] = 2.0
+        values['doc_ref_id'] = 'Invoice-' + self.number + '.pdf'
+
+        # The content of attach_binary is added later manually
+        values['attach_binary'] = 'None'
+
         return values
 
     @api.model
-    def _create_ubl_iline_values(self, invoice_line_id, identifier):
+    def _l10n_be_edi_create_iline_values(self, invoice_line_id, identifier):
         ''' Create the invoice lines common values for UBL
         '''
         values = {
@@ -175,15 +203,3 @@ class AccountInvoice(models.Model):
             values['taxes'].append(tools.dict_to_obj(tax_values))
 
         return values
-
-    @api.model
-    def _create_ubl_values_BE(self):
-        ''' Create the invoice values for UBL following the e-fff protocol.
-        '''
-        values = self._create_ubl_values()
-        values['version_id'] = 2.0
-        values['doc_ref_id'] = 'Invoice-' + self.number + '.pdf'
-
-        # The content of attach_binary is added later manually
-        values['attach_binary'] = 'None'
-        return values            
