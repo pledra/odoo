@@ -2,16 +2,21 @@
 <odoo>
     <data>
         <template id="ubl_invoice_e_fff" name="UBL invoice protocol e-fff" inherit_id="account_ubl.ubl_invoice" primary="True">
-            <xpath expr=".//cbc__DocumentCurrencyCode[1]" position="after">
-                <cbc__LineCountNumeric t-esc="line_count"/>
-                <cac__AdditionalDocumentReference> 
-                    <cbc__ID t-esc="doc_ref_id"/>
-                    <cac__Attachment>
-                        <cbc__EmbeddedDocumentBinaryObject 
-                            mimeCode="application/pdf"
-                            t-esc="attach_binary"/>
-                    </cac__Attachment>
-                </cac__AdditionalDocumentReference>
+            <xpath expr=".//{urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2}DocumentCurrencyCode[1]" position="after">
+                <t
+                    xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+                    xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+                    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+                    <cbc:LineCountNumeric t-esc="line_count"/>
+                    <cac:AdditionalDocumentReference> 
+                        <cbc:ID t-esc="doc_ref_id"/>
+                        <cac:Attachment>
+                            <cbc:EmbeddedDocumentBinaryObject 
+                                mimeCode="application/pdf"
+                                t-esc="attach_binary"/>
+                        </cac:Attachment>
+                    </cac:AdditionalDocumentReference>
+                </t>
             </xpath>
         </template>
     </data>
