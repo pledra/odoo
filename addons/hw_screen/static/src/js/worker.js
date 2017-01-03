@@ -19,7 +19,7 @@
                         mergedHead = true;
                         current_client_url = new_client_url;
                         $("body").css("color", 'black');
-                        $("head").not('.origin').remove();
+                        $("head").children().not('.origin').remove();
                         $("head").append($(".resources",parsedHTML).html());
                     } 
 

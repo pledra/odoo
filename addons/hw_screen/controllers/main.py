@@ -25,16 +25,11 @@ import logging
 from openerp import http
 import openerp
 import os
-import openerp.tools.config as config
 import threading
 import netifaces as ni
 from subprocess import call
 
 _logger = logging.getLogger(__name__)
-
-browser_pid = None
-self_ip = config['xmlrpc_interface'] or '127.0.0.1'
-self_port = config['xmlrpc_port'] or 8069
 
 event_data = threading.Event()
 pos_client_data = {'rendered_html': '',
@@ -43,16 +38,17 @@ pos_client_data = {'rendered_html': '',
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
-    def screen_wake_up(self):
+    def _call_xdotools(self, keystroke):
         os.environ['DISPLAY'] = ":0"
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
-        call(['xdotool', 'key', 'ctrl'])
+        try:
+            call(['xdotool', 'key', keystroke])
+        except:
+            pass
 
     @http.route('/hw_proxy/display_refresh', type='json', auth='none', cors='*')
     def display_refresh(self):
-        os.environ['DISPLAY'] = ":0"
-        os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
-        call(['xdotool', 'key', 'F5'])
+        self._call_xdotools('F5')
         return "Display Refreshed"
 
 
@@ -64,7 +60,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         if request_ip == pos_client_data.get('ip_from', ''):
             pos_client_data['rendered_html'] = html
             global event_data
-            self.screen_wake_up()
+            self._call_xdotools('ctrl')
             event_data.set()
 
             return {'status': 'updated'}
