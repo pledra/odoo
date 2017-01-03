@@ -142,17 +142,17 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
             <!DOCTYPE html>
             <html>
                 <head>
-                <title>Odoo -- Point of Sale</title>
-                <script type="text/javascript">
+                <title class="origin">Odoo -- Point of Sale</title>
+                <script type="text/javascript" class="origin">
                     """ + jquery + """
                 </script>
-                <script type="text/javascript">
+                <script type="text/javascript" class="origin">
                     """ + cust_js + """
                 </script>
-                <style>
+                <style class="origin">
                     """ + bootstrap + """
                 </style>
-                <style>
+                <style class="origin">
                     """ + cust_css + """
                 </style>
                 </head>

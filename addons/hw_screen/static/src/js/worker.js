@@ -15,12 +15,11 @@
                     var parsedHTML = $('.shadow').html($.parseHTML(trimmed,true));
                     var new_client_url = $(".resources > base",parsedHTML).attr('href');
 
-                    mergedHead = (current_client_url === new_client_url);
-
-                    if (!mergedHead ) {
+                    if (!mergedHead || (current_client_url !== new_client_url)) {
                         mergedHead = true;
                         current_client_url = new_client_url;
                         $("body").css("color", 'black');
+                        $("head").not('.origin').remove();
                         $("head").append($(".resources",parsedHTML).html());
                     } 
 
