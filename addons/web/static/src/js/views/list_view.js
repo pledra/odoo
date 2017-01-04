@@ -93,6 +93,7 @@ var ListView = View.extend({
      */
     init: function() {
         var self = this;
+        this.select_all = false
         this._super.apply(this, arguments);
         this.options = _.defaults(this.options, {
             GroupsType: ListView.Groups,
@@ -581,7 +582,11 @@ var ListView = View.extend({
         if (deselected) {
             this.$('thead .o_list_record_selector input').prop('checked', false);
         }
-
+        this.current_max = (this.current_min+this._limit) > this.dataset._length ? this.dataset._length : this.current_min + this._limit
+        this.current_number = this.current_max - this.current_min + 1
+        if (ids.length < this.dataset._length && ids.length == this._limit || ids.length == this.current_number){
+            this.select_all = true;
+        }
         if (!ids.length) {
             this.dataset.index = 0;
             if (this.sidebar) {
