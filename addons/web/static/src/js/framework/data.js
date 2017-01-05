@@ -691,6 +691,17 @@ var DataSetSearch = DataSet.extend({
             self.ids = _(records).pluck('id');
         });
     },
+    get_active_domain_records: function(fields, options) {
+        options = options || {};
+        var self = this;
+        var q = this._model.query(fields || false)
+            .filter(options.domain)
+        q = q.order_by.apply(q, this._sort);
+
+        return this.orderer.add(q.all()).done(function (records) {
+            self.ids = _(records).pluck('id');
+        });
+    },
     get_domain: function (other_domain) {
         return this._model.domain(other_domain);
     },
