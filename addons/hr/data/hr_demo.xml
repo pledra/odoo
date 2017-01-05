@@ -136,7 +136,6 @@ If you have development competencies, we can propose you specific traineeships</
     <!--Employees-->
 
       <record id="employee_root" model="hr.employee">
-          <field name="name">Pieter Parker</field>
           <field name="resource_calendar_id" ref="resource.timesheet_group1"/>
           <field name="work_location">Building 1, Second Floor</field>
           <field name="work_phone">+3281813700</field>

@@ -83,7 +83,8 @@
                                         <field name="bank_account_id"/>
                                     </group>
                                     <group string="Contact Information">
-                                        <field name="address_home_id"
+                                        <field name="home_partner_id"
+                                            required="0"
                                             context="{'show_address': 1}"
                                             options='{"always_reload": True, "highlight_first_line": True}'/>
                                     </group>

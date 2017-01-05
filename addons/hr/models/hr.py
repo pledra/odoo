@@ -113,8 +113,9 @@ class Employee(models.Model):
         'Resource Name', related='resource_id.name',
         readonly=True, store=True)  # store a related for search / group purposes
     # partner
-    address_home_id = fields.Many2one(
-        'res.partner', 'Home Address')
+    home_partner_id = fields.Many2one(
+        'res.partner', 'Home Address',
+        delegate=True, oldname='address_home_id', required=True)
     country_id = fields.Many2one(
         'res.country', 'Nationality (Country)')
     birthday = fields.Date('Date of Birth')
@@ -124,7 +125,7 @@ class Employee(models.Model):
     passport_id = fields.Char('Passport No')
     bank_account_id = fields.Many2one(
         'res.partner.bank', 'Bank Account Number',
-        domain="[('partner_id', '=', address_home_id)]",
+        domain="[('partner_id', '=', home_partner_id)]",
         help='Employee bank salary account')
     gender = fields.Selection([
         ('male', 'Male'),
