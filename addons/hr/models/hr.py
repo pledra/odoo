@@ -96,8 +96,7 @@ class Employee(models.Model):
     _name = "hr.employee"
     _description = "Employee"
     _order = 'name_related'
-    _inherits = {'resource.resource': "resource_id"}
-    _inherit = ['mail.thread']
+    _inherit = ['resource.mixin', 'mail.thread']
 
     _mail_post_access = 'read'
 
@@ -159,6 +158,7 @@ class Employee(models.Model):
     mobile_phone = fields.Char('Work Mobile')
     work_email = fields.Char('Work Email')
     work_location = fields.Char('Work Location')
+    user_id = fields.Many2one('res.users', 'User')
     # work or partner ?
     city = fields.Char(related='address_id.city')
     # employee
