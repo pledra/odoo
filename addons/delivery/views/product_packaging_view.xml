@@ -12,7 +12,7 @@
                 <field name="height"/>
                 <field name="width"/>
                 <field name="length"/>
-                <field name="max_weight"/>
+                <field name="max_weight" widget="weight"/>
                 <field name="shipper_package_code" groups="base.group_no_one"/>
             </group>
         </group>
@@ -28,7 +28,6 @@
             <field name="height"/>
             <field name="width"/>
             <field name="length"/>
-            <field name="max_weight"/>
             <field name="package_carrier_type"/>
             <field name="shipper_package_code" groups="base.group_no_one"/>
             <field name="barcode" invisible="1"/>

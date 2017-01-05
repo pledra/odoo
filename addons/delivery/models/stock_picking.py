@@ -4,8 +4,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
-import odoo.addons.decimal_precision as dp
-
 
 class StockQuantPackage(models.Model):
     _inherit = "stock.quant.package"
@@ -50,10 +48,6 @@ class StockPackOperation(models.Model):
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    def _default_uom(self):
-        uom_categ_id = self.env.ref('product.product_uom_categ_kgm').id
-        return self.env['product.uom'].search([('category_id', '=', uom_categ_id), ('factor', '=', 1)], limit=1)
-
     @api.one
     @api.depends('pack_operation_ids')
     def _compute_packages(self):
@@ -82,10 +76,9 @@ class StockPicking(models.Model):
     delivery_type = fields.Selection(related='carrier_id.delivery_type', readonly=True)
     carrier_id = fields.Many2one("delivery.carrier", string="Carrier")
     volume = fields.Float(copy=False)
-    weight = fields.Float(compute='_cal_weight', digits=dp.get_precision('Stock Weight'), store=True)
+    weight = fields.Float(compute='_cal_weight', store=True)
     carrier_tracking_ref = fields.Char(string='Tracking Reference', copy=False)
     number_of_packages = fields.Integer(string='Number of Packages', copy=False)
-    weight_uom_id = fields.Many2one('product.uom', string='Unit of Measure', required=True, readonly="1", help="Unit of measurement for Weight", default=_default_uom) # to remove ... can I consider it's always kg ? 
     package_ids = fields.Many2many('stock.quant.package', compute='_compute_packages', string='Packages')
     weight_bulk = fields.Float('Bulk Weight', compute='_compute_bulk_weight')
     shipping_weight = fields.Float("Weight for Shipping", compute='_compute_shipping_weight')
