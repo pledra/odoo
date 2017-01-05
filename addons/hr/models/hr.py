@@ -138,20 +138,6 @@ class Employee(models.Model):
         ('widower', 'Widower'),
         ('divorced', 'Divorced')
     ], string='Marital Status')
-    # image: all image fields are base64 encoded and PIL-supported
-    image = fields.Binary(
-        "Photo", default=_default_image, attachment=True,
-        help="This field holds the image used as photo for the employee, limited to 1024x1024px.")
-    image_medium = fields.Binary(
-        "Medium-sized photo", attachment=True,
-        help="Medium-sized photo of the employee. It is automatically "
-             "resized as a 128x128px image, with aspect ratio preserved. "
-             "Use this field in form views or some kanban views.")
-    image_small = fields.Binary(
-        "Small-sized photo", attachment=True,
-        help="Small-sized photo of the employee. It is automatically "
-             "resized as a 64x64px image, with aspect ratio preserved. "
-             "Use this field anywhere a small image is required.")
     # work
     address_id = fields.Many2one(
         'res.partner', 'Work Address')
@@ -201,16 +187,6 @@ class Employee(models.Model):
         self.work_email = self.user_id.email
         self.name = self.user_id.name
         self.image = self.user_id.image
-
-    @api.model
-    def create(self, vals):
-        tools.image_resize_images(vals)
-        return super(Employee, self).create(vals)
-
-    @api.multi
-    def write(self, vals):
-        tools.image_resize_images(vals)
-        return super(Employee, self).write(vals)
 
     @api.multi
     def unlink(self):
