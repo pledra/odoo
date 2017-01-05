@@ -16,7 +16,7 @@
                     <field name="height"/>
                     <field name="width"/>
                     <field name="length"/>
-                    <field name="max_weight"/>
+                    <field name="max_weight" widget="weight"/>
                     <field name="barcode"/>
                     <field name="shipper_package_code" groups="base.group_no_one"/>
                 </group>
@@ -36,7 +36,7 @@
             <field name="height"/>
             <field name="width"/>
             <field name="length"/>
-            <field name="max_weight"/>
+            <field name="max_weight" widget="weight"/>
             <field name="shipper_package_code" groups="base.group_no_one"/>
             <field name="barcode" invisible="1"/>
         </tree>
