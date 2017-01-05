@@ -95,7 +95,7 @@ class Job(models.Model):
 class Employee(models.Model):
     _name = "hr.employee"
     _description = "Employee"
-    _order = 'name_related'
+    _order = 'name'
     _inherit = ['resource.mixin', 'mail.thread']
 
     _mail_post_access = 'read'
@@ -109,9 +109,6 @@ class Employee(models.Model):
     resource_id = fields.Many2one(
         'resource.resource', string='Resource',
         auto_join=True, ondelete='cascade', required=True)
-    name_related = fields.Char(
-        'Resource Name', related='resource_id.name',
-        readonly=True, store=True)  # store a related for search / group purposes
     # partner
     home_partner_id = fields.Many2one(
         'res.partner', 'Home Address',
