@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="work_manager_view_search" model="ir.ui.view">
+        <field name="name">work.manager.view.search</field>
+        <field name="model">work.manager</field>
+        <field name="arch" type="xml">
+            <search string="Work Managers">
+               <field name="manager_name"/>
+               <field name="manager_type"/>
+               <group expand="0" string="Group By">
+                    <filter string="Type" domain="[]" context="{'group_by':'manager_type'}"/>
+                </group>
+           </search>
+        </field>
+    </record>
+
+    <record id="work_manager_view_tree" model="ir.ui.view">
+        <field name="name">work.manager.view.tree</field>
+        <field name="model">work.manager</field>
+        <field name="arch" type="xml">
+            <tree string="Work Manager">
+                <field name="manager_name"/>
+                <field name="manager_type"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="work_manager_view_form" model="ir.ui.view">
+        <field name="name">work.manager.view.form</field>
+        <field name="model">work.manager</field>
+        <field name="arch" type="xml">
+            <form string="Work Manager">
+                <sheet string="Work Manager">
+                    <group>
+                        <group name="description">
+                            <field name="manager_name"/>
+                            <field name="manager_type"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="work_manager_action" model="ir.actions.act_window">
+        <field name="name">Work Managers</field>
+        <field name="res_model">work.manager</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="work_manager_view_search"/>
+        <field name="help" type="html">
+<p class="oe_view_nocontent_create">
+    Define working hours and time table that could be scheduled to your project members
+</p>
+        </field>
+    </record>
+
+    <menuitem action="work_manager_action" id="work_manager_menu" parent="menu_resource_config" sequence="10"/>
+
+    <record id="work_logger_view_search" model="ir.ui.view">
+        <field name="name">work.logger.view.search</field>
+        <field name="model">work.logger</field>
+        <field name="arch" type="xml">
+            <search string="Work Loggers">
+               <field name="logger_name"/>
+           </search>
+        </field>
+    </record>
+
+    <record id="work_logger_view_tree" model="ir.ui.view">
+        <field name="name">work.logger.view.tree</field>
+        <field name="model">work.logger</field>
+        <field name="arch" type="xml">
+            <tree string="Work Loggers">
+                <field name="logger_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="work_logger_view_form" model="ir.ui.view">
+        <field name="name">work.logger.view.form</field>
+        <field name="model">work.logger</field>
+        <field name="arch" type="xml">
+            <form string="Work Logger">
+                <sheet string="Work Logger">
+                    <group>
+                        <group>
+                            <field name="logger_name"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="work_logger_action" model="ir.actions.act_window">
+        <field name="name">Work Loggers</field>
+        <field name="res_model">work.logger</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="work_logger_view_search"/>
+        <field name="help" type="html">
+<p class="oe_view_nocontent_create">
+    Define working hours and time table that could be scheduled to your project members
+</p>
+        </field>
+    </record>
+
+    <menuitem action="work_logger_action" id="work_logger_menu" parent="menu_resource_config" sequence="11"/>
+</odoo>
