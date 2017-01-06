@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_analytic_line_view_tree_generic" model="ir.ui.view">
+        <field name="name">account.analytic.line.view.tree.generic</field>
+        <field name="model">account.analytic.line</field>
+        <field name="arch" type="xml">
+            <tree editable="top" string="Timesheets">
+                <field name="date"/>
+                <field name="user_id" required="1" options='{"no_open": True}'/>
+                <field name="name"/>
+                <field name="work_manager_id"/>
+                <field name="work_logger_id"/>
+                <field name="unit_amount" string="Duration" sum="Total time" widget="float_time"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

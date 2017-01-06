@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="work_manager_view_tree_inherit_timesheet" model="ir.ui.view">
+        <field name="name">work.manager.view.tree.inherit.timesheet</field>
+        <field name="model">work.manager</field>
+        <field name="inherit_id" ref="resource.work_manager_view_tree"/>
+        <field name="arch" type="xml">
+            <field name="manager_type" position="after">
+                <field name="analytic_account_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="work_manager_view_form_inherit_timesheet" model="ir.ui.view">
+        <field name="name">work.manager.view.form.inherit.timesheet</field>
+        <field name="model">work.manager</field>
+        <field name="inherit_id" ref="resource.work_manager_view_form"/>
+        <field name="arch" type="xml">
+            <group name="description" position="after">
+                <group>
+                    <field name="analytic_account_id"/>
+                </group>
+            </group>
+        </field>
+    </record>
+</odoo>
