@@ -40,8 +40,8 @@ class ReportIntrastat(models.Model):
                             else 0
                         end) as value,
                     sum(
-                        case when uom.category_id != puom.category_id then (pt.weight * inv_line.quantity)
-                        else (pt.weight * inv_line.quantity * uom.factor) end
+                        case when uom.category_id != puom.category_id then ((pt.weight * weight_uom.factor) * inv_line.quantity)
+                        else ((pt.weight * weight_uom.factor) * (inv_line.quantity * uom.factor)) end
                     ) as weight,
                     sum(
                         case when uom.category_id != puom.category_id then inv_line.quantity
@@ -67,6 +67,8 @@ class ReportIntrastat(models.Model):
                     left join (res_partner inv_address
                         left join res_country inv_country on (inv_country.id = inv_address.country_id))
                     on (inv_address.id = inv.partner_id)
+                    left join res_company cmp on inv.company_id = cmp.id
+                    left join product_uom weight_uom on cmp.weight_uom_id = weight_uom.id
                 where
                     inv.state in ('open','paid')
                     and inv_line.product_id is not null
