@@ -14,6 +14,8 @@ class WorkLogger(models.Model):
     _rec_name = 'logger_name'
 
     logger_name = fields.Char('Name', required=True)
+    work_manager_id = fields.Many2one(
+        'work.manager', 'Work Manager')
 
 
 class WorkLoggerMixin(models.AbstractModel):
@@ -22,8 +24,11 @@ class WorkLoggerMixin(models.AbstractModel):
 
     work_logger_id = fields.Many2one(
         'work.logger', 'Work Logger',
-        ondelete='restrict', required=True,
+        ondelete='restrict',
         auto_join=True, copy=False)
+    work_manager_id = fields.Many2one(
+        'work.manager', 'Work Manager',
+        related='work_logger_id.work_manager_id')
 
     def work_get_logger_values(self):
         return {
@@ -49,6 +54,13 @@ class WorkLoggerMixin(models.AbstractModel):
             _logger.info('Work Logger created for %s %s (id %s)',
                          record._name, record.display_name, record.id)
 
+    @api.model
+    def create(self, values):
+        record = super(WorkLoggerMixin, self).create(values)
+        work_logger = self.env['work.logger'].create(record.work_get_logger_values())
+        record.write({'work_logger_id': work_logger.id})
+        return record
+
 
 class WorkManager(models.Model):
     _name = 'work.manager'
@@ -67,7 +79,7 @@ class WorkManagerMixin(models.AbstractModel):
 
     work_manager_id = fields.Many2one(
         'work.manager', 'Work Manager',
-        ondelete='restrict', required=True,
+        ondelete='restrict',
         auto_join=True, copy=False)
 
     def work_get_manager_values(self):
@@ -96,10 +108,7 @@ class WorkManagerMixin(models.AbstractModel):
 
     @api.model
     def create(self, values):
-        work_manager = self.env['work.manager'].create({
-            'name': 'TMP',
-        })
-        values['work_manager_id'] = work_manager.id
         record = super(WorkManagerMixin, self).create(values)
-        work_manager.write(record.work_get_manager_values())
+        work_manager = self.env['work.manager'].create(record.work_get_manager_values())
+        record.write({'work_manager_id': work_manager.id})
         return record
