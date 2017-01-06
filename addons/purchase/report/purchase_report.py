@@ -81,7 +81,7 @@ class PurchaseReport(models.Model):
                     partner.country_id as country_id,
                     partner.commercial_partner_id as commercial_partner_id,
                     analytic_account.id as account_analytic_id,
-                    sum((p.weight * weight_uom.factor) * l.product_qty/u.factor*u2.factor) as weight,
+                    sum(p.weight * l.product_qty/u.factor*u2.factor) as weight,
                     sum(p.volume * l.product_qty/u.factor*u2.factor) as volume
                 from purchase_order_line l
                     join purchase_order s on (l.order_id=s.id)
@@ -97,8 +97,6 @@ class PurchaseReport(models.Model):
                         cr.company_id = s.company_id and
                         cr.date_start <= coalesce(s.date_order, now()) and
                         (cr.date_end is null or cr.date_end > coalesce(s.date_order, now())))
-                    left join res_company cmp on s.company = cmp.id
-                    left join product_uom weight_uom on cmp.weight_uom_id = weight_uom.id
                 group by
                     s.company_id,
                     s.create_uid,
