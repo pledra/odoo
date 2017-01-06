@@ -24,18 +24,24 @@
             <field name="arch" type="xml">
                 <xpath expr="//notebook/page[@name='description_page']" position="after">
                     <page string="Timesheets POC">
-                    <field name="work_timesheet_ids">
-                        <tree editable="bottom" string="Timesheets" default_order="date">
-                            <field name="date"/>
-                            <field name="user_id" required="1"/>
-                            <field name="name"/>
-                            <field name="work_logger_id"/>
-                            <field name="work_manager_id"/>
-                            <field name="unit_amount" string="Duration" widget="float_time"/>
-                            <field name="project_id" invisible="1"/>
-                        </tree>
-                    </field>
-                </page>
+                        <field name="work_logger_id" invisible="1"/>
+                        <field name="work_manager_id" invisible="1"/>
+                        <field name="work_timesheet_ids"
+                                context="{
+                                    'default_work_logger_id': work_logger_id,
+                                    'default_work_manager_id': work_manager_id,
+                                }">
+                            <tree editable="bottom" string="Timesheets" default_order="date">
+                                <field name="date"/>
+                                <field name="user_id" required="1"/>
+                                <field name="name"/>
+                                <field name="work_logger_id"/>
+                                <field name="work_manager_id"/>
+                                <field name="unit_amount" string="Duration" widget="float_time"/>
+                                <field name="project_id" invisible="1"/>
+                            </tree>
+                        </field>
+                    </page>
                 </xpath>
             </field>
         </record>

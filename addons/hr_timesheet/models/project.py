@@ -21,3 +21,8 @@ class Project(models.Model):
 class Task(models.Model):
     _name = 'project.task'
     _inherit = ['work.logger.mixin', 'project.task']
+
+    def work_get_logger_values(self):
+        res = super(Task, self).work_get_logger_values()
+        res['work_manager_id'] = self.project_id.work_manager_id.id
+        return res
