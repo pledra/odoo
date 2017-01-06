@@ -70,7 +70,7 @@ class SaleReport(models.Model):
                     p.product_tmpl_id,
                     partner.country_id as country_id,
                     partner.commercial_partner_id as commercial_partner_id,
-                    sum(p.weight * l.product_uom_qty / u.factor * u2.factor) as weight,
+                    sum((p.weight * weight_uom.factor) * l.product_uom_qty / u.factor * u2.factor) as weight,
                     sum(p.volume * l.product_uom_qty / u.factor * u2.factor) as volume
         """ % self.env['res.currency']._select_companies_rates()
         return select_str
@@ -89,6 +89,8 @@ class SaleReport(models.Model):
                         cr.company_id = s.company_id and
                         cr.date_start <= coalesce(s.date_order, now()) and
                         (cr.date_end is null or cr.date_end > coalesce(s.date_order, now())))
+                    left join res_company cmp on s.company_id = cmp.id
+                    left join product_uom weight_uom on cmp.weight_uom_id = weight_uom.id
         """
         return from_str
 
