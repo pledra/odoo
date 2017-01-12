@@ -13,8 +13,14 @@ class Project(models.Model):
         help="Choosing a sub-tasks project will both enable sub-tasks and set their default project (possibly the project itself)")
     allow_timesheets = fields.Boolean("Allow timesheets", default=True)
 
+
 class Task(models.Model):
     _inherit = "project.task"
+
+    timesheet_pack_id = fields.Many2one(
+        'timesheet.pack', 'Timesheet Pack',
+        help='If product is configured as project pack + create task -> to check'
+    )
 
     @api.multi
     def _get_subtask_count(self):
@@ -52,6 +58,7 @@ class Task(models.Model):
     delay_hours = fields.Float(compute='_hours_get', store=True, string='Delay Hours', help="Computed as difference between planned hours by the project manager and the total hours of the task.")
     children_hours = fields.Float(compute='_hours_get', store=True, string='Sub-tasks Hours', help="Sum of the planned hours of all sub-tasks (when a sub-task is closed or its spent hours exceed its planned hours, spent hours are counted instead)")
     timesheet_ids = fields.One2many('account.analytic.line', 'task_id', 'Timesheets')
+    # timesheet_ids = fields.One2many('account.analytic.line', related='timesheet_pack_id.timesheet_line_ids')
 
     parent_id = fields.Many2one('project.task', string='Parent Task')
     child_ids = fields.One2many('project.task', 'parent_id', string="Sub-tasks")

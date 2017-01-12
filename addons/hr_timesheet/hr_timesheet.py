@@ -9,22 +9,34 @@ class AccountAnalyticLine(models.Model):
 
     task_id = fields.Many2one('project.task', 'Task')
     project_id = fields.Many2one('project.project', 'Project', domain=[('allow_timesheets', '=', True)])
-    department_id = fields.Many2one('hr.department', "Department", related='user_id.employee_ids.department_id', store=True, readonly=True)
+    # department_id = fields.Many2one('hr.department', "Department", related='user_id.employee_ids.department_id', store=True, readonly=True)
 
-    @api.onchange('project_id')
-    def onchange_project_id(self):
-        self.task_id = False
+    # @api.onchange('project_id')
+    # def onchange_project_id(self):
+    #     self.task_id = False
 
-    @api.model
-    def create(self, vals):
-        if vals.get('project_id'):
-            project = self.env['project.project'].browse(vals.get('project_id'))
-            vals['account_id'] = project.analytic_account_id.id
-        return super(AccountAnalyticLine, self).create(vals)
+    # @api.model
+    # def create(self, vals):
+    #     if vals.get('project_id'):
+    #         project = self.env['project.project'].browse(vals.get('project_id'))
+    #         vals['account_id'] = project.analytic_account_id.id
+    #     return super(AccountAnalyticLine, self).create(vals)
 
-    @api.multi
-    def write(self, vals):
-        if vals.get('project_id'):
-            project = self.env['project.project'].browse(vals.get('project_id'))
-            vals['account_id'] = project.analytic_account_id.id
-        return super(AccountAnalyticLine, self).write(vals)
+    # @api.multi
+    # def write(self, vals):
+    #     if vals.get('project_id'):
+    #         project = self.env['project.project'].browse(vals.get('project_id'))
+    #         vals['account_id'] = project.analytic_account_id.id
+    #     return super(AccountAnalyticLine, self).write(vals)
+
+
+class TimesheetPack(models.Model):
+    _inherit = 'timesheet.pack'
+
+    project_id = fields.Many2one(
+        'project.project', 'Project',
+        domain=[('allow_timesheets', '=', True)])
+    task_id = fields.Many2one(
+        'project.task', 'Task',
+        domain="[('project_id', '=', project_id)]"
+    )

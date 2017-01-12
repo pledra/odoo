@@ -96,16 +96,18 @@
                     <field name="parent_id" groups="base.group_no_one"/>
                     <field name="child_ids" invisible="1" />
                     <field name="subtask_project_id" invisible="1" />
+                    <field name="timesheet_pack_id"/>
                 </field>
                 <xpath expr="//notebook/page[@name='description_page']" position="after">
                     <page string="Timesheets" attrs="{'invisible': [('project_id', '=', False)]}">
-                    <field name="timesheet_ids" context="{'default_project_id': project_id}">
+                    <field name="timesheet_ids" context="{'default_timesheet_pack_id': timesheet_pack_id}">
                         <tree editable="bottom" string="Timesheet Activities" default_order="date">
                             <field name="date"/>
                             <field name="user_id" required="1"/>
                             <field name="name"/>
                             <field name="unit_amount" string="Duration" widget="float_time"/>
-                            <field name="project_id" invisible="1"/>
+                            <field name="timesheet_pack_id"/>
+                            <!-- <field name="project_id" invisible="1"/> -->
                         </tree>
                     </field>
                     <group>
