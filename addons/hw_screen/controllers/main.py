@@ -25,16 +25,14 @@ import logging
 from openerp import http
 import openerp
 import os
-import openerp.tools.config as config
 import threading
 import netifaces as ni
 from subprocess import call
+import openerp.tools.config as config
+
+self_port = str(config['xmlrpc_port'] or 8069)
 
 _logger = logging.getLogger(__name__)
-
-browser_pid = None
-self_ip = config['xmlrpc_interface'] or '127.0.0.1'
-self_port = config['xmlrpc_port'] or 8069
 
 event_data = threading.Event()
 pos_client_data = {'rendered_html': '',
@@ -43,18 +41,18 @@ pos_client_data = {'rendered_html': '',
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
-    def screen_wake_up(self):
+    def _call_xdotools(self, keystroke):
         os.environ['DISPLAY'] = ":0"
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
-        call(['xdotool', 'key', 'ctrl'])
+        try:
+            call(['xdotool', 'key', keystroke])
+            return "xdotool succeeded in stroking" + keystroke
+        except:
+            return "xdotool threw an error, maybe it is not installed on the posbox"
 
     @http.route('/hw_proxy/display_refresh', type='json', auth='none', cors='*')
     def display_refresh(self):
-        os.environ['DISPLAY'] = ":0"
-        os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
-        call(['xdotool', 'key', 'F5'])
-        return "Display Refreshed"
-
+        return self._call_xdotools('F5')
 
     # POS CASHIER'S ROUTES
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
@@ -67,7 +65,8 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
             self.screen_wake_up()
             event_data.set()
 
-            return {'status': 'updated'}
+            return {'status': 'updated',
+                    'message': self._call_xdotools('ctrl')}
         else:
             return {'status': 'failed',
                     'message': 'Somebody else is using the display'}
@@ -112,18 +111,10 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
     def _get_html(self):
         cust_js = None
-        jquery = None
-        bootstrap = None
         interfaces = ni.interfaces()
 
         with open(os.path.join(os.path.dirname(__file__), "../static/src/js/worker.js")) as js:
             cust_js = js.read()
-
-        with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/jquery-3.1.1.min.js")) as jq:
-            jquery = jq.read()
-
-        with open(os.path.join(os.path.dirname(__file__), "../static/src/lib/bootstrap.css")) as btst:
-            bootstrap = btst.read()
 
         with open(os.path.join(os.path.dirname(__file__), "../static/src/css/cust_css.css")) as css:
             cust_css = css.read()
@@ -142,17 +133,15 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
             <!DOCTYPE html>
             <html>
                 <head>
-                <title>Odoo -- Point of Sale</title>
-                <script type="text/javascript">
-                    """ + jquery + """
+                <title class="origin">Odoo -- Point of Sale</title>
+                <script type="text/javascript" class="origin" src="http://127.0.0.1:""" + self_port + """/web/static/lib/jquery/jquery.js" >
                 </script>
-                <script type="text/javascript">
+                <script type="text/javascript" class="origin">
                     """ + cust_js + """
                 </script>
-                <style>
-                    """ + bootstrap + """
-                </style>
-                <style>
+                <link rel="stylesheet" class="origin" href="http://127.0.0.1:""" + self_port + """/web/static/lib/bootstrap/css/bootstrap.css" >
+                </link>
+                <style class="origin">
                     """ + cust_css + """
                 </style>
                 </head>
@@ -179,4 +168,3 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 </html>
             """
         return html
-
