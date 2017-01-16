@@ -62,7 +62,6 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         if request_ip == pos_client_data.get('ip_from', ''):
             pos_client_data['rendered_html'] = html
             global event_data
-            self.screen_wake_up()
             event_data.set()
 
             return {'status': 'updated',
