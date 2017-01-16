@@ -46,14 +46,13 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
         try:
             call(['xdotool', 'key', keystroke])
+            return "xdotool succeeded in stroking" + keystroke
         except:
-            pass
+            return "xdotool threw an error, maybe it is not installed on the posbox"
 
     @http.route('/hw_proxy/display_refresh', type='json', auth='none', cors='*')
     def display_refresh(self):
-        self._call_xdotools('F5')
-        return "Display Refreshed"
-
+        return self._call_xdotools('F5')
 
     # POS CASHIER'S ROUTES
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
@@ -63,10 +62,10 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         if request_ip == pos_client_data.get('ip_from', ''):
             pos_client_data['rendered_html'] = html
             global event_data
-            self._call_xdotools('ctrl')
             event_data.set()
 
-            return {'status': 'updated'}
+            return {'status': 'updated',
+                    'message': self._call_xdotools('ctrl')}
         else:
             return {'status': 'failed',
                     'message': 'Somebody else is using the display'}
