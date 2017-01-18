@@ -358,11 +358,24 @@ class MailComposer(models.TransientModel):
                 signature = self.env.user.signature
                 values['body_html'] = tools.append_content_to_html(values['body_html'], signature, plaintext=False)
         elif template_id:
+            template = self.env['mail.template'].browse(template_id)
             values = self.generate_email_for_composer(template_id, [res_id])[res_id]
             # transform attachments into attachment_ids; not attached to the document because this will
             # be done further in the posting process, allowing to clean database if email not send
+            # first thing to do is to check reports not already exist in database
             Attachment = self.env['ir.attachment']
             for attach_fname, attach_datas in values.pop('attachments', []):
+                if template.report_template:
+                    report_fname = self.env['report']._attachment_filename(
+                        self.env[model].browse(res_id),
+                        self.env['report']._get_report_from_name(template.report_template.report_name))[res_id]
+                    report_attach = self.env['ir.attachment'].search([
+                        ('datas_fname', '=', report_fname),
+                        ('res_model', '=', model),
+                        ('res_id', '=', res_id)])
+                    if report_attach:
+                        values.setdefault('attachment_ids', list()).append(report_attach.id)
+                        continue
                 data_attach = {
                     'name': attach_fname,
                     'datas': attach_datas,
