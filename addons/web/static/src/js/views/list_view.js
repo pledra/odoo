@@ -58,7 +58,7 @@ var ListView = View.extend({
     }),
     display_name: _lt('List'),
     events: {
-        'click a.o_select_action': 'on_click_select_action',
+        'click .o_select_action': 'on_click_select_action',
         'click thead th.o_column_sortable[data-id]': 'sort_by_column',
         'click .oe_view_nocontent': function() {
             if (this.$buttons) {
@@ -583,37 +583,42 @@ var ListView = View.extend({
         }
         this.display_selection();
     },
-
     display_selection: function(ids) {
-        this.current_max = (this.current_min + this._limit) > this.dataset._length ? this.dataset._length : this.current_min + this._limit
-        this.current_number = this.current_max - this.current_min + 1;
+        var self = this;
+        this.current_max = (this.current_min + this._limit) > this.dataset._length ? this.dataset._length : this.current_min + this._limit;
         this.$el.find('.o_list_view_select_all').remove();
         this.selection_options = false;
+        if (!this.$('thead .o_list_record_selector input').prop('checked')) {
+            this.all_selected = false;
+        }
         if (this.all_selected) {
             this.selection_options = {
                 title: _.str.sprintf('All %s records are selected', this.dataset._length),
                 action_type: 'clear_selection',
                 action_label: 'Clear Selection'
             }
-            var self = this;
-            var fields = _.pluck(_.select(this.columns, function(x) {return x.tag == "field";}), 'name');
+            var fields = _.pluck(_.select(this.columns, function (x) {
+                return x.tag == 'field';
+            }), 'name');
             var options = {domain: this.dataset.get_domain()};
-            this.dataset.get_active_domain_records(fields, options).then(function(records){
-            self.records.add(records, {silent: true})
-        });
-        } else if (ids && ids.length < this.dataset._length && (ids.length == this._limit || ids && ids.length == this.current_number) && !(this.current_min == 1 && this.current_max == this._limit)) {
+            this.dataset.get_active_domain_records(fields, options).then(function (records) {
+                self.records.add(records, {silent: true});
+                self.records.records = _.uniq(self.records.records, function (record) {
+                    return record.attributes.id;
+                });
+            });
+        } else if (ids && ids.length < this.dataset._length && (ids.length == this._limit || ids && ids.length == this.records.length) && !(this.current_min == 1 && this.current_max == this._limit)) {
             this.selection_options = {
                 title: _.str.sprintf('All %s records of this page are selected', ids.length),
                 action_type: 'select_all',
                 action_label: _.str.sprintf('Select all %s', this.dataset._length)
-            }
+            };
             this.$('thead .o_list_record_selector input').prop('checked', true);
         }
-        if (this.selection_options){
+        if (this.selection_options) {
             this.$el.prepend(QWeb.render('ListView.SelectAll', this.selection_options));
         }
     },
-
     /**
      * Handles the signal indicating that a new record has been selected
      *
@@ -1210,19 +1215,18 @@ ListView.List = Class.extend({
             return result;
         }
         var records = this.records;
-        if(this.view.all_selected) {
-            _.each(records.records, function(val) {
+        if (this.view.all_selected) {
+            _.each(records.records, function (val) {
                 result.ids.push(val.attributes.id);
                 result.records.push(val.attributes);
-            })
+            });
+        } else {
+            this.$current.find('td.o_list_record_selector input:checked').closest('tr').each(function () {
+                var record = records.get($(this).data('id'));
+                result.ids.push(record.get('id'));
+                result.records.push(record.attributes);
+            });
         }
-
-        this.$current.find('td.o_list_record_selector input:checked')
-                .closest('tr').each(function () {
-            var record = records.get($(this).data('id'));
-            result.ids.push(record.get('id'));
-            result.records.push(record.attributes);
-        });
         return result;
     },
     /**

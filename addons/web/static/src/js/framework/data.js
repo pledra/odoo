@@ -692,13 +692,10 @@ var DataSetSearch = DataSet.extend({
         });
     },
     get_active_domain_records: function(fields, options) {
-        options = options || {};
         var self = this;
-        var q = this._model.query(fields || false)
-            .filter(options.domain)
-        q = q.order_by.apply(q, this._sort);
-
-        return this.orderer.add(q.all()).done(function (records) {
+        var query = this._model.query(fields).filter(options.domain);
+        query = query.order_by.apply(query, this._sort);
+        return this.orderer.add(query.all()).done(function (records) {
             self.ids = _(records).pluck('id');
         });
     },
