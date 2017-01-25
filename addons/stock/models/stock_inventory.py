@@ -342,7 +342,7 @@ class InventoryLine(models.Model):
     def onchange_product_or_uom(self):
         res = {}
         # If no UoM or incorrect UoM put default one from product
-        if self.product_id and (not self.product_uom_id or self.product_id.uom_id.category_id != self.product_uom_id.category_id):
+        if self.product_id and (not self.product_uom_id or self.product_id.uom_id != self.product_uom_id):
             self.product_uom_id = self.product_id.uom_id
             res['domain'] = {'product_uom_id': [('category_id', '=', self.product_id.uom_id.category_id.id)]}
         return res
