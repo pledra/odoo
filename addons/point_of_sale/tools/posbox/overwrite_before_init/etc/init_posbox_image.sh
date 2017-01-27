@@ -8,14 +8,20 @@ __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __file="${__dir}/$(basename "${BASH_SOURCE[0]}")"
 __base="$(basename ${__file} .sh)"
 
+# Since we are emulating, the real /boot is not mounted, 
+# leading to mismatch between kernel image and modules.
+mount /dev/sda1 /boot
+
 # Recommends: antiword, graphviz, ghostscript, postgresql, python-gevent, poppler-utils
 export DEBIAN_FRONTEND=noninteractive
 echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 
 apt-get update
 apt-get -y dist-upgrade
+# Do not be too fast to upgrade to more recent firmware and kernel than 4.38
+# Firmware 4.44 seems to prevent the LED mechanism from working
 
-PKGS_TO_INSTALL="adduser postgresql-client python python-dateutil python-decorator python-docutils python-feedparser python-imaging python-jinja2 python-ldap python-libxslt1 python-lxml python-mako python-mock python-openid python-passlib python-psutil python-psycopg2 python-pybabel python-pychart python-pydot python-pyparsing python-pypdf python-reportlab python-requests python-simplejson python-tz python-unittest2 python-vatnumber python-vobject python-werkzeug python-xlwt python-yaml postgresql python-gevent python-serial python-pip python-dev localepurge vim mc mg screen iw hostapd isc-dhcp-server git rsync console-data xorg iceweasel xdotool unclutter xserver-xorg x11-utils openbox python-netifaces lightdm"
+PKGS_TO_INSTALL="adduser postgresql-client python python-dateutil python-decorator python-docutils python-feedparser python-imaging python-jinja2 python-ldap python-libxslt1 python-lxml python-mako python-mock python-openid python-passlib python-psutil python-psycopg2 python-pybabel python-pychart python-pydot python-pyparsing python-pypdf python-reportlab python-requests python-simplejson python-tz python-unittest2 python-vatnumber python-vobject python-werkzeug python-xlwt python-yaml postgresql python-gevent python-serial python-pip python-dev localepurge vim mc mg screen iw hostapd isc-dhcp-server git rsync console-data lightdm xserver-xorg-video-fbdev xserver-xorg-input-evdev iceweasel xdotool unclutter x11-utils openbox python-netifaces rpi-update"
 
 # KEEP OWN CONFIG FILES DURING PACKAGE CONFIGURATION
 # http://serverfault.com/questions/259226/automatically-keep-current-version-of-config-files-when-apt-get-install
@@ -40,6 +46,7 @@ pip install --upgrade websocket_client
 groupadd usbusers
 usermod -a -G usbusers pi
 usermod -a -G lp pi
+usermod -a -G input lightdm
 
 sudo -u postgres createuser -s pi
 mkdir /var/log/odoo
@@ -57,13 +64,6 @@ echo "* * * * * rm /var/run/odoo/sessions/*" | crontab -
 
 update-rc.d -f hostapd remove
 update-rc.d -f isc-dhcp-server remove
-
-# Append to xinit to start xsession
-echo "xset s off         # don't activate screensaver
-xset -dpms         # disable DPMS (Energy Star) features.
-xset s noblank     # don't blank the video device
-
-openbox-session &" >> /etc/X11/xinit/xinitrc
 
 systemctl daemon-reload
 systemctl enable ramdisks.service
@@ -104,5 +104,6 @@ create_ramdisk_dir "/var"
 create_ramdisk_dir "/etc"
 create_ramdisk_dir "/tmp"
 mkdir /root_bypass_ramdisks
+umount /dev/sda1
 
 reboot
