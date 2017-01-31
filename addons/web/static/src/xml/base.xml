@@ -679,8 +679,9 @@
         </button>
         <span class="text-warning o_domain_error_message hidden"><i class="fa fa-exclamation-triangle"/> Invalid domain</span>
         <button t-if="widget.options.in_dialog &amp;&amp; !widget.get('effective_readonly')"
-            class="btn btn-sm btn-primary o_form_field_domain_dialog_button">Edit domain</button>
+            class="btn btn-xs btn-primary o_form_field_domain_dialog_button">Edit domain</button>
     </div>
+    <div class="o_domain_model_missing o_hidden">Select a model to add a filter.</div>
 </div>
 
 <t t-name="DomainNode.ControlPanel">
@@ -711,7 +712,7 @@
 <div t-name="DomainSelector" t-attf-class="o_domain_node o_domain_tree o_domain_selector #{widget.readonly ? 'o_read_mode' : 'o_edit_mode'}">
     <t t-if="widget.children.length === 0">
         <span>Match <strong>all records</strong></span>
-        <button t-if="!widget.readonly" class="btn btn-sm btn-primary o_domain_add_first_node_button"><i class="fa fa-plus"/> Add filter</button>
+        <button t-if="!widget.readonly" class="btn btn-xs btn-primary o_domain_add_first_node_button"><i class="fa fa-plus"/> Add filter</button>
     </t>
     <t t-else="">
         <div>
@@ -801,7 +802,7 @@
 </div>
 
 <div t-name="FieldSelector" class="o_field_selector">
-    <input type="text" t-att-value="widget.chain" t-att-readonly="!(widget.debug) and 1 or None"/>
+    <input type="text" t-att-value="widget.chain" t-att-readonly="!(widget.options.debugMode) and 1 or None"/>
     <div class="o_field_selector_controls">
         <i class="fa fa-exclamation-triangle o_field_selector_warning hidden" title="Invalid field chain"/>
     </div>
@@ -817,24 +818,30 @@
     </div>
 </div>
 <ul t-name="FieldSelector.page" t-attf-class="o_field_selector_page #{animation}">
-    <li t-foreach="lines" t-as="line"
-        t-attf-class="o_field_selector_item #{line.relation and 'o_field_selector_next_page' or 'o_field_selector_select_button'}#{line_index == 0 and ' active' or ''}"
-        t-att-data-name="line.name">
-        <t t-esc="line.string"/>
-        <div t-if="debug" class="text-muted o_field_selector_item_title"><t t-esc="line.name"/> (<t t-esc="line.type"/>)</div>
-        <i t-if="line.relation" class="fa fa-chevron-right o_field_selector_relation_icon" t-att-data-name="line.name"/>
-    </li>
+    <t t-foreach="lines" t-as="line">
+        <t t-set="relationToFollow" t-value="followRelations &amp;&amp; line.relation"/>
+        <li t-attf-class="o_field_selector_item #{relationToFollow and 'o_field_selector_next_page' or 'o_field_selector_select_button'}#{line_index == 0 and ' active' or ''}"
+            t-att-data-name="line.name">
+            <t t-esc="line.string"/>
+            <div t-if="debug" class="text-muted o_field_selector_item_title"><t t-esc="line.name"/> (<t t-esc="line.type"/>)</div>
+            <i t-if="relationToFollow" class="fa fa-chevron-right o_field_selector_relation_icon"/>
+        </li>
+    </t>
 </ul>
 
 <t t-name="web.datepicker">
     <t t-set="placeholder" t-value="widget.getParent().node and widget.getParent().node.attrs.placeholder"/>
-    <div class="o_datepicker">
-        <input type="text"
-            class="o_datepicker_input"
-            t-att-name="widget.name"
-            t-att-placeholder="placeholder"/>
-        <span class="o_datepicker_button"/>
+    <div>
+        <div class="o_bootstrap_datepicker_parent"></div>
+        <div class="o_datepicker">
+            <input type="text"
+                class="o_datepicker_input"
+                t-att-name="widget.name"
+                t-att-placeholder="placeholder"/>
+            <span class="o_datepicker_button"/>
+        </div>
     </div>
+
 </t>
 <t t-name="FieldSelection">
     <span t-if="widget.get('effective_readonly')"/>
