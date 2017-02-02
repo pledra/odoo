@@ -16,7 +16,6 @@ mount /dev/sda1 /boot
 export DEBIAN_FRONTEND=noninteractive
 echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 
-mount /dev/sda1 /boot
 
 apt-get update
 apt-get -y dist-upgrade
