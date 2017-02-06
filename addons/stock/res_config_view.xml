@@ -20,6 +20,7 @@
                         <button string="Apply" type="object" name="execute" class="oe_highlight"/>
                         <button string="Cancel" type="object" name="cancel" class="oe_link"/>
                     </header>
+                    <field name="company_id" invisible="1"/>
                     <group string="Traceability" name="traceability">
                         <field name="group_stock_production_lot" widget="radio"/>
                         <field name="module_product_expiry" widget="radio" attrs="{'invisible': [('group_stock_production_lot','=', 0)]}"/>
@@ -61,7 +62,7 @@
                         <label for="group_stock_adv_location"/>
                         <div>
                             <field name="group_stock_adv_location" widget="radio" on_change="onchange_adv_location(group_stock_adv_location)"/>
-                            <div attrs="{'invisible': [('group_stock_adv_location', '=', 0)]}">
+                            <div attrs="{'invisible': [('group_stock_adv_location', '=', False)]}">
                                 <label for="propagation_minimum_delta"/>
                                 <field name="propagation_minimum_delta" class="oe_inline"/>
                             </div>
