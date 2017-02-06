@@ -452,6 +452,10 @@ class Partner(models.Model, FormatAddress):
                 commercial_fields = self._commercial_fields()
                 if any(field in values for field in commercial_fields):
                     self._commercial_sync_to_children()
+            for child in self.child_ids:
+                if child.commercial_partner_id != self.commercial_partner_id :
+                    self._commercial_sync_to_children()
+                    break
             # 2b. Address fields: sync if address changed
             address_fields = self._address_fields()
             if any(field in values for field in address_fields):
