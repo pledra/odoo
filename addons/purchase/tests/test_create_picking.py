@@ -37,15 +37,21 @@ class TestCreatePicking(common.TestProductCommon):
         }
 
     def test_00_create_picking(self):
-
         # Draft purchase order created
         self.po = self.env['purchase.order'].create(self.po_vals)
         self.assertTrue(self.po, 'Purchase: no purchase order created')
 
         # Purchase order confirm
         self.po.button_confirm()
+        warehouse_route = self.po.picking_type_id.warehouse_id.reception_steps
+
         self.assertEqual(self.po.state, 'purchase', 'Purchase: PO state should be "Purchase')
-        self.assertEqual(self.po.picking_count, 1, 'Purchase: one picking should be created')
+        if(warehouse_route == 'three_steps'):
+            self.assertEqual(self.po.picking_count, 3, 'Purchase: Three picking should be created')
+        elif(warehouse_route == 'two_steps'):
+            self.assertEqual(self.po.picking_count, 2, 'Purchase: Two picking should be created')
+        else:
+            self.assertEqual(self.po.picking_count, 1, 'Purchase: one picking should be created')
         self.assertEqual(len(self.po.order_line.move_ids), 1, 'One move should be created')
         # Change purchase order line product quantity
         self.po.order_line.write({'product_qty': 7.0})
@@ -70,7 +76,12 @@ class TestCreatePicking(common.TestProductCommon):
                 'price_unit': 250.0,
                 'date_planned': datetime.today().strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                 })]})
-        self.assertEqual(self.po.picking_count, 2, 'New picking should be created')
+        if(warehouse_route == 'three_steps'):
+            self.assertEqual(self.po.picking_count, 4, 'New picking should be created')
+        elif(warehouse_route == 'two_steps'):
+            self.assertEqual(self.po.picking_count, 3, 'New picking should be created')
+        else:
+            self.assertEqual(self.po.picking_count, 2, 'New picking should be created')
         moves = self.po.order_line.mapped('move_ids').filtered(lambda x: x.state not in ('done', 'cancel'))
         self.assertEqual(len(moves), 1, 'One moves should have been created')
 
