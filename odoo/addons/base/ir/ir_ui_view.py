@@ -853,7 +853,7 @@ actual arch.
                 node_model = self.env[node.getchildren()[0].get('object')]
                 node_fields = node_model.fields_get(None)
                 fields.update(node_fields)
-                if (not node.get("create") and
+                if ("create" not in node.attrib and
                         not node_model.check_access_rights('create', raise_exception=False) or
                         not self._context.get("create", True) and is_base_model):
                     node.set("create", 'false')
@@ -868,7 +868,7 @@ actual arch.
         node = self._disable_workflow_buttons(model, node)
         if node.tag in ('kanban', 'tree', 'form', 'gantt'):
             for action, operation in (('create', 'create'), ('delete', 'unlink'), ('edit', 'write')):
-                if (not node.get(action) and
+                if (action not in node.attrib and
                         not Model.check_access_rights(operation, raise_exception=False) or
                         not self._context.get(action, True) and is_base_model):
                     node.set(action, 'false')
@@ -879,7 +879,7 @@ actual arch.
                 if group_by_field.type == 'many2one':
                     group_by_model = Model.env[group_by_field.comodel_name]
                     for action, operation in (('group_create', 'create'), ('group_delete', 'unlink'), ('group_edit', 'write')):
-                        if (not node.get(action) and
+                        if (action not in node.attrib and
                                 not group_by_model.check_access_rights(operation, raise_exception=False) or
                                 not self._context.get(action, True) and is_base_model):
                             node.set(action, 'false')
