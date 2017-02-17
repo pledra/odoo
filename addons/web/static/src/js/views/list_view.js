@@ -323,6 +323,9 @@ var ListView = View.extend({
                     }
                 });
             });
+            if (this.grouped) {
+                this.pager.do_hide();
+            }
         }
     },
     /**
