@@ -151,16 +151,30 @@ def float_repr(value, precision_digits):
 
 _float_repr = float_repr
 
-def float_split(value, precision_digits):
-    """ Splits the float given as 'value' argument, returning a tupe containing
-    (as integers) its number of units (as element 0), and the digits after the dot
-    in its representation (as element 1), limited to the provided number of
-    precision digits passed in arguments.
+def float_split_str(value, precision_digits):
+    """ Splits the given float 'value' in its unitary and decimal parts. The value
+       is first rounded thanks to the ``precision_digits`` argument given.
+
+       Example: 1.432 would return (1, 43) for a digits precision of 2.
+
+       :param float value: value to split.
+       :param int precision_digits: number of fractional digits to round to.
+       :return: returns the tuple(<unitary part>, <decimal part>) of the given value
+       :rtype: tuple(str, str)
     """
     value = float_round(value, precision_digits=precision_digits)
-    units = math.floor(value)
-    cents = math.floor(float_round((value - units) * 10**precision_digits, precision_digits=0))
-    return (int(units), int(cents))
+    value_repr = float_repr(value, precision_digits)
+    units, cents = value_repr.split('.')
+    return units, cents
+
+def float_split(value, precision_digits):
+    """ same as float_split_str() except that it returns the unitary and decimal
+        parts as integer instead of strings.
+
+       :rtype: tuple(int, int)
+    """
+    units, cents = float_split_str(value, precision_digits)
+    return int(units), int(cents)
 
 
 class float_precision(float):
