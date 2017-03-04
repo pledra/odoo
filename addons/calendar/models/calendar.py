@@ -997,16 +997,23 @@ class Meeting(models.Model):
                 ok = True
                 for arg in domain:
                     if str(arg[0]) in ('start', 'stop', 'final_date'):
+                        if len(arg[2]) > len(r_date.strftime(DEFAULT_SERVER_DATE_FORMAT)):
+                            min_date = r_date.strftime(DEFAULT_SERVER_DATE_FORMAT + ' 00:00:00')
+                            max_date = r_date.strftime(DEFAULT_SERVER_DATE_FORMAT + ' 23:59:59')
+                            eq_date = r_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+                        else:
+                            eq_date = min_date = max_date = r_date.strftime(DEFAULT_SERVER_DATE_FORMAT)
+
                         if (arg[1] == '='):
-                            ok = r_date.strftime('%Y-%m-%d') == arg[2]
+                            ok = eq_date == arg[2]
                         if (arg[1] == '>'):
-                            ok = r_date.strftime('%Y-%m-%d') > arg[2]
+                            ok = max_date > arg[2]
                         if (arg[1] == '<'):
-                            ok = r_date.strftime('%Y-%m-%d') < arg[2]
+                            ok = min_date < arg[2]
                         if (arg[1] == '>='):
-                            ok = r_date.strftime('%Y-%m-%d') >= arg[2]
+                            ok = max_date >= arg[2]
                         if (arg[1] == '<='):
-                            ok = r_date.strftime('%Y-%m-%d') <= arg[2]
+                            ok = min_date <= arg[2]
                         pile.append(ok)
                     elif str(arg) == str('&') or str(arg) == str('|'):
                         pile.append(arg)
