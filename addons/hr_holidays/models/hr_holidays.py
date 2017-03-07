@@ -211,6 +211,7 @@ class Holidays(models.Model):
     parent_id = fields.Many2one('hr.holidays', string='Parent')
     linked_request_ids = fields.One2many('hr.holidays', 'parent_id', string='Linked Requests')
     # time
+    all_day = fields.Boolean('All day')
     date_from = fields.Datetime(
         'Start Date', copy=False, track_visibility='onchange',
         index=True, readonly=True,
