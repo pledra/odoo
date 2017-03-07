@@ -180,18 +180,46 @@
         context="{'default_calendar_id': active_id}"
         domain="[('calendar_id','=',active_id), ('resource_id','!=',False)]"/>
 
+    <!-- RESOURCE.ATTENDANCE.TYPE -->
+    <record id="resource_attendance_type_view_tree" model="ir.ui.view">
+        <field name="name">resource.attendance.type.view.tree</field>
+        <field name="model">resource.attendance.type</field>
+        <field name="arch" type="xml">
+            <tree string="Attendance Type" editable="top">
+                <field name="duration"/>
+                <field name="type_day"/>
+                <field name="type_half_day"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="resource_attendance_type_view_form" model="ir.ui.view">
+        <field name="name">resource.attendance.type.view.form</field>
+        <field name="model">resource.attendance.type</field>
+        <field name="arch" type="xml">
+            <form string="Attendance Type">
+                <group>
+                    <field name="type_day"/>
+                    <field name="type_half_day"/>
+                    <field name="duration"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
     <!-- RESOURCE.CALENDAR.ATTENDANCE -->
     <record id="view_resource_calendar_attendance_tree" model="ir.ui.view">
         <field name="name">resource.calendar.attendance.tree</field>
         <field name="model">resource.calendar.attendance</field>
         <field name="arch" type="xml">
             <tree string="Working Time" editable="top">
-                <field name="name"/>
                 <field name="dayofweek"/>
+                <field name="type_day"/>
+                <field name="type_half_day"/>
                 <field name="hour_from" widget="float_time"/>
                 <field name="hour_to" widget="float_time"/>
-                <field name="date_from"/>
-                <field name="date_to"/>
+                <field name="date_from" groups="base.group_no_one"/>
+                <field name="date_to" groups="base.group_no_one"/>
             </tree>
         </field>
     </record>
@@ -202,7 +230,6 @@
         <field name="arch" type="xml">
             <form string="Working Time">
                 <group>
-                    <field name="name"/>
                     <field name="date_from"/>
                     <field name="date_to"/>
                     <field name="dayofweek"/>

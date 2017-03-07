@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="resource_attendance_type_half_day_am_4hours" model="resource.attendance.type">
+        <field name="type_day">half_day</field>
+        <field name="type_half_day">am</field>
+        <field name="duration">4.0</field>
+    </record>
+    <record id="resource_attendance_type_half_day_pm_4hours" model="resource.attendance.type">
+        <field name="type_day">half_day</field>
+        <field name="type_half_day">pm</field>
+        <field name="duration">4.0</field>
+    </record>
+
     <record id="resource_calendar_std" model="resource.calendar">
         <field name="name">Standard 40 Hours/Week</field>
         <field name="company_id" ref="base.main_company"/>

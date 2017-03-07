@@ -62,16 +62,16 @@ class ResourceCalendar(models.Model):
 
     def _get_default_attendance_ids(self):
         return [
-            (0, 0, {'name': _('Monday Morning'), 'dayofweek': '0', 'hour_from': 8, 'hour_to': 12}),
-            (0, 0, {'name': _('Monday Evening'), 'dayofweek': '0', 'hour_from': 13, 'hour_to': 17}),
-            (0, 0, {'name': _('Tuesday Morning'), 'dayofweek': '1', 'hour_from': 8, 'hour_to': 12}),
-            (0, 0, {'name': _('Tuesday Evening'), 'dayofweek': '1', 'hour_from': 13, 'hour_to': 17}),
-            (0, 0, {'name': _('Wednesday Morning'), 'dayofweek': '2', 'hour_from': 8, 'hour_to': 12}),
-            (0, 0, {'name': _('Wednesday Evening'), 'dayofweek': '2', 'hour_from': 13, 'hour_to': 17}),
-            (0, 0, {'name': _('Thursday Morning'), 'dayofweek': '3', 'hour_from': 8, 'hour_to': 12}),
-            (0, 0, {'name': _('Thursday Evening'), 'dayofweek': '3', 'hour_from': 13, 'hour_to': 17}),
-            (0, 0, {'name': _('Friday Morning'), 'dayofweek': '4', 'hour_from': 8, 'hour_to': 12}),
-            (0, 0, {'name': _('Friday Evening'), 'dayofweek': '4', 'hour_from': 13, 'hour_to': 17})
+            (0, 0, {'dayofweek': '0', 'attendance_type_id': self.env.ref('resource.resource_attendance_type_half_day_am_4hours').id}),
+            (0, 0, {'dayofweek': '0', 'attendance_type_id': self.env.ref('resource.resource_attendance_type_half_day_pm_4hours').id}),
+            (0, 0, {'dayofweek': '1', 'attendance_type_id': self.env.ref('resource.resource_attendance_type_half_day_am_4hours').id}),
+            (0, 0, {'dayofweek': '1', 'attendance_type_id': self.env.ref('resource.resource_attendance_type_half_day_pm_4hours').id}),
+            (0, 0, {'dayofweek': '2', 'attendance_type_id': self.env.ref('resource.resource_attendance_type_half_day_am_4hours').id}),
+            (0, 0, {'dayofweek': '2', 'attendance_type_id': self.env.ref('resource.resource_attendance_type_half_day_pm_4hours').id}),
+            (0, 0, {'dayofweek': '3', 'attendance_type_id': self.env.ref('resource.resource_attendance_type_half_day_am_4hours').id}),
+            (0, 0, {'dayofweek': '3', 'attendance_type_id': self.env.ref('resource.resource_attendance_type_half_day_pm_4hours').id}),
+            (0, 0, {'dayofweek': '4', 'attendance_type_id': self.env.ref('resource.resource_attendance_type_half_day_am_4hours').id}),
+            (0, 0, {'dayofweek': '4', 'attendance_type_id': self.env.ref('resource.resource_attendance_type_half_day_pm_4hours').id}),
         ]
 
     name = fields.Char(required=True)
@@ -598,12 +598,49 @@ class ResourceCalendar(models.Model):
         return res and res[-1][1] or False
 
 
+class AttendanceType(models.Model):
+    _name = 'resource.attendance.type'
+    _description = 'Attendance Type'
+
+    duration = fields.Float(string='Hours', default=1.0)
+    type_day = fields.Selection([
+        ('day', 'Day'),
+        ('half_day', 'Half Day'),
+        ('other', 'Other')], string='Day Duration',
+        default='half_day', required=True,
+    )
+    type_half_day = fields.Selection([
+        ('am', 'AM'),
+        ('pm', 'PM'),
+        ('na', 'N/A')], string='Half Day Duration',
+        default='na', required=True,
+    )
+
+
 class ResourceCalendarAttendance(models.Model):
     _name = "resource.calendar.attendance"
     _description = "Work Detail"
     _order = 'dayofweek, hour_from'
 
-    name = fields.Char(required=True)
+    attendance_type_id = fields.Many2one(
+        'resource.attendance.type', 'Attendance Type',
+        required=True)
+    type_day = fields.Selection([
+        ('day', 'Day'),
+        ('half_day', 'Half Day'),
+        ('other', 'Other')], string='Day Duration',
+        required=True,
+    )
+    type_half_day = fields.Selection([
+        ('am', 'AM'),
+        ('pm', 'PM'),
+        ('na', 'N/A')], string='Half Day Duration',
+        required=True,
+    )
+
+    date_from = fields.Date(string='Applicable From')
+    date_to = fields.Date(string='Applicable To')
+
     dayofweek = fields.Selection([
         ('0', 'Monday'),
         ('1', 'Tuesday'),
@@ -611,13 +648,50 @@ class ResourceCalendarAttendance(models.Model):
         ('3', 'Thursday'),
         ('4', 'Friday'),
         ('5', 'Saturday'),
-        ('6', 'Sunday')
-        ], 'Day of Week', required=True, index=True, default='0')
-    date_from = fields.Date(string='Starting Date')
-    date_to = fields.Date(string='End Date')
-    hour_from = fields.Float(string='Work from', required=True, index=True, help="Start and End time of working.")
-    hour_to = fields.Float(string='Work to', required=True)
+        ('6', 'Sunday')], string='Day of Week', default='0',
+        index=True, required=True)
+    hour_from = fields.Float(
+        string='Work from', index=True, required=True,
+        help='Theoretical start working time.')
+    hour_to = fields.Float(
+        string='Work to', required=True,
+        help='Theoretical end working time.')
+
+    start_hour_from = fields.Float('Start Hour From')
+    start_hour_to = fields.Float('Start Hour To')
+    end_hour_from = fields.Float('Start Hour From')
+    end_hour_to = fields.Float('Start Hour To')
+
+    duration = fields.Float(string='Duration')
     calendar_id = fields.Many2one("resource.calendar", string="Resource's Calendar", required=True, ondelete='cascade')
+
+    @api.multi
+    def name_get(self):
+        return [(attendance.id, '%s (%s)' % (attendance.dayofweek, attendance.type_day)) for attendance in self]
+
+    @api.onchange('attendance_type_id')
+    def _onchange_attendance_type_id(self):
+        if self.attendance_type_id:
+            self.type_day = self.attendance_type_id.type_day
+            self.type_half_day = self.attendance_type_id.type_half_day
+
+    @api.onchange('type_day', 'type_half_day')
+    def _onchange_attendance_type_data(self):
+        if self.type_day == 'day' or self.type_half_day == 'am':
+            self.hour_from = 8.0
+        elif self.type_half_day == 'pm':
+            self.hour_from = 13.0
+        if self.type_day == 'day' or self.type_half_day == 'pm':
+            self.hour_to = 17.0
+        elif self.type_half_day == 'am':
+            self.hour_to = 12.0
+
+    @api.model
+    def create(self, values):
+        attendance = self.new(values)
+        attendance._onchange_attendance_type_id()
+        attendance._onchange_attendance_type_data()
+        return super(ResourceCalendarAttendance, self).create(attendance._convert_to_write(attendance._cache))
 
 
 class ResourceResource(models.Model):
