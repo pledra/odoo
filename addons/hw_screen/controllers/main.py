@@ -97,7 +97,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
         request_addr = http.request.httprequest.remote_addr
         result = HardwareScreen.pos_client_data
         failure_count = {}
-        if request_addr != HardwareScreen.display_in_use:
+        if HardwareScreen.display_in_use and request_addr != HardwareScreen.display_in_use:
             failure_count[request_addr] = 0
             if failure_count[request_addr] > 0:
                 time.sleep(10)
