@@ -111,6 +111,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     def _get_html(self):
         cust_js = None
         interfaces = ni.interfaces()
+        my_ip = '127.0.0.1'
 
         with open(os.path.join(os.path.dirname(__file__), "../static/src/js/worker.js")) as js:
             cust_js = js.read()
@@ -127,18 +128,23 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                     display_ifaces += "<tr><td>" + iface_id + "</td>"
                     display_ifaces += "<td>" + conf.get('addr') + "</td>"
                     display_ifaces += "<td>" + conf.get('netmask') + "</td></tr>"
+                    # What is my external IP ?
+                    if iface_id != 'lo':
+                        my_ip = conf.get('addr')
+
+        my_ip_port = my_ip + ":" + self_port
 
         html = """
             <!DOCTYPE html>
             <html>
                 <head>
                 <title class="origin">Odoo -- Point of Sale</title>
-                <script type="text/javascript" class="origin" src="http://127.0.0.1:""" + self_port + """/web/static/lib/jquery/jquery.js" >
+                <script type="text/javascript" class="origin" src="http://""" + my_ip_port + """/web/static/lib/jquery/jquery.js" >
                 </script>
                 <script type="text/javascript" class="origin">
                     """ + cust_js + """
                 </script>
-                <link rel="stylesheet" class="origin" href="http://127.0.0.1:""" + self_port + """/web/static/lib/bootstrap/css/bootstrap.css" >
+                <link rel="stylesheet" class="origin" href="http://""" + my_ip_port + """/web/static/lib/bootstrap/css/bootstrap.css" >
                 </link>
                 <style class="origin">
                     """ + cust_css + """
@@ -146,7 +152,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 </head>
                 <body>
                     <div hidden class="shadow"></div>
-                    <div class="container">
+                    <div class="pos-customer_facing_display container">
                     <div class="row">
                         <div class="col-md-4 col-md-offset-4">
                             <h1>Odoo Point of Sale</h1>

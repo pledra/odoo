@@ -25,8 +25,8 @@
                     } 
 
                     $(".resources",parsedHTML).remove();
-                    $(".container").html(parsedHTML.html());
-                    $(".shadow").html("");           
+                    $(".container").html($('.pos-customer_facing_display', parsedHTML).html());
+                    $(".shadow").html("");              
                 },
 
                 complete: function(jqXHR,err) {
