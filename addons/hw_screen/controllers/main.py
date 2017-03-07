@@ -29,17 +29,19 @@ import threading
 import netifaces as ni
 from subprocess import call
 import openerp.tools.config as config
+import time
 
 self_port = str(config['xmlrpc_port'] or 8069)
 
 _logger = logging.getLogger(__name__)
 
-event_data = threading.Event()
-pos_client_data = {'rendered_html': '',
-                   'ip_from': ''}
-
 
 class HardwareScreen(openerp.addons.web.controllers.main.Home):
+
+    event_data = threading.Event()
+    pos_client_data = {'rendered_html': '',
+                       'ip_from': ''}
+    display_in_use = ''
 
     def _call_xdotools(self, keystroke):
         os.environ['DISPLAY'] = ":0"
@@ -57,12 +59,10 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     # POS CASHIER'S ROUTES
     @http.route('/hw_proxy/customer_facing_display', type='json', auth='none', cors='*')
     def update_user_facing_display(self, html=None):
-        global pos_client_data
         request_ip = http.request.httprequest.remote_addr
-        if request_ip == pos_client_data.get('ip_from', ''):
-            pos_client_data['rendered_html'] = html
-            global event_data
-            event_data.set()
+        if request_ip == HardwareScreen.pos_client_data.get('ip_from', ''):
+            HardwareScreen.pos_client_data['rendered_html'] = html
+            HardwareScreen.event_data.set()
 
             return {'status': 'updated',
                     'message': self._call_xdotools('ctrl')}
@@ -73,19 +73,16 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
     @http.route('/hw_proxy/take_control', type='json', auth='none', cors='*')
     def take_control(self, html=None):
         # ALLOW A CASHIER TO TAKE CONTROL OVER THE POSBOX, IN CASE OF MULTIPLE CASHIER PER POSBOX
-        global pos_client_data
-        global event_data
-        pos_client_data['rendered_html'] = html
-        pos_client_data['ip_from'] = http.request.httprequest.remote_addr
-        event_data.set()
+        HardwareScreen.pos_client_data['rendered_html'] = html
+        HardwareScreen.pos_client_data['ip_from'] = http.request.httprequest.remote_addr
+        HardwareScreen.event_data.set()
 
         return {'status': 'success',
                 'message': 'You now have access to the display'}
 
     @http.route('/hw_proxy/test_ownership', type='json', auth='none', cors='*')
     def test_ownership(self):
-        global pos_client_data
-        if pos_client_data.get('ip_from') == http.request.httprequest.remote_addr:
+        if HardwareScreen.pos_client_data.get('ip_from') == http.request.httprequest.remote_addr:
             return {'status': 'OWNER'}
         else:
             return {'status': 'NOWNER'}
@@ -97,21 +94,31 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
 
     @http.route('/point_of_sale/get_serialized_order', type='json', auth='none')
     def get_serialized_order(self):
-        global event_data
-        global pos_client_data
-        result = pos_client_data
+        request_addr = http.request.httprequest.remote_addr
+        result = HardwareScreen.pos_client_data
+        failure_count = {}
+        if request_addr != HardwareScreen.display_in_use:
+            failure_count[request_addr] = 0
+            if failure_count[request_addr] > 0:
+                time.sleep(10)
+            failure_count[request_addr] += 1
+            return """<div class="pos-customer_facing_display"><p>Not Authorized. Another browser is display for the client. Please refresh.</p></div> """
+
         # IMPLEMENTATION OF LONGPOLLING
-        if event_data.wait():
-            event_data.clear()
+        if HardwareScreen.event_data.wait():
+            HardwareScreen.event_data.clear()
+            failure_count[request_addr] = 0
             return result
         else:
-            event_data.clear()
+            HardwareScreen.event_data.clear()
+            failure_count[request_addr] = 0
             return result
 
     def _get_html(self):
         cust_js = None
         interfaces = ni.interfaces()
         my_ip = '127.0.0.1'
+        HardwareScreen.display_in_use = http.request.httprequest.remote_addr
 
         with open(os.path.join(os.path.dirname(__file__), "../static/src/js/worker.js")) as js:
             cust_js = js.read()
