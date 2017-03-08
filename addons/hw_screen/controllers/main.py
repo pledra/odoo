@@ -102,7 +102,7 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
             if failure_count[request_addr] > 0:
                 time.sleep(10)
             failure_count[request_addr] += 1
-            return """<div class="pos-customer_facing_display"><p>Not Authorized. Another browser is display for the client. Please refresh.</p></div> """
+            return {'rendered_html': """<div class="pos-customer_facing_display"><p>Not Authorized. Another browser is in use to display for the client. Please refresh.</p></div> """}
 
         # IMPLEMENTATION OF LONGPOLLING
         if HardwareScreen.event_data.wait():
