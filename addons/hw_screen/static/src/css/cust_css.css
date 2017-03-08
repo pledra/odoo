@@ -9,6 +9,13 @@ body {
     height: 100%;
     font-size: 14px;
     margin: 0;
+}
+
+.original_body {
     background-color: #797083;
     color: white;
+}
+
+.ajax_got_body {
+    color: black;
 }

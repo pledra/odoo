@@ -19,13 +19,14 @@
 
                         mergedHead = true;
                         current_client_url = new_client_url;
-                        $("body").css("color", 'black');
+                        $("body").removeClass('original_body').addClass('ajax_got_body');
                         $("head").children().not('.origin').remove();
                         $("head").append($(".resources",parsedHTML).html());
                     } 
 
                     $(".resources",parsedHTML).remove();
                     $(".container").html($('.pos-customer_facing_display', parsedHTML).html());
+                    $(".container").attr('class', 'container').addClass($('.pos-customer_facing_display', parsedHTML).attr('class'));
                     $(".shadow").html("");              
                 },
 

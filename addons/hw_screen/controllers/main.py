@@ -153,13 +153,14 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                 </script>
                 <link rel="stylesheet" class="origin" href="http://""" + my_ip_port + """/web/static/lib/bootstrap/css/bootstrap.css" >
                 </link>
+                <script class="origin" src="http://""" + my_ip_port + """/web/static/lib/bootstrap/js/bootstrap.min.js"></script>
                 <style class="origin">
                     """ + cust_css + """
                 </style>
                 </head>
-                <body>
+                <body class="original_body">
                     <div hidden class="shadow"></div>
-                    <div class="pos-customer_facing_display container">
+                    <div class="container">
                     <div class="row">
                         <div class="col-md-4 col-md-offset-4">
                             <h1>Odoo Point of Sale</h1>
