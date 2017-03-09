@@ -27,7 +27,9 @@
                     $(".resources",parsedHTML).remove();
                     $(".container").html($('.pos-customer_facing_display', parsedHTML).html());
                     $(".container").attr('class', 'container').addClass($('.pos-customer_facing_display', parsedHTML).attr('class'));
-                    $(".shadow").html("");              
+                    $(".shadow").html(""); 
+                    var d = $('.pos_orderlines_list');
+                    d.scrollTop(d.prop("scrollHeight"));             
                 },
 
                 complete: function(jqXHR,err) {
