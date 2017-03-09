@@ -12,7 +12,7 @@
 
                 success: function(data) {
                     var trimmed = $.trim(data.result.rendered_html);
-                    var parsedHTML = $('.shadow').html($.parseHTML(trimmed,true));
+                    var parsedHTML = $('.shadow').html($.parseHTML(trimmed,keepScripts=true));
                     var new_client_url = $(".resources > base",parsedHTML).attr('href');
 
                     if (!mergedHead || (current_client_url !== new_client_url)) {
@@ -27,9 +27,12 @@
                     $(".resources",parsedHTML).remove();
                     $(".container").html($('.pos-customer_facing_display', parsedHTML).html());
                     $(".container").attr('class', 'container').addClass($('.pos-customer_facing_display', parsedHTML).attr('class'));
+                    parsedHTML.filter('script').each(function() {
+                            $.globalEval(this.text || this.textContent || this.innerHTML || '');});   
                     $(".shadow").html(""); 
                     var d = $('.pos_orderlines_list');
-                    d.scrollTop(d.prop("scrollHeight"));             
+                    d.scrollTop(d.prop("scrollHeight"));
+             
                 },
 
                 complete: function(jqXHR,err) {
