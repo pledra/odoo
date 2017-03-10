@@ -988,18 +988,21 @@ class MailThread(models.AbstractModel):
         mail_messages = MailMessage.sudo().search([('message_id', 'in', msg_references)], limit=1)
         if ref_match and mail_messages:
             model, thread_id = mail_messages.model, mail_messages.res_id
-            alias = Alias.search([('alias_name', '=', (tools.email_split(email_to) or [''])[0].split('@', 1)[0].lower())])
-            alias = alias[0] if alias else None
-            route = self.with_context(drop_alias=True).message_route_verify(
-                message, message_dict,
-                (model, thread_id, custom_values, self._uid, alias),
-                update_author=True, assert_model=False, create_fallback=True)
-            if route:
-                _logger.info(
-                    'Routing mail from %s to %s with Message-Id %s: direct reply to msg: model: %s, thread_id: %s, custom_values: %s, uid: %s',
-                    email_from, email_to, message_id, model, thread_id, custom_values, self._uid)
-                return [route]
-            elif route is False:
+            dst_aliases = Alias.search([
+                ('alias_name', 'in', map(lambda addr: addr.split('@', 1)[0].lower(), tools.email_split(email_to) or [''])),
+                ('alias_model_id.model', '=', model)])
+            route = ()
+            for alias in dst_aliases or [None]:
+                route = self.with_context(drop_alias=True).message_route_verify(
+                    message, message_dict,
+                    (model, thread_id, custom_values, self._uid, alias),
+                    update_author=True, assert_model=False, create_fallback=True)
+                if route:
+                    _logger.info(
+                        'Routing mail from %s to %s with Message-Id %s: direct reply to msg: model: %s, thread_id: %s, custom_values: %s, uid: %s',
+                        email_from, email_to, message_id, model, thread_id, custom_values, self._uid)
+                    return [route]
+            if route is False:
                 return []
 
         # 2. message is a reply to an existign thread (6.1 compatibility)

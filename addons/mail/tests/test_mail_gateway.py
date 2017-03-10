@@ -455,6 +455,39 @@ class TestMailgateway(TestMail):
         self.assertEqual(len(self.group_public.message_ids[0].child_ids), 0, 'message_process: msg1 should not have children')
 
     @mute_logger('openerp.addons.mail.models.mail_thread', 'openerp.models')
+    def test_message_process_multiple_dst(self):
+        # Writing to a correct group alias that is protected: should not accept
+        self.alias.write({'alias_contact': 'followers'})
+        self.format_and_process(
+            MAIL_TEMPLATE, email_from='valid.other@gmail.com',
+            msg_id='<1198923581.41972151344608186800.JavaMail.diff1@agrolait.com>',
+            to='groups@example.com>', subject='Re: news',
+            extra='In-Reply-To:\r\n\t%s\n' % self.fake_email.message_id)
+        self.assertEqual(len(self.group_public.message_ids), 1)
+        self.assertEqual(len(self.fake_email.child_ids), 0)
+
+        # Added an alias of another model: just ignore it and accept reply
+        self.alias.write({'alias_model_id': self.env['ir.model'].search([('model', '=', 'res.partner')]).id, 'alias_contact': 'everyone'})
+        self.format_and_process(
+            MAIL_TEMPLATE, email_from='valid.other@gmail.com',
+            msg_id='<1198923581.41972151344608186800.JavaMail.diff2@agrolait.com>',
+            to='groups@example.com>', subject='Re: news',
+            extra='In-Reply-To:\r\n\t%s\n' % self.fake_email.message_id)
+        self.assertEqual(len(self.group_public.message_ids), 2)
+        self.assertEqual(len(self.fake_email.child_ids), 1)
+
+        # Added an alias of another model: just ignore it and accept reply
+        self.alias.write({'alias_contact': 'followers'})
+        self.format_and_process(
+            MAIL_TEMPLATE, email_from='valid.other@gmail.com',
+            msg_id='<1198923581.41972151344608186800.JavaMail.diff3@agrolait.com>',
+            to='groups@example.com>', subject='Re: news',
+            extra='In-Reply-To:\r\n\t%s\n' % self.fake_email.message_id)
+
+        self.assertEqual(len(self.group_public.message_ids), 3)
+        self.assertEqual(len(self.fake_email.child_ids), 2)
+
+    @mute_logger('openerp.addons.mail.models.mail_thread', 'openerp.models')
     def test_message_process_duplicate(self):
         """ Duplicate emails (same message_id) are not processed """
         self.alias.write({'alias_force_thread_id': self.group_public.id,})
