@@ -729,14 +729,17 @@ class MassMailing(osv.Model):
     def get_recipients(self, cr, uid, mailing, context=None):
         if mailing.mailing_domain:
             domain = eval(mailing.mailing_domain)
-            res_ids = self.pool[mailing.mailing_model].search(cr, uid, domain, context=context)
+            # use last writer or then creator of mailing or then root user
+            mailing_domain_user = mailing.write_uid or mailing.create_uid or mailing.env['res.users'].browse(SUPERUSER_ID)
+            mailing_domain_context = mailing_domain_user.context_get()
+            res_ids = self.pool[mailing.mailing_model].search(cr, mailing.write_uid, domain, context=mailing_domain_context)
         else:
             res_ids = []
             domain = [('id', 'in', res_ids)]
 
         # randomly choose a fragment
         if mailing.contact_ab_pc < 100:
-            contact_nbr = self.pool[mailing.mailing_model].search(cr, uid, domain, count=True, context=context)
+            contact_nbr = len(res_ids)
             topick = int(contact_nbr / 100.0 * mailing.contact_ab_pc)
             if mailing.mass_mailing_campaign_id and mailing.mass_mailing_campaign_id.unique_ab_testing:
                 already_mailed = self.pool['mail.mass_mailing.campaign'].get_recipients(cr, uid, [mailing.mass_mailing_campaign_id.id], context=context)[mailing.mass_mailing_campaign_id.id]
