@@ -488,15 +488,14 @@ class TestMailgateway(TestMail):
             msg_id='<1198923581.41972151344608186800.JavaMail.diff3@agrolait.com>',
             to='youpie@example.com', subject='Re: news',
             extra='In-Reply-To:\r\n\t%s\n' % self.fake_email.message_id)
-
         self.assertEqual(len(self.group_public.message_ids), 3)
         self.assertEqual(len(self.fake_email.child_ids), 2)
 
         # Reply to correct alias and another alias: just ignore stange aliases and accept reply
-        self.alias.write({'alias_contact': 'followers'})
+        self.alias.write({'alias_contact': 'everyone'})
         self.format_and_process(
             MAIL_TEMPLATE, email_from='valid.other@gmail.com',
-            msg_id='<1198923581.41972151344608186800.JavaMail.diff3@agrolait.com>',
+            msg_id='<1198923581.41972151344608186800.JavaMail.diff4@agrolait.com>',
             to='groups@example.com, youpie@example.com', subject='Re: news',
             extra='In-Reply-To:\r\n\t%s\n' % self.fake_email.message_id)
 
