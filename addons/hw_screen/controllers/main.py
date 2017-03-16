@@ -20,23 +20,23 @@
 ##############################################################################
 
 
-import logging
-
 from openerp import http
-import openerp
-import os
-import threading
+from openerp.tools import config
+from openerp.addons.web.controllers import main as web
+
+import logging
 import netifaces as ni
+import os
 from subprocess import call
-import openerp.tools.config as config
 import time
+import threading
 
 self_port = str(config['xmlrpc_port'] or 8069)
 
 _logger = logging.getLogger(__name__)
 
 
-class HardwareScreen(openerp.addons.web.controllers.main.Home):
+class HardwareScreen(web.Home):
 
     event_data = threading.Event()
     pos_client_data = {'rendered_html': '',
