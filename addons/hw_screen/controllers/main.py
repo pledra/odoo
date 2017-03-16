@@ -174,6 +174,8 @@ class HardwareScreen(openerp.addons.web.controllers.main.Home):
                                     </tr>
                                     """ + display_ifaces + """
                                 </table>
+                            <p>The customer cart will be displayed here once a Point of Sale session is started.</p>
+                            <p>Odoo version 11 or above is required.</p>
                         </div>
                     </div>
                     </div>
