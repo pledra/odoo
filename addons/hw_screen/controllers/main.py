@@ -42,6 +42,7 @@ class HardwareScreen(web.Home):
     pos_client_data = {'rendered_html': '',
                        'ip_from': ''}
     display_in_use = ''
+    failure_count = {}
 
     def _call_xdotools(self, keystroke):
         os.environ['DISPLAY'] = ":0"
@@ -96,23 +97,20 @@ class HardwareScreen(web.Home):
     def get_serialized_order(self):
         request_addr = http.request.httprequest.remote_addr
         result = HardwareScreen.pos_client_data
-        failure_count = {}
         if HardwareScreen.display_in_use and request_addr != HardwareScreen.display_in_use:
-            failure_count[request_addr] = 0
-            if failure_count[request_addr] > 0:
+            if not HardwareScreen.failure_count.get(request_addr):
+                HardwareScreen.failure_count[request_addr] = 0
+            if HardwareScreen.failure_count[request_addr] > 0:
                 time.sleep(10)
-            failure_count[request_addr] += 1
+            HardwareScreen.failure_count[request_addr] += 1
             return {'rendered_html': """<div class="pos-customer_facing_display"><p>Not Authorized. Another browser is in use to display for the client. Please refresh.</p></div> """}
 
         # IMPLEMENTATION OF LONGPOLLING
-        if HardwareScreen.event_data.wait():
-            HardwareScreen.event_data.clear()
-            failure_count[request_addr] = 0
-            return result
-        else:
-            HardwareScreen.event_data.clear()
-            failure_count[request_addr] = 0
-            return result
+        # Times out 2 seconds before the JS request does
+        HardwareScreen.event_data.wait(28)
+        HardwareScreen.event_data.clear()
+        HardwareScreen.failure_count[request_addr] = 0
+        return result
 
     def _get_html(self):
         cust_js = None

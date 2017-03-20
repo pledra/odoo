@@ -72,6 +72,7 @@ systemctl disable dphys-swapfile.service
 systemctl enable ssh
 
 # USER PI AUTO LOGIN (from nano raspi-config)
+# We take the whole algorithm from raspi-config in order to stay compatible with raspbian infrastructure
 if command -v systemctl > /dev/null && systemctl | grep -q '\-\.mount'; then
         SYSTEMD=1
 elif [ -f /etc/init.d/cron ] && [ ! -h /etc/init.d/cron ]; then
@@ -90,6 +91,8 @@ fi
 # disable overscan in /boot/config.txt, we can't use
 # overwrite_after_init because it's on a different device
 # (/dev/mmcblk0p1) and we don't mount that afterwards.
+# This option disables any black strips around the screen
+# cf: https://www.raspberrypi.org/documentation/configuration/raspi-config.md
 echo "disable_overscan=1" >> /boot/config.txt
 
 # https://www.raspberrypi.org/forums/viewtopic.php?p=79249
