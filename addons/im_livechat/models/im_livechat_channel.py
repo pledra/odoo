@@ -167,7 +167,8 @@ class ImLivechatChannel(models.Model):
         operator_partner_id = user.partner_id.id
         # partner to add to the mail.channel
         channel_partner_to_add = [(4, operator_partner_id)]
-        if self.env.uid:  # if the user if logged (portal user), he can be identify
+        # accept only active users as it may lead to weird channels displayed in front-end
+        if self.env.user and self.env.user.active:
             channel_partner_to_add.append((4, self.env.user.partner_id.id))
         # create the session, and add the link with the given channel
         mail_channel = self.env["mail.channel"].with_context(mail_create_nosubscribe=False).sudo().create({

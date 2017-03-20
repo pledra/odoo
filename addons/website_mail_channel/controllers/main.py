@@ -30,7 +30,7 @@ class MailGroup(http.Controller):
         cr, uid, context = request.cr, request.uid, request.context
         group_obj = request.registry.get('mail.channel')
         mail_message_obj = request.registry.get('mail.message')
-        group_ids = group_obj.search(cr, uid, [('alias_id', '!=', False), ('alias_id.alias_name', '!=', False)], context=context)
+        group_ids = group_obj.search(cr, uid, [('channel_type', '=', 'channel'), ('alias_id', '!=', False), ('alias_id.alias_name', '!=', False)], context=context)
         groups = group_obj.browse(cr, uid, group_ids, context)
 
         # compute statistics
@@ -110,8 +110,8 @@ class MailGroup(http.Controller):
         return True
 
     @http.route([
-        "/groups/<model('mail.channel'):group>",
-        "/groups/<model('mail.channel'):group>/page/<int:page>"
+        """/groups/<model('mail.channel', "[('channel_type','=','channel')]"):group>""",
+        """/groups/<model('mail.channel', "[('channel_type','=','channel')]"):group>/page/<int:page>"""
     ], type='http', auth="public", website=True)
     def thread_headers(self, group, page=1, mode='thread', date_begin=None, date_end=None, **post):
         cr, uid, context = request.cr, request.uid, request.context
@@ -146,7 +146,7 @@ class MailGroup(http.Controller):
         return request.website.render('website_mail_channel.group_messages', values)
 
     @http.route([
-        '''/groups/<model('mail.channel'):group>/<model('mail.message', "[('model','=','mail.channel'), ('res_id','=',group[0])]"):message>''',
+        '''/groups/<model('mail.channel', "[('channel_type','=','channel')]"):group>/<model('mail.message', "[('model','=','mail.channel'), ('res_id','=',group[0])]"):message>''',
     ], type='http', auth="public", website=True)
     def thread_discussion(self, group, message, mode='thread', date_begin=None, date_end=None, **post):
         cr, uid, context = request.cr, request.uid, request.context
@@ -177,7 +177,7 @@ class MailGroup(http.Controller):
         return request.website.render('website_mail_channel.group_message', values)
 
     @http.route(
-        '''/groups/<model('mail.channel'):group>/<model('mail.message', "[('model','=','mail.channel'), ('res_id','=',group[0])]"):message>/get_replies''',
+        '''/groups/<model('mail.channel', "[('channel_type','=','channel')]"):group>/<model('mail.message', "[('model','=','mail.channel'), ('res_id','=',group[0])]"):message>/get_replies''',
         type='json', auth="public", methods=['POST'], website=True)
     def render_messages(self, group, message, **post):
         last_displayed_id = post.get('last_displayed_id')
@@ -197,7 +197,7 @@ class MailGroup(http.Controller):
         }
         return request.registry['ir.ui.view'].render(request.cr, request.uid, 'website_mail_channel.messages_short', values, engine='ir.qweb', context=request.context)
 
-    @http.route("/groups/<model('mail.channel'):group>/get_alias_info", type='json', auth='public', website=True)
+    @http.route("""/groups/<model('mail.channel', "[('channel_type','=','channel')]"):group>/get_alias_info""", type='json', auth='public', website=True)
     def get_alias_info(self, group, **post):
         return {
             'alias_name': group.alias_id and group.alias_id.alias_name and group.alias_id.alias_domain and '%s@%s' % (group.alias_id.alias_name, group.alias_id.alias_domain) or False
