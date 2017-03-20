@@ -39,17 +39,17 @@ _logger = logging.getLogger(__name__)
 class HardwareScreen(web.Home):
 
     event_data = threading.Event()
-    pos_client_data = {'rendered_html': '',
-                       'ip_from': ''}
+    pos_client_data = {'rendered_html': False,
+                       'ip_from': False}
     display_in_use = ''
     failure_count = {}
 
     def _call_xdotools(self, keystroke):
-        os.environ['DISPLAY'] = ":0"
-        os.environ['XAUTHORITY'] = "/tmp/.Xauthority"
+        os.environ['DISPLAY'] = ":0.0"
+        os.environ['XAUTHORITY'] = "/run/lightdm/pi/xauthority"
         try:
             call(['xdotool', 'key', keystroke])
-            return "xdotool succeeded in stroking" + keystroke
+            return "xdotool succeeded in stroking " + keystroke
         except:
             return "xdotool threw an error, maybe it is not installed on the posbox"
 
@@ -65,11 +65,9 @@ class HardwareScreen(web.Home):
             HardwareScreen.pos_client_data['rendered_html'] = html
             HardwareScreen.event_data.set()
 
-            return {'status': 'updated',
-                    'message': self._call_xdotools('ctrl')}
+            return {'status': 'updated'}
         else:
-            return {'status': 'failed',
-                    'message': 'Somebody else is using the display'}
+            return {'status': 'failed'}
 
     @http.route('/hw_proxy/take_control', type='json', auth='none', cors='*')
     def take_control(self, html=None):
@@ -89,7 +87,7 @@ class HardwareScreen(web.Home):
             return {'status': 'NOWNER'}
 
     # POSBOX ROUTES (SELF)
-    @http.route('/point_of_sale/display', type='http', auth='none', website=True)
+    @http.route('/point_of_sale/display', type='http', auth='none')
     def render_main_display(self):
         return self._get_html()
 
@@ -103,14 +101,18 @@ class HardwareScreen(web.Home):
             if HardwareScreen.failure_count[request_addr] > 0:
                 time.sleep(10)
             HardwareScreen.failure_count[request_addr] += 1
-            return {'rendered_html': """<div class="pos-customer_facing_display"><p>Not Authorized. Another browser is in use to display for the client. Please refresh.</p></div> """}
+            return {'rendered_html': """<div class="pos-customer_facing_display"><p>Not Authorized. Another browser is in use to display for the client. Please refresh.</p></div> """,
+                    'stop_longpolling': True,
+                    'ip_from': request_addr}
 
         # IMPLEMENTATION OF LONGPOLLING
         # Times out 2 seconds before the JS request does
-        HardwareScreen.event_data.wait(28)
-        HardwareScreen.event_data.clear()
-        HardwareScreen.failure_count[request_addr] = 0
-        return result
+        if HardwareScreen.event_data.wait(28):
+            HardwareScreen.event_data.clear()
+            HardwareScreen.failure_count[request_addr] = 0
+            return result
+        return {'rendered_html': False,
+                'ip_from': HardwareScreen.pos_client_data['ip_from']}
 
     def _get_html(self):
         cust_js = None
