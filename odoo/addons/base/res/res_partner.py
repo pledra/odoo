@@ -486,6 +486,22 @@ class Partner(models.Model):
             website = url.replace(scheme='http').to_url()
         return website
 
+    def _resize_images(self, vals):
+        """ This will resize image with actual ratio instead of converting it in square image. """
+        base64_source = None
+        if 'image' in vals:
+            base64_source = vals['image']
+        elif 'image_medium' in vals:
+            base64_source = vals['image_medium']
+        elif 'image_small' in vals:
+            base64_source = vals['image_small']
+        #image resize for image_medium and image_small
+        tools.image_resize_images(vals)
+        if base64_source:
+            if isinstance(base64_source, tools.pycompat.text_type):
+                base64_source = base64_source.encode('ascii')
+            vals['image'] = tools.image_resize_image(base64_source, size=(1024,None), avoid_if_small=True)
+
     @api.multi
     def write(self, vals):
         # res.partner must only allow to set the company_id of a partner if it
@@ -504,7 +520,7 @@ class Partner(models.Model):
                     companies = set(user.company_id for user in partner.user_ids)
                     if len(companies) > 1 or company not in companies:
                         raise UserError(_("You can not change the company as the partner/user has multiple user linked with different companies."))
-        tools.image_resize_images(vals)
+        self._resize_images(vals)
 
         result = True
         # To write in SUPERUSER on field is_company and avoid access rights problems.
@@ -528,7 +544,7 @@ class Partner(models.Model):
         # cannot be easily performed if default images are in the way
         if not vals.get('image'):
             vals['image'] = self._get_default_image(vals.get('type'), vals.get('is_company'), vals.get('parent_id'))
-        tools.image_resize_images(vals)
+        self._resize_images(vals)
         partner = super(Partner, self).create(vals)
         partner._fields_sync(vals)
         partner._handle_first_contact_creation()
