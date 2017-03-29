@@ -28,7 +28,8 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
 
         # I create a PoS order with 2 units of PCSC234 at 450 EUR (Tax Incl)
         # and 3 units of PCSC349 at 300 EUR. (Tax Excl)
-        self.pos_order_pos0 = self.PosOrder.create({
+        order_id = self.PosOrder.create_from_ui([{'data':{
+            'name': 'Order 00041-001-0001',
             'company_id': self.company_id,
             'pricelist_id': self.partner1.property_product_pricelist.id,
             'partner_id': self.partner1.id,
@@ -39,6 +40,8 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
                 'discount': 0.0,
                 'qty': 2.0,
                 'tax_ids': [(6, 0, self.product3.taxes_id.ids)],
+                'price_subtotal': 450 * 2,
+                'price_subtotal_incl': 450 * 2 * 1.05,
             }), (0, 0, {
                 'name': "OL/0002",
                 'product_id': self.product4.id,
@@ -46,8 +49,15 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
                 'discount': 0.0,
                 'qty': 3.0,
                 'tax_ids': [(6, 0, self.product4.taxes_id.ids)],
-            })]
-        })
+                'price_subtotal': 300 * 3,
+                'price_subtotal_incl': 300 * 3 * 1.05,
+            })],
+            'amount_total': 1890.0,
+            'amount_tax': 90.0,
+            'amount_paid': 1890.0,
+            'amount_return': 0.0,
+        }}])
+        self.pos_order_pos0 = self.PosOrder.browse(order_id[0])
 
         # I check that the total of the order is equal to 450*2 + 300*3*1.05
         # and the tax of the order is equal to 900 -(450 * 2 / 1.1) +
@@ -129,6 +139,8 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
                 'discount': 5.0,
                 'qty': 2.0,
                 'tax_ids': [(6, 0, self.product3.taxes_id.ids)],
+                'price_subtotal': 450 * (1 - 5/100.0) * 2,
+                'price_subtotal_incl': 450 * (1 - 5/100.0) * 2,
             }), (0, 0, {
                 'name': "OL/0002",
                 'product_id': self.product4.id,
@@ -136,7 +148,13 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
                 'discount': 5.0,
                 'qty': 3.0,
                 'tax_ids': [(6, 0, self.product4.taxes_id.ids)],
-            })]
+                'price_subtotal': 300 * (1 - 5/100.0) * 3,
+                'price_subtotal_incl': 300 * (1 - 5/100.0) * 3,
+            })],
+            'amount_total': 1710.0,
+            'amount_tax': 0.0,
+            'amount_paid': 1710.0,
+            'amount_return': 0.0,
         })
 
         # I create a refund
@@ -170,6 +188,8 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
         # I create a PoS order with 2 units of PCSC234 at 450 EUR
         # and 3 units of PCSC349 at 300 EUR.
         self.pos_order_pos1 = self.PosOrder.create({
+            'amount_tax': 0.0,
+            'amount_total': 1845.0,
             'company_id': self.company_id,
             'pricelist_id': self.partner1.property_product_pricelist.id,
             'partner_id': self.partner1.id,
@@ -187,7 +207,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
                 'discount': 0.0,
                 'qty': 3.0,
                 'tax_ids': [(6, 0, self.product4.taxes_id.ids)],
-            })]
+            })],
         })
 
         context_make_payment = {
@@ -233,6 +253,8 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
         )
 
         self.pos_order_pos2 = self.PosOrder.create({
+            'amount_tax': 0.0,
+            'amount_total': -1845,
             'company_id': self.company_id,
             'pricelist_id': self.partner1.property_product_pricelist.id,
             'partner_id': self.partner1.id,
@@ -250,7 +272,7 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
                 'discount': 0.0,
                 'qty': (-3.0),
                 'tax_ids': [(6, 0, self.product4.taxes_id.ids)],
-            })]
+            })],
         })
 
         context_make_payment = {
@@ -360,6 +382,16 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
 
     def test_order_to_invoice(self):
 
+        def compute_tax(product, price, qty=1, taxes=None):
+            if taxes is None:
+                taxes = product.taxes_id
+            currency = self.pos_config.pricelist_id.currency_id
+            taxes = taxes.compute_all(price, currency, qty, product=product)['taxes']
+            untax = price * qty
+            return untax, sum(tax.get('amount', 0.0) for tax in taxes)
+
+        untax1, atax1 = compute_tax(self.product3, 450*0.95, 2)
+        untax2, atax2 = compute_tax(self.product4, 300*0.95, 3)
         # I create a new PoS order with 2 units of PC1 at 450 EUR (Tax Incl) and 3 units of PCSC349 at 300 EUR. (Tax Excl)
         self.pos_order_pos1 = self.PosOrder.create({
             'company_id': self.company_id,
@@ -379,13 +411,17 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
                 'discount': 5.0,
                 'qty': 3.0,
                 'tax_ids': [(6, 0, self.product4.taxes_id.ids)],
-            })]
+            })],
+            'amount_tax': atax1 + atax2,
+            'amount_total': untax1 + untax2 + atax1 + atax2,
+            'amount_paid': 0.0,
+            'amount_return': 0.0,
         })
 
         # I click on the "Make Payment" wizard to pay the PoS order
         context_make_payment = {"active_ids": [self.pos_order_pos1.id], "active_id": self.pos_order_pos1.id}
         self.pos_make_payment = self.PosMakePayment.with_context(context_make_payment).create({
-            'amount': (450 * 2 + 300 * 3 * 1.05) * 0.95,
+            'amount': (450 * 2 * 1.05 + 300 * 3 * 1.05) * 0.95,
         })
         # I click on the validate button to register the payment.
         context_payment = {'active_id': self.pos_order_pos1.id}
@@ -488,6 +524,8 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
               'id': 42,
               'pack_lot_ids': [],
               'price_unit': 0.9,
+              'price_subtotal': 0.9,
+              'price_subtotal_incl': 1.04,
               'product_id': self.carotte.id,
               'qty': 1,
               'tax_ids': [(6, 0, self.carotte.taxes_id.ids)]}]],
@@ -522,6 +560,8 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
               'id': 3,
               'pack_lot_ids': [],
               'price_unit': 1.2,
+              'price_subtotal': 1.2,
+              'price_subtotal_incl': 1.38,
               'product_id': self.courgette.id,
               'qty': 1,
               'tax_ids': [(6, 0, self.courgette.taxes_id.ids)]}]],
@@ -556,6 +596,8 @@ class TestPointOfSaleFlow(TestPointOfSaleCommon):
               'id': 3,
               'pack_lot_ids': [],
               'price_unit': 1.28,
+              'price_subtotal': 1.28,
+              'price_subtotal_incl': 1.47,
               'product_id': self.onions.id,
               'qty': 1,
               'tax_ids': [[6, False, self.onions.taxes_id.ids]]}]],
