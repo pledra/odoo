@@ -355,7 +355,8 @@ class EventRegistration(models.Model):
     @api.one
     def confirm_registration(self):
         self.state = 'open'
-
+        # Add onto schedulers
+        self.event_id.event_mail_ids.add_mail_registrations()
         # auto-trigger after_sub (on subscribe) mail schedulers, if needed
         onsubscribe_schedulers = self.event_id.event_mail_ids.filtered(
             lambda s: s.interval_type == 'after_sub')
