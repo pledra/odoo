@@ -561,7 +561,7 @@ class PurchaseOrderLine(models.Model):
 
     @api.multi
     def write(self, values):
-        orders = False
+        orders = self.env['purchase.order']
         if 'product_qty' in values:
             changed_lines = self.filtered(lambda x: x.order_id.state == 'purchase')
             if changed_lines:
