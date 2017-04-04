@@ -561,7 +561,7 @@ class PurchaseOrderLine(models.Model):
 
     @api.multi
     def write(self, values):
-        orders = self.env['purchase.order']
+        orders = False
         if 'product_qty' in values:
             changed_lines = self.filtered(lambda x: x.order_id.state == 'purchase')
             if changed_lines:
@@ -581,7 +581,7 @@ class PurchaseOrderLine(models.Model):
                     msg += "</ul>"
                     order.message_post(body=msg)
         result = super(PurchaseOrderLine, self).write(values)
-        if 'product_qty' in values:
+        if orders:
             orders._create_picking()
         return result
 
