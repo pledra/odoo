@@ -183,6 +183,10 @@ var FieldTextHtml = widget.extend({
     template: 'web_editor.FieldTextHtml',
     willStart: function () {
         var self = this;
+        if (this.options.no_translations) {
+            self.languages = [];
+            return $.when();
+        }
         return new Model('res.lang').call("search_read", [[['code', '!=', 'en_US']], ["name", "code"]]).then(function (res) {
             self.languages = res;
         });
