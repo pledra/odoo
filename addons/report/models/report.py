@@ -326,15 +326,13 @@ class Report(models.Model):
         if report.attachment:
             records = self.env[report.model].browse(docids)
             filenames = self._attachment_filename(records, report)
-            attachments = None
-            if report.attachment_use:
-                attachments = self._attachment_stored(records, report, filenames=filenames)
+            attachments = self._attachment_stored(records, report, filenames=filenames)
             for record_id in docids:
                 filename = filenames[record_id]
+                attachment = attachments[record_id]
 
                 # If the user has checked 'Reload from Attachment'
-                if attachments:
-                    attachment = attachments[record_id]
+                if report.attachment_use:
                     if attachment:
                         # Add the loaded pdf in the loaded_documents list
                         pdf = attachment.datas
@@ -350,7 +348,8 @@ class Report(models.Model):
                     # preventing to save the file.
                     continue
                 else:
-                    save_in_attachment[record_id] = filename  # Mark current document to be saved
+                    if not attachment:  # Do not save this document is there's already one version saved
+                        save_in_attachment[record_id] = filename  # Mark current document to be saved
 
         return save_in_attachment
 
