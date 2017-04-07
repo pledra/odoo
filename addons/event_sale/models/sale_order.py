@@ -15,6 +15,14 @@ class SaleOrder(models.Model):
             return self.env['ir.actions.act_window'].with_context(default_sale_order_id=self.id).for_xml_id('event_sale', 'action_sale_order_event_registration')
         return res
 
+    @api.multi
+    def unlink(self):
+        # update tickets seats on sale order deletion
+        tickets = self.order_line.mapped('event_ticket_id')
+        res = super(SaleOrder, self).unlink()
+        tickets.recompute()
+        return res
+
 
 class SaleOrderLine(models.Model):
 
