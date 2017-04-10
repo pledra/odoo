@@ -4,7 +4,7 @@ odoo.define('website_sale_options.website_sale', function(require) {
 var ajax = require('web.ajax');
 var website = require('website.website');
 var base = require('web_editor.base');
-require('website_sale.website_sale');
+var website_sale = require('website_sale.website_sale');
 var website_sale_utils = require('website_sale.utils');
 
 $('.oe_website_sale #add_to_cart, .oe_website_sale #products_grid .a-submit')
