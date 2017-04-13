@@ -66,9 +66,6 @@
             }
             .fc-view {
                 overflow-x: auto;
-                > table {
-                    min-width: 600px;
-                }
             }
         }
 
@@ -218,5 +215,46 @@
 .o_dashboard {
     .o_calendar_container .o_calendar_sidebar_container {
         display: none;
+    }
+}
+
+@media (max-width: @screen-xs-max) {
+    .o_control_panel {
+        .o_cp_buttons {
+            width: 100%;
+            .o_calendar_button_today {
+                padding: 0px;
+                width: 35px;
+                float: right;
+                position: relative;
+                .o_calendar_button_binds {
+                    position: absolute;
+                    height: 8px;
+                    width: 25px;
+                    background: transparent;
+                    border: 2px solid @odoo-brand-primary;
+                    border-width: 0 3px;
+                    top: -4px;
+                    left: 0;
+                    right: 0;
+                    margin: auto;
+                }
+                .o_calendar_day {
+                    margin: 0px;
+                    border-style: solid;
+                    border-width: 5px 1px 1px 1px;
+                    border-color: @odoo-brand-primary;
+                    font-size: 13px;
+                    padding: 5px 0;
+                    box-shadow: 0px 0px 10px black;
+                }
+            }
+        }
+        .o_cp_left {
+            width: 100%;
+        }
+        .o_cp_right {
+            width: 100%;
+        }
     }
 }
