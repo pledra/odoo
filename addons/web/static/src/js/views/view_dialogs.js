@@ -104,6 +104,7 @@ var FormViewDialog = ViewDialog.extend({
 
         var multi_select = !_.isNumber(options.res_id) && !options.disable_multiple_selection;
         var readonly = _.isNumber(options.res_id) && options.readonly;
+        var deletable = _.isNumber(options.res_id) && !options.disable_multiple_selection && options.relational_field_info;
 
         if (!options || !options.buttons) {
             options = options || {};
@@ -137,6 +138,23 @@ var FormViewDialog = ViewDialog.extend({
                             this._save().then(self.form_view.createRecord.bind(self.form_view, self.parentID));
                         },
                     });
+                }
+
+                if (deletable) {
+                    options.buttons.splice(2, 0, {
+                        text: _t("Remove"),
+                        classes: "btn btn-link btn-sm o_btn_remove pull-right",
+                        click: function() {
+                            var view_type = options.relational_field_info.view_type;
+                            var record = options.relational_field_info.record;
+                            if (view_type === 'list') {
+                                record.trigger_up('list_record_delete', {id: self.recordID})
+                            }
+                            if (view_type === 'kanban') {
+                                record.trigger_up('kanban_record_delete', {id: record.db_id || self.recordID, record: record})
+                            }
+                            self.close();
+                    }});
                 }
             }
         }

@@ -1163,6 +1163,7 @@ var FieldOne2Many = FieldX2Many.extend({
             fields_view: this.attrs.views && this.attrs.views.form,
             parentID: this.value.id,
             viewInfo: this.view,
+            relational_field_info: {view_type: this.view.type, record: this},
         }));
     },
 

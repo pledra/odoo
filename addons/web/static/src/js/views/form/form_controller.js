@@ -496,6 +496,7 @@ var FormController = BasicController.extend({
             res_id: record.res_id,
             res_model: record.model,
             title: _t("Open: ") + event.data.string,
+            relational_field_info: event.data.relational_field_info,
         }).open();
     },
     /**
