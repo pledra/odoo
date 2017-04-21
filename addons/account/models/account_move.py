@@ -335,6 +335,29 @@ class AccountMoveLine(models.Model):
             line.amount_residual = line.company_id.currency_id.round(amount * sign)
             line.amount_residual_currency = line.currency_id and line.currency_id.round(amount_residual_currency * sign) or 0.0
 
+    @api.multi
+    @api.depends('debit', 'credit', 'amount_currency', 'currency_id', 'matched_debit_ids', 'matched_credit_ids', 'matched_debit_ids.amount', 'matched_credit_ids.amount', 'account_id.currency_id', 'move_id.state')
+    def _compute_amount_user_currency(self):
+        '''Compute the amount expressed in the currency of the current user's company.
+        Is equal to the amount_residual value if the user's company is the same as the move line company,
+        otherwise, the amount is converted.
+        '''
+        user_currency_id = self.env.user.company_id.currency_id
+        for line in self:
+            company_currency_id = line.company_id.currency_id
+            amount = line.amount_residual
+            if user_currency_id == company_currency_id:
+                line.amount_user_currency = amount
+            else:
+                line.amount_user_currency = company_currency_id.compute(amount, user_currency_id)
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        print('\n'+str(domain)+'\n')
+        print('\n'+str(fields)+'\n')
+        print('\n'+str(groupby)+'\n')
+        return super(AccountMoveLine, self).read_group(domain, fields, groupby, offset, limit, orderby, lazy)
+
     @api.depends('debit', 'credit')
     def _store_balance(self):
         for line in self:
@@ -392,6 +415,8 @@ class AccountMoveLine(models.Model):
         help="The residual amount on a journal item expressed in the company currency.")
     amount_residual_currency = fields.Monetary(compute='_amount_residual', string='Residual Amount in Currency', store=True,
         help="The residual amount on a journal item expressed in its currency (possibly not the company currency).")
+    amount_user_currency = fields.Monetary(compute='_compute_amount_user_currency', string='Amount User Currency',
+        help='Amount expressed in the user currency.')
     account_id = fields.Many2one('account.account', string='Account', required=True, index=True,
         ondelete="cascade", domain=[('deprecated', '=', False)], default=lambda self: self._context.get('account_id', False))
     move_id = fields.Many2one('account.move', string='Journal Entry', ondelete="cascade",
@@ -420,7 +445,7 @@ class AccountMoveLine(models.Model):
     tax_line_id = fields.Many2one('account.tax', string='Originator tax', ondelete='restrict')
     analytic_account_id = fields.Many2one('account.analytic.account', string='Analytic Account')
     analytic_tag_ids = fields.Many2many('account.analytic.tag', string='Analytic tags')
-    company_id = fields.Many2one('res.company', related='account_id.company_id', string='Company', store=True)
+    company_id = fields.Many2one('res.company', string='Company', required=True, store=True,  default=lambda self: self.env.user.company_id)
     counterpart = fields.Char("Counterpart", compute='_get_counterpart', help="Compute the counter part accounts of this journal item for this journal entry. This can be needed in reports.")
 
     # TODO: put the invoice link and partner_id on the account_move

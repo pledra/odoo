@@ -171,3 +171,7 @@ class AccountInvoiceReport(models.Model):
         )""" % (
                     self._table, self.env['res.currency']._select_companies_rates(),
                     self._select(), self._sub_select(), self._from(), self._group_by()))
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        return super(AccountInvoiceReport, self).read_group(domain, fields, groupby, offset, limit, orderby, lazy)
