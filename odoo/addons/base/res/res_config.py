@@ -56,6 +56,7 @@ class ResConfigConfigurable(models.TransientModel):
 
     @api.multi
     def start(self):
+        # pylint: disable=next-method-called
         return self.next()
 
     @api.multi
@@ -105,6 +106,7 @@ class ResConfigConfigurable(models.TransientModel):
         an action dictionary -- executes the action provided by calling
         ``next``.
         """
+        # pylint: disable=next-method-called
         return self.execute() or self.next()
 
     @api.multi
@@ -116,6 +118,7 @@ class ResConfigConfigurable(models.TransientModel):
         an action dictionary -- executes the action provided by calling
         ``next``.
         """
+        # pylint: disable=next-method-called
         return self.cancel() or self.next()
 
     @api.multi
@@ -130,6 +133,7 @@ class ResConfigConfigurable(models.TransientModel):
         an action dictionary -- executes the action provided by calling
         ``next``.
         """
+        # pylint: disable=next-method-called
         return self.cancel() or self.next()
 
 
@@ -561,7 +565,8 @@ class ResConfigSettings(models.TransientModel, ResConfigModuleInstallationMixin)
             # are no longer valid. So we reset the environment.
             self.env.reset()
             self = self.env()[self._name]
-        config = self.env['res.config'].next() or {}
+
+        config = self.env['res.config'].next() or {}    # pylint: disable=next-method-called
         if config.get('type') not in ('ir.actions.act_window_close',):
             return config
 
