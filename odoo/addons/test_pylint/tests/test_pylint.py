@@ -8,13 +8,14 @@ except ImportError:
     pylint = None
 import subprocess
 from distutils.version import LooseVersion
-from os import devnull
+import os
 from os.path import join
 
 from odoo.tests.common import TransactionCase
 from odoo import tools
 from odoo.modules import get_modules, get_module_path
 
+HERE = os.path.dirname(os.path.realpath(__file__))
 
 _logger = logging.getLogger(__name__)
 
@@ -54,6 +55,8 @@ class TestPyLint(TransactionCase):
         'old-raise-syntax',
         'raising-string',
         'unpacking-in-except',
+
+        'E3110',  # no use of `as` to alias catched exception (custom check)
     ]
 
     BAD_FUNCTIONS = [
@@ -115,13 +118,15 @@ class TestPyLint(TransactionCase):
             '--enable=%s' % ','.join(self.ENABLED_CODES),
             '--reports=n',
             "--msg-template='{msg} ({msg_id}) at {path}:{line}'",
-            '--load-plugins=pylint.extensions.bad_builtin',
+            '--load-plugins=pylint.extensions.bad_builtin,_odoo_checkers',
             '--bad-functions=%s' % ','.join(self.BAD_FUNCTIONS),
             '--deprecated-modules=%s' % ','.join(self.BAD_MODULES)
         ]
 
+        env = dict(PYTHONPATH=HERE)
         try:
-            process = subprocess.Popen(['pylint'] + options + paths, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            pylint_bin = tools.which('pylint')
+            process = subprocess.Popen([pylint_bin] + options + paths, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
         except (OSError, IOError):
             self._skip_test('pylint executable not found in the path')
         else:
