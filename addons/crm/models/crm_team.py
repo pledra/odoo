@@ -37,7 +37,7 @@ class Team(models.Model):
         ('month', 'Expected Closing Month'),
         ('user', 'Salesperson'),
         ('stage', 'Stage'),
-    ], string='Group by', default='day', help="How this channel's dashboard graph will group the results.")
+    ], string='Group by pipline', default='day', help="How this channel's dashboard graph will group the results.")
 
     def _compute_unassigned_leads_count(self):
         leads_data = self.env['crm.lead'].read_group([

@@ -275,7 +275,7 @@ class MaintenanceRequest(models.Model):
     description = fields.Text('Description')
     request_date = fields.Date('Request Date', track_visibility='onchange', default=fields.Date.context_today,
                                help="Date requested for the maintenance to happen")
-    owner_user_id = fields.Many2one('res.users', string='Created by', default=lambda s: s.env.uid)
+    owner_user_id = fields.Many2one('res.users', string='Created by Owner user', default=lambda s: s.env.uid)
     category_id = fields.Many2one('maintenance.equipment.category', related='equipment_id.category_id', string='Category', store=True, readonly=True)
     equipment_id = fields.Many2one('maintenance.equipment', string='Equipment', index=True)
     technician_user_id = fields.Many2one('res.users', string='Owner', track_visibility='onchange', oldname='user_id')

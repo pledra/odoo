@@ -232,7 +232,7 @@ class MailActivityMixin(models.AbstractModel):
         help='Status based on activities\nOverdue: Due date is already passed\n'
              'Today: Activity date is today\nPlanned: Future activities.')
     activity_user_id = fields.Many2one(
-        'res.users', 'Responsible',
+        'res.users', 'Responsible Person',
         related='activity_ids.user_id',
         search='_search_activity_user_id')
     activity_type_id = fields.Many2one(
