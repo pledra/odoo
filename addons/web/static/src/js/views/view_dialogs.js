@@ -96,15 +96,16 @@ var FormViewDialog = ViewDialog.extend({
 
         this.res_id = options.res_id || null;
         this.on_saved = options.on_saved || (function () {});
+        this.on_remove = options.on_remove || (function () {});
         this.context = options.context;
         this.model = options.model;
         this.parentID = options.parentID;
         this.recordID = options.recordID;
         this.shouldSaveLocally = options.shouldSaveLocally;
+        this.activeActions = options.active_actions || {};
 
         var multi_select = !_.isNumber(options.res_id) && !options.disable_multiple_selection;
         var readonly = _.isNumber(options.res_id) && options.readonly;
-        var deletable = _.isNumber(options.res_id) && !options.disable_multiple_selection && options.relational_field_info;
 
         if (!options || !options.buttons) {
             options = options || {};
@@ -140,21 +141,15 @@ var FormViewDialog = ViewDialog.extend({
                     });
                 }
 
-                if (deletable) {
-                    options.buttons.splice(2, 0, {
+                if (!options.disable_multiple_selection && this.activeActions.delete) {
+                    options.buttons.push({
                         text: _t("Remove"),
-                        classes: "btn btn-link btn-sm o_btn_remove pull-right",
+                        classes: "btn-default o_btn_remove pull-right",
                         click: function() {
-                            var view_type = options.relational_field_info.view_type;
-                            var record = options.relational_field_info.record;
-                            if (view_type === 'list') {
-                                record.trigger_up('list_record_delete', {id: self.recordID})
-                            }
-                            if (view_type === 'kanban') {
-                                record.trigger_up('kanban_record_delete', {id: record.db_id || self.recordID, record: record})
-                            }
+                            self.on_remove(self.form_view.model.get(self.form_view.handle));
                             self.close();
-                    }});
+                        }
+                    });
                 }
             }
         }

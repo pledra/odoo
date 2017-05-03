@@ -168,7 +168,6 @@ var KanbanRecord = Widget.extend({
         this.trigger_up('open_record', {
             id: this.db_id,
             mode: editMode ? 'edit' : 'readonly',
-            relational_field_info: {view_type:'kanban', record: this},
         });
     },
     /**
