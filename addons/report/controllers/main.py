@@ -66,6 +66,10 @@ class ReportController(Controller):
         at the bottom of the output image
         """
         try:
+            type = type.lower()
+            width = int(width)
+            height = int(height)
+            humanreadable = bool(int(humanreadable))
             barcode = request.env['report'].barcode(type, value, width=width, height=height, humanreadable=humanreadable)
         except (ValueError, AttributeError):
             raise exceptions.HTTPException(description='Cannot convert into barcode.')

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+from StringIO import StringIO
 
+from PIL import Image
+from PIL import ImageDraw
 from odoo import api, fields, models, SUPERUSER_ID, _
 from odoo.exceptions import AccessError
 from odoo.sql_db import TestCursor
@@ -18,23 +21,14 @@ import re
 import subprocess
 import tempfile
 import time
+import barcode
 
 from contextlib import closing
 from distutils.version import LooseVersion
 from functools import partial
 from pyPdf import PdfFileWriter, PdfFileReader
-from reportlab.graphics.barcode import createBarcodeDrawing
-
-
-# A lock occurs when the user wants to print a report having multiple barcode while the server is
-# started in threaded-mode. The reason is that reportlab has to build a cache of the T1 fonts
-# before rendering a barcode (done in a C extension) and this part is not thread safe. We attempt
-# here to init the T1 fonts cache at the start-up of Odoo so that rendering of barcode in multiple
-# thread does not lock the server.
-try:
-    createBarcodeDrawing('Code128', value='foo', format='png', width=100, height=100, humanReadable=1).asString('png')
-except Exception:
-    pass
+from barcode.base import Barcode
+from barcode.writer import ImageWriter
 
 
 #--------------------------------------------------------------------------
@@ -592,17 +586,59 @@ class Report(models.Model):
 
         return merged_file_path
 
-    def barcode(self, barcode_type, value, width=600, height=100, humanreadable=0):
+    def barcode(self, barcode_type, value, width=600, height=100, humanreadable=False, dpi=300):
+        '''Create a barcode as a PNG image and returns it's content using the pybarcode library.
+
+        :param barcode_type: The type of the barcode in EAN-8, EAN-13, UPC-A, JAN, ISBN-10, ISBN-13, ISSN, Code 39, PZN.
+        :param value: The value represented by the barcode
+        :param width: The available width for the rendering.
+        :param height: The available height for the rendering.
+        :param humanreadable: Display the value under the barcode if True.
+        :return: The PNG content as string.
+        '''
+        def px2mm(px):
+            # Pixels to millimeters using dpi.
+            return (px * 25.4) / dpi
+
+        def pt2mm(pt):
+            # Points to millimeters.
+            return pt * 0.352777778
+
         if barcode_type == 'UPCA' and len(value) in (11, 12, 13):
             barcode_type = 'EAN13'
             if len(value) in (11, 12):
                 value = '0%s' % value
-        try:
-            width, height, humanreadable = int(width), int(height), bool(int(humanreadable))
-            barcode = createBarcodeDrawing(
-                barcode_type, value=value, format='png', width=width, height=height,
-                humanReadable=humanreadable
-            )
-            return barcode.asString('png')
-        except (ValueError, AttributeError):
-            raise ValueError("Cannot convert into barcode.")
+
+        # Create a barcode object corresponding to the barcode_type and build the barcode code
+        # that is a list of size 1 containing the code as a chain (0|1)*
+        barcode_value = barcode.get_barcode_class(barcode_type)(value)
+        code = barcode_value.build()
+
+        # The padding up/bottom of text in millimeters
+        text_padding = 1.0
+
+        # Create the writer_options with the configuration of the barcode.
+        # Because the library is working with millimeters instead of pixels, let's compute the options
+        # in millimeters.
+        writer_options = Barcode.default_writer_options.copy()
+        writer_options['human'] = value if humanreadable else ''
+        writer_options['write_text'] = humanreadable
+        writer_options['module_width'] = (px2mm(width) - (2 * writer_options['quiet_zone'])) / len(code[0])
+        writer_options['module_height'] = px2mm(height) - text_padding
+        writer_options['text_distance'] = text_padding
+        if humanreadable:
+            writer_options['module_height'] -= (pt2mm(writer_options['font_size']) / 2) + text_padding
+
+        writer = ImageWriter()
+        writer.set_options(writer_options)
+
+        # Override the initialize method to make sure the resulting barcode will be sized according to
+        # the width/height parameters without loss of precision due to px -> mm / mm -> px computation.
+        writer._callbacks['initialize'] = None
+        writer._image = Image.new('RGB', (width, height), writer.background)
+        writer._draw = ImageDraw.Draw(writer._image)
+
+        # Create the result.
+        content_png = StringIO()
+        barcode.generate(barcode_type, value, writer=writer, output=content_png, writer_options=writer_options)
+        return content_png.getvalue()
