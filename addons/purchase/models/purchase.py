@@ -79,15 +79,12 @@ class PurchaseOrder(models.Model):
                  'order_line.move_ids.state',
                  'order_line.move_ids.picking_id')
     def _compute_picking(self):
+        pickings = self.env['stock.picking']
         for order in self:
-            pickings = self.env['stock.picking']
-            for line in order.order_line:
-                # We keep a limited scope on purpose. Ideally, we should also use move_orig_ids and
-                # do some recursive search, but that could be prohibitive if not done correctly.
-                moves = line.move_ids | line.move_ids.mapped('returned_move_ids')
-                pickings |= moves.mapped('picking_id')
-            order.picking_ids = pickings
-            order.picking_count = len(pickings)
+            # show all shipment related to current purchase order
+            if order.group_id:
+                order.picking_ids = pickings.search([('group_id', '=', order.group_id.id), ('state', '!=', 'cancel')])
+                order.picking_count = len(order.picking_ids)
 
     @api.depends('picking_ids', 'picking_ids.state')
     def _compute_is_shipped(self):
@@ -408,7 +405,8 @@ class PurchaseOrder(models.Model):
         StockPicking = self.env['stock.picking']
         for order in self:
             if any([ptype in ['product', 'consu'] for ptype in order.order_line.mapped('product_id.type')]):
-                pickings = order.picking_ids.filtered(lambda x: x.state not in ('done','cancel'))
+                in_pickings = order.order_line.mapped('move_ids').mapped('picking_id')
+                pickings = in_pickings.filtered(lambda x: x.state not in ('done', 'cancel'))
                 if not pickings:
                     res = order._prepare_picking()
                     picking = StockPicking.create(res)
