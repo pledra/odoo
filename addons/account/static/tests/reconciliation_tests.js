@@ -62,7 +62,7 @@ var db = {
         json_friendly_compute_all: function (args) {
             var tax = _.find(db['account.tax'].records, {'id': args[0][0]});
             var amount = args[1];
-            var tax_base = tax.price_include ? amount*100/(100+tax.amount) : amount;
+            var tax_base = amount * 100 / (100 + tax.amount);
             return $.when({
                 "base": amount,
                 "taxes": [{
@@ -889,17 +889,18 @@ QUnit.module('account', {
 
         widget.$('.create .create_tax_id input').trigger('click');
         $('.ui-autocomplete .ui-menu-item a:contains(20.00%)').trigger('mouseenter').trigger('click');
+        widget.$('.create .create_amount input').val('1440').trigger('input');
 
-        assert.strictEqual(widget.$('.accounting_view tbody .cell_right').text().replace('$_', ''), "1100.00220.00", "should have 2 created reconcile lines with right column values");
+        assert.strictEqual(widget.$('.accounting_view tbody .cell_right').text().replace('$_', ''), "1200.00240.00", "should have 2 created reconcile lines with right column values");
         assert.strictEqual(widget.$('.accounting_view tfoot .cell_label').text(), "Create Write-off", "should display 'Create Write-off'");
-        assert.strictEqual(widget.$('.accounting_view tfoot .cell_left').text(), "145.00", "should display 'Create Write-off' with 145.00 in right column");
+        assert.strictEqual(widget.$('.accounting_view tfoot .cell_left').text(), "265.00", "should display 'Create Write-off' with 265.00 in right column");
         assert.strictEqual(widget.$('.accounting_view tbody tr').length, 2, "should have 2 created reconcile lines");
 
         clientAction.destroy();
     });
 
     QUnit.test('Reconciliation create line from reconciliation model', function (assert) {
-        assert.expect(6);
+        assert.expect(4);
 
         var clientAction = new ReconciliationClientAction.StatementAction(null, this.params.options);
 
@@ -914,17 +915,15 @@ QUnit.module('account', {
         widget.$('.create .quick_add button:contains(ATOS)').trigger('click');
 
         assert.strictEqual(widget.$('.accounting_view tbody .cell_label, .accounting_view tbody .cell_right').text().replace(/[\n\r\s$,]+/g, ' '),
-            " ATOS Banque 1145.62 Tax 20.00% 229.12 ATOS Frais 26.71 Tax 10.00% include 2.67", "should display 4 lines");
+            " ATOS Banque 954.68 Tax 20.00% 190.94 ATOS Frais 26.71 Tax 10.00% include 2.67", "should display 4 lines");
         assert.strictEqual(widget.$('.accounting_view tfoot .cell_label, .accounting_view tfoot .cell_left').text().replace(/[\n\r\s$,]+/g, ' '),
             "Create Write-off229.12", "should display the 'Create Write-off' line with value in left column");
 
         widget.$('.create .create_amount input').val('100').trigger('input');
 
         assert.strictEqual(widget.$('.accounting_view tbody').text().replace(/[\n\r\s$,]+/g, ' '),
-            " 101120 ATOS Banque 1075.00 101120 Tax 20.00% 215.00 101130 ATOS Frais 90.91 101300 Tax 10.00% include 9.09 ",
+            " 101120 ATOS Banque 895.83 101120 Tax 20.00% 179.17 101130 ATOS Frais 90.91 101300 Tax 10.00% include 9.09 ",
             "should update the value of the 4 lines (because the line must have 100% of the value)");
-        assert.strictEqual(widget.$('.accounting_view tfoot .cell_label, .accounting_view tfoot .cell_left').text().replace(/[\n\r\s$,]+/g, ' '),
-            "Create Write-off215.00", "should change the 'Create Write-off' line because the 20.00% tax is not an include tax");
 
         widget.$('.accounting_view tbody .cell_account_code:first').trigger('click');
         widget.$('.accounting_view tbody .cell_label:first').trigger('click');

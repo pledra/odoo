@@ -852,23 +852,27 @@ class AccountTax(models.Model):
                 return math.copysign(quantity, base_amount) * self.amount
             else:
                 return quantity * self.amount
-        if (self.amount_type == 'percent' and not self.price_include) or (self.amount_type == 'division' and self.price_include):
+
+        price_include = self.price_include or self._context.get('price_include')
+
+        if (self.amount_type == 'percent' and not price_include) or (self.amount_type == 'division' and price_include):
             return base_amount * self.amount / 100
-        if self.amount_type == 'percent' and self.price_include:
+        if self.amount_type == 'percent' and price_include:
             return base_amount - (base_amount / (1 + self.amount / 100))
-        if self.amount_type == 'division' and not self.price_include:
+        if self.amount_type == 'division' and not price_include:
             return base_amount / (1 - self.amount / 100) - base_amount
 
     @api.multi
     def json_friendly_compute_all(self, price_unit, currency_id=None, quantity=1.0, product_id=None, partner_id=None):
         """ Just converts parameters in browse records and calls for compute_all, because js widgets can't serialize browse records """
+        context = dict(self._context, price_include=True, include_base_amount=True)
         if currency_id:
             currency_id = self.env['res.currency'].browse(currency_id)
         if product_id:
             product_id = self.env['product.product'].browse(product_id)
         if partner_id:
             partner_id = self.env['res.partner'].browse(partner_id)
-        return self.compute_all(price_unit, currency=currency_id, quantity=quantity, product=product_id, partner=partner_id)
+        return self.with_context(context).compute_all(price_unit, currency=currency_id, quantity=quantity, product=product_id, partner=partner_id)
 
     @api.multi
     def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None):
@@ -932,11 +936,16 @@ class AccountTax(models.Model):
         # depending on the context. This domain might filter out some taxes from self, e.g. in the
         # case of group taxes.
         for tax in self.sorted(key=lambda r: r.sequence):
+            # Allow forcing price_include/include_base_amount through the context for the reconciliation widget.
+            # See task 24014.
+            price_include = tax.price_include or self._context.get('price_include')
+            include_base_amount = tax.include_base_amount or self._context.get('include_base_amount')
+
             if tax.amount_type == 'group':
                 children = tax.children_tax_ids.with_context(base_values=(total_excluded, total_included, base))
                 ret = children.compute_all(price_unit, currency, quantity, product, partner)
                 total_excluded = ret['total_excluded']
-                base = ret['base'] if tax.include_base_amount else base
+                base = ret['base'] if include_base_amount else base
                 total_included = ret['total_included']
                 tax_amount = total_included - total_excluded
                 taxes += ret['taxes']
@@ -948,7 +957,7 @@ class AccountTax(models.Model):
             else:
                 tax_amount = currency.round(tax_amount)
 
-            if tax.price_include:
+            if price_include:
                 total_excluded -= tax_amount
                 base -= tax_amount
             else:
@@ -957,7 +966,7 @@ class AccountTax(models.Model):
             # Keep base amount used for the current tax
             tax_base = base
 
-            if tax.include_base_amount:
+            if include_base_amount:
                 base += tax_amount
 
             taxes.append({
