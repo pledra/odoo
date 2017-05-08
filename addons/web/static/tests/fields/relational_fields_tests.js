@@ -7056,7 +7056,7 @@ QUnit.module('relational_fields', {
     });
 
     QUnit.test('many2many list (non editable): edition', function (assert) {
-        assert.expect(27);
+        assert.expect(26);
 
         this.data.partner.records[0].timmy = [12, 14];
         this.data.partner_type.records.push({id: 15, display_name: "bronze", color: 6});
@@ -7144,7 +7144,6 @@ QUnit.module('relational_fields', {
         assert.verifySteps([
             'read', // main record
             'read', // relational field
-            'read', // relational record in dialog
             'write', // save relational record from dialog
             'read', // relational field (updated)
             'search_read', // list view in dialog
