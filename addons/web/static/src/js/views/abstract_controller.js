@@ -62,6 +62,9 @@ var AbstractController = Widget.extend({
         if (this.$buttons) {
             this.$buttons.off();
         }
+        if (this.$noContentHelp) {
+            this.$noContentHelp.remove();
+        }
         return this._super.apply(this, arguments);
     },
 
@@ -236,15 +239,16 @@ var AbstractController = Widget.extend({
      */
     _toggleNoContentHelper: function (hasNoContent) {
         if (hasNoContent && this.noContentHelp) {
-            this.renderer.$el.detach();
-            var $msg = $('<div>')
-                .addClass('oe_view_nocontent')
-                .html(this.noContentHelp);
-            this.$el.html($msg);
+            this.$noContentHelp = $('<div/>', {
+                class: 'oe_view_nocontent',
+                html: this.noContentHelp,
+            });
+            this._$noContentHelpOldContents = this.renderer.$el.contents();
+            this.renderer.$el.empty().append(this.$noContentHelp);
         } else {
-            if (!document.contains(this.renderer.el)) {
-                this.$('div.oe_view_nocontent').remove();
-                this.$el.append(this.renderer.$el);
+            if (this.$noContentHelp) {
+                this.$noContentHelp.replaceWith(this._$noContentHelpOldContents);
+                delete this.$noContentHelp;
             }
         }
     },

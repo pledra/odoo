@@ -693,7 +693,7 @@ QUnit.module('Views', {
         });
 
         assert.strictEqual(form.mode, 'readonly', 'form view should be in readonly mode');
-        assert.ok(form.$('.o_form_view').hasClass('o_form_readonly'),
+        assert.ok(form.$el.hasClass('o_form_readonly'),
             'form view should be .o_form_readonly');
         assert.ok(form.$buttons.find('.o_form_buttons_view').is(':visible'),
             'readonly buttons should be visible');
@@ -701,9 +701,9 @@ QUnit.module('Views', {
             'edit buttons should not be visible');
         form.$buttons.find('.o_form_button_edit').click();
         assert.strictEqual(form.mode, 'edit', 'form view should be in edit mode');
-        assert.ok(form.$('.o_form_view').hasClass('o_form_editable'),
+        assert.ok(form.$el.hasClass('o_form_editable'),
             'form view should be .o_form_editable');
-        assert.ok(!form.$('.o_form_view').hasClass('o_form_readonly'),
+        assert.ok(!form.$el.hasClass('o_form_readonly'),
             'form view should not be .o_form_readonly');
         assert.ok(!form.$buttons.find('.o_form_buttons_view').is(':visible'),
             'readonly buttons should not be visible');
@@ -3787,7 +3787,7 @@ QUnit.module('Views', {
                     '</sheet>' +
                 '</form>',
         });
-        var $button = form.$('.o_form_view .o_form_sheet .oe_button_box .oe_stat_button span');
+        var $button = form.$('.o_form_sheet .oe_button_box .oe_stat_button span');
         assert.strictEqual($button.text(), "Inventory Moves",
             "the stat button should contain a span with the string attribute value");
         form.destroy();

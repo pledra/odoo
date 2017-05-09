@@ -69,9 +69,9 @@ QUnit.module('Views', {
                 '</t></templates></kanban>',
         });
 
-        assert.ok(kanban.$('.o_kanban_view').hasClass('o_kanban_ungrouped'),
+        assert.ok(kanban.$el.hasClass('o_kanban_ungrouped'),
                         "should have classname 'o_kanban_ungrouped'");
-        assert.ok(kanban.$('.o_kanban_view').hasClass('o_kanban_test'),
+        assert.ok(kanban.$el.hasClass('o_kanban_test'),
                         "should have classname 'o_kanban_test'");
 
         assert.strictEqual(kanban.$('.o_kanban_record:not(.o_kanban_ghost)').length, 4,
@@ -105,9 +105,9 @@ QUnit.module('Views', {
             },
         });
 
-        assert.ok(kanban.$('.o_kanban_view').hasClass('o_kanban_grouped'),
+        assert.ok(kanban.$el.hasClass('o_kanban_grouped'),
                         "should have classname 'o_kanban_grouped'");
-        assert.ok(kanban.$('.o_kanban_view').hasClass('o_kanban_test'),
+        assert.ok(kanban.$el.hasClass('o_kanban_test'),
                         "should have classname 'o_kanban_test'");
         assert.strictEqual(kanban.$('.o_kanban_group').length, 2, "should have " + 2 + " columns");
         assert.strictEqual(kanban.$('.o_kanban_group:nth-child(1) .o_kanban_record').length, 1,
@@ -281,11 +281,11 @@ QUnit.module('Views', {
         });
         kanban.renderButtons();
 
-        assert.ok(kanban.$('.o_kanban_view').hasClass('ui-sortable'),
+        assert.ok(kanban.$el.hasClass('ui-sortable'),
             "columns are sortable when grouped by a m2o field");
         assert.ok(kanban.$buttons.find('.o-kanban-button-new').hasClass('btn-primary'),
             "'create' button should be btn-primary for grouped kanban with at least one column");
-        assert.ok(kanban.$('.o_kanban_view > div:last').hasClass('o_column_quick_create'),
+        assert.ok(kanban.$('> div:last').hasClass('o_column_quick_create'),
             "column quick create should be enabled when grouped by a many2one field)");
 
         kanban.$buttons.find('.o-kanban-button-new').click(); // Click on 'Create'
@@ -312,12 +312,12 @@ QUnit.module('Views', {
             groupBy: ['foo'],
         });
 
-        assert.ok(!kanban.$('.o_kanban_view').hasClass('ui-sortable'),
+        assert.ok(!kanban.$el.hasClass('ui-sortable'),
             "columns aren't sortable when not grouped by a m2o field");
         assert.strictEqual(kanban.$('.o_kanban_group').length, 3, "should have " + 3 + " columns");
         assert.strictEqual(kanban.$('.o_kanban_group:first() .o_column_title').text(), "yop",
             "'yop' column should be the first column");
-        assert.ok(!kanban.$('.o_kanban_view > div:last').hasClass('o_column_quick_create'),
+        assert.ok(!kanban.$('> div:last').hasClass('o_column_quick_create'),
             "column quick create should be disabled when not grouped by a many2one field)");
         kanban.destroy();
     });
@@ -555,7 +555,7 @@ QUnit.module('Views', {
             },
         });
 
-        assert.ok(kanban.$('.o_kanban_view').hasClass('o_kanban_grouped'),
+        assert.ok(kanban.$el.hasClass('o_kanban_grouped'),
                         "should have classname 'o_kanban_grouped'");
         assert.strictEqual(kanban.$('.o_kanban_group').length, 2, "should have " + 2 + " columns");
 
@@ -903,7 +903,7 @@ QUnit.module('Views', {
         });
         kanban.update({groupBy: []});
 
-        assert.ok(kanban.$('.o_kanban_view').hasClass('o_kanban_grouped'));
+        assert.ok(kanban.$el.hasClass('o_kanban_grouped'));
         kanban.destroy();
     });
 
@@ -921,11 +921,11 @@ QUnit.module('Views', {
                         '</t></templates>' +
                     '</kanban>',
         });
-        assert.notOk(kanban.$('.o_kanban_view').hasClass('o_kanban_grouped'), "should not be grouped");
+        assert.notOk(kanban.$el.hasClass('o_kanban_grouped'), "should not be grouped");
         kanban.update({groupBy: ['product_id']});
-        assert.ok(kanban.$('.o_kanban_view').hasClass('o_kanban_grouped'), "should be grouped");
+        assert.ok(kanban.$el.hasClass('o_kanban_grouped'), "should be grouped");
         kanban.update({groupBy: []});
-        assert.notOk(kanban.$('.o_kanban_view').hasClass('o_kanban_grouped'), "should not be grouped");
+        assert.notOk(kanban.$el.hasClass('o_kanban_grouped'), "should not be grouped");
         kanban.destroy();
     });
 
@@ -1238,7 +1238,7 @@ QUnit.module('Views', {
             },
         });
 
-        assert.ok(kanban.$('.o_kanban_view').hasClass('ui-sortable'),
+        assert.ok(kanban.$el.hasClass('ui-sortable'),
             "columns should be sortable");
         assert.strictEqual(kanban.$('.o_kanban_group').length, 2,
             "should have two columns");
@@ -1612,6 +1612,33 @@ QUnit.module('Views', {
                         "column should contain 0 records");
         assert.strictEqual(kanban.$('.o_kanban_group:eq(1) .o_kanban_record').length, 1,
                         "column should contain 1 records");
+        kanban.destroy();
+    });
+
+    QUnit.test('grouped kanban column is full height', function (assert) {
+        assert.expect(1);
+
+        var kanban = createView({
+            View: KanbanView,
+            model: 'partner',
+            data: this.data,
+            arch:
+                '<kanban>' +
+                    '<templates><t t-name="kanban-box">' +
+                        '<div><field name="foo"/></div>' +
+                    '</t></templates>' +
+                '</kanban>',
+            groupBy: ['bar'],
+            viewOptions: {
+                limit: 1,
+            },
+        });
+
+        // Force size of view manager as in test, it is small
+        $('.o_view_manager_content').height(1000);
+        assert.strictEqual(kanban.$el.outerHeight(true), 1000,
+            "grouped kanban view should be full height");
+
         kanban.destroy();
     });
 });

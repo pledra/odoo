@@ -49,7 +49,7 @@ QUnit.test('dashboard basic rendering', function (assert) {
             '</form>',
     });
 
-    assert.notOk(form.renderer.$el.hasClass('o_dashboard'),
+    assert.notOk(form.$el.hasClass('o_dashboard'),
         "should not have the o_dashboard css class");
 
     form.destroy();
@@ -65,9 +65,9 @@ QUnit.test('dashboard basic rendering', function (assert) {
             '</form>',
     });
 
-    assert.ok(form.renderer.$el.hasClass('o_dashboard'),
+    assert.ok(form.$el.hasClass('o_dashboard'),
         "with a dashboard, the renderer should have the proper css class");
-    assert.strictEqual(form.$('.o_dashboard .oe_view_nocontent').length, 1,
+    assert.strictEqual(form.$('.oe_view_nocontent').length, 1,
         "should have a no content helper");
     assert.strictEqual(form.get('title'), "My Dashboard",
         "should have the correct title");
@@ -93,7 +93,7 @@ QUnit.test('display the no content helper', function (assert) {
         },
     });
 
-    assert.strictEqual(form.$('.o_dashboard .oe_view_nocontent p:contains(click to add a partner)').length, 1,
+    assert.strictEqual(form.$('.oe_view_nocontent p:contains(click to add a partner)').length, 1,
         "should have a no content helper with action help");
     form.destroy();
 });

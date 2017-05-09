@@ -6124,7 +6124,7 @@ QUnit.module('relational_fields', {
                 return this._super.apply(this, arguments);
             }
         });
-        assert.ok(form.$('.o_form_view').hasClass('o_form_editable'), "form should be in edit mode");
+        assert.ok(form.$el.hasClass('o_form_editable'), "form should be in edit mode");
 
         var $input = form.$('.o_field_many2manytags input');
         $input.click(); // opens the dropdown

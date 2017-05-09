@@ -984,7 +984,7 @@ QUnit.module('Views', {
     });
 
     QUnit.test('list view, editable, without data', function (assert) {
-        assert.expect(9);
+        assert.expect(8);
 
         this.data.foo.records = [];
 
@@ -1015,8 +1015,6 @@ QUnit.module('Views', {
         assert.strictEqual(list.$('.oe_view_nocontent').length, 1,
             "should have a no content helper displayed");
 
-        assert.strictEqual(list.$('div.table-responsive').length, 0,
-            "should not have a div.table-responsive");
         assert.strictEqual(list.$('table').length, 0, "should not have rendered a table");
 
         list.$buttons.find('.o_list_button_add').click();
@@ -1024,7 +1022,7 @@ QUnit.module('Views', {
         assert.strictEqual(list.$('.oe_view_nocontent').length, 0,
             "should not have a no content helper displayed");
         assert.strictEqual(list.$('table').length, 1, "should have rendered a table");
-        assert.strictEqual(list.$el.css('height'), list.$('div.table-responsive').css('height'),
+        assert.strictEqual(list.$el.css('height'), list.$el.filter('div.table-responsive').css('height'),
             "the div for the table should take the full height");
 
 
@@ -1130,7 +1128,7 @@ QUnit.module('Views', {
         });
 
         list.$buttons.find('.o_list_button_add').click();
-        list.$('div.table-responsive').click();
+        list.$el.filter('div.table-responsive').click();
 
         assert.strictEqual(createCount, 1, "should have created a record");
 

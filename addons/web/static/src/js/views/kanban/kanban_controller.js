@@ -145,7 +145,7 @@ var KanbanController = BasicController.extend({
      */
     _update: function (state) {
         var hasNoContent = !this._hasContent(state);
-        this.$el.toggleClass('o_kanban_nocontent', hasNoContent);
+        this.renderer.$el.toggleClass('o_kanban_nocontent', hasNoContent);
         this._toggleNoContentHelper(hasNoContent);
         return this._super.apply(this, arguments);
     },

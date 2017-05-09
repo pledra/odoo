@@ -50,7 +50,16 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
         // correctly display the nocontent helper)
         this.$el.toggleClass('o_cannot_create', !this.activeActions.create);
         return this._super.apply(this, arguments)
-                          .then(this._updateEnv.bind(this));
+            .then(this._updateEnv.bind(this))
+            // TODO no controller should be a Widget with associated DOM. The
+            // whole rendering part of the view should be left to the renderer.
+            // Unfortunatly, controllers code is not generic enough yet to
+            // remove controller associated DOM. However, this can already be
+            // done for basic controller (kanban, list, form). While waiting for
+            // the controllers to be Class instances and not Widget instances,
+            // we update the controller $el to be equal to the renderer $el for
+            // those three basic views.
+            .then(this.replaceElement.bind(this, this.renderer.$el));
     },
 
     //--------------------------------------------------------------------------
