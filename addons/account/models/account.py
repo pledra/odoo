@@ -765,6 +765,7 @@ class AccountTax(models.Model):
         # search. However, the search method is overridden in account.tax in order to add a domain
         # depending on the context. This domain might filter out some taxes from self, e.g. in the
         # case of group taxes.
+        taxes_rates_includes_temp = {}
         for tax in self.sorted(key=lambda r: r.sequence):
             if tax.amount_type == 'group':
                 children = tax.children_tax_ids.with_context(base_values=(total_excluded, total_included, base))
@@ -777,22 +778,22 @@ class AccountTax(models.Model):
                 continue
 
             tax_amount = tax._compute_amount(base, price_unit, quantity, product, partner)
-            if not round_tax:
-                tax_amount = round(tax_amount, prec)
-            else:
-                tax_amount = currency.round(tax_amount)
-
-            if tax.price_include:
-                total_excluded -= tax_amount
-                base -= tax_amount
-            else:
-                total_included += tax_amount
+            tax_amount = self._rounding_preference(tax_amount, round_tax, currency, prec)
 
             # Keep base amount used for the current tax
             tax_base = base
 
+            if tax.price_include:
+                total_excluded -= tax_amount
+                base -= tax_amount
+                if not tax.include_base_amount and tax.amount_type == 'percent':
+                    base += tax_amount
+                    taxes_rates_includes_temp[tax.id] = tax.amount / 100
+            else:
+                total_included += tax_amount
+
             if tax.include_base_amount:
-                base += tax_amount
+                base += tax_amount if not tax.price_include or tax.amount_type != 'percent' else 0
 
             taxes.append({
                 'id': tax.id,
@@ -804,6 +805,21 @@ class AccountTax(models.Model):
                 'refund_account_id': tax.refund_account_id.id,
                 'analytic': tax.analytic,
             })
+
+        if taxes_rates_includes_temp:
+            tax_cumul_rate = 1
+            for tax in taxes:
+                if tax['id'] in taxes_rates_includes_temp.keys():
+                    tax_cumul_rate += taxes_rates_includes_temp[tax['id']]
+            total_excluded = tax_base / tax_cumul_rate
+
+            for tax in taxes:
+                if tax['id'] in taxes_rates_includes_temp.keys():
+                    tax['base'] = total_excluded
+                    # this might be misleading: tax.amount is the rate (no unit)
+                    # whereas tax['amount'] is the computed amount of the tax (in currency)
+                    gross_new_amount = total_excluded * taxes_rates_includes_temp[tax['id']]
+                    tax['amount'] = self._rounding_preference(gross_new_amount, round_tax, currency, prec)
 
         return {
             'taxes': sorted(taxes, key=lambda k: k['sequence']),
@@ -820,6 +836,13 @@ class AccountTax(models.Model):
         if incl_tax:
             return incl_tax.compute_all(price)['total_excluded']
         return price
+
+    def _rounding_preference(self, tax_amount, bool_round_tax, currency, precision):
+        if not bool_round_tax:
+            return round(tax_amount, precision)
+        else:
+            return currency.round(tax_amount)
+
 
 class AccountReconcileModel(models.Model):
     _name = "account.reconcile.model"
