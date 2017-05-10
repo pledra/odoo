@@ -11,13 +11,15 @@ Sidebar.include({
         this._super.apply(this, arguments);
         var view = self.getParent();
         var result;
-        if (view.fields_view && view.fields_view.type === "form") {
+        if (view.renderer && view.renderer.viewType === "form") {
             ids = [];
-            view.on("load_record", self, function (r) {
-                ids = [r.id];
-                self.add_gdoc_items(view, r.id);
-            });
+            var r = self.env;
+            ids = [r.activeIds[0]];
+            self.add_gdoc_items(view, r.activeIds[0]);
         }
+    },
+    _renderView: function () {
+        return $.when();
     },
     add_gdoc_items: function (view, res_id) {
         var self = this;
@@ -26,9 +28,9 @@ Sidebar.include({
             self.items.other.splice(gdoc_item, 1);
         }
         if (res_id) {
-            view.sidebar_eval_context().done(function (context) {
+            self._renderView().done(function (context) {
                 var ds = new data.DataSet(this, 'google.drive.config', context);
-                ds.call('get_google_drive_config', [view.dataset.model, res_id, context]).done(function (r) {
+                ds.call('get_google_drive_config', [view.modelName, res_id, context]).done(function (r) {
                     if (!_.isEmpty(r)) {
                         _.each(r, function (res) {
                             var already_there = false;
@@ -39,17 +41,17 @@ Sidebar.include({
                                 }
                             }
                             if (!already_there){
-                                self.add_items('other', [{
+                                self._addItems('other', [{
                                         label: res.name,
                                         config_id: res.id,
                                         res_id: res_id,
-                                        res_model: view.dataset.model,
-                                        callback: self.on_google_doc,
+                                        res_model: view.modelName,
                                         classname: 'oe_share_gdoc'
                                     },
                                 ]);
                             }
                         });
+                        console.log(self)
                     }
                 });
             });
@@ -66,7 +68,7 @@ Sidebar.include({
             })
             .then(function (configs) {
                 var ds = new data.DataSet(self, 'google.drive.config');
-                ds.call('get_google_drive_url', [doc_item.config_id, doc_item.res_id,configs[0].google_drive_resource_id, self.dataset.context]).done(function (url) {
+                ds.call('get_google_drive_url', [doc_item.config_id, doc_item.res_id,configs[0].google_drive_resource_id, self.modelName]).done(function (url) {
                     if (url){
                         window.open(url, '_blank');
                     }
