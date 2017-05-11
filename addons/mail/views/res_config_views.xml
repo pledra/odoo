@@ -33,9 +33,9 @@
                                     Choose your email's header and footer layout
                                 </div>
                                 <div class="content-group">
-                                    <div class="mt16" groups="base.group_no_one">
-                                        <label for="external_report_layout" string="Template" class="col-xs-3 col-md-3 o_light_label"/>
-                                        <field name="external_report_layout" class="oe_inline"/>
+                                    <div class="mt16">
+                                        <label for="mail_template_layout" string="Template" class="col-xs-3 col-md-3 o_light_label"/>
+                                        <field name="mail_template_layout" class="oe_inline"/>
                                     </div>
                                     <div class="mt16">
                                         <button name="change_report_template" string="Change Document Template" type="object" class="oe_link" icon="fa-arrow-right"/>

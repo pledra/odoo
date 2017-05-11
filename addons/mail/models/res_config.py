@@ -15,8 +15,7 @@ class BaseConfiguration(models.TransientModel):
     fail_counter = fields.Integer('Fail Mail', readonly=True)
     alias_domain = fields.Char('Alias Domain', help="If you have setup a catch-all email domain redirected to "
                                "the Odoo server, enter the domain name here.")
-    mail_template_header = fields.Html(related='company_id.mail_template_footer')
-    mail_template_footer = fields.Html(related='company_id.mail_template_footer')
+    mail_template_layout = fields.Html(related='company_id.mail_template_layout')
 
     @api.model
     def get_default_fail_counter(self, fields):
