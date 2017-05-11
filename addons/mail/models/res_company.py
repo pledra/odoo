@@ -7,16 +7,11 @@ import datetime
 from odoo import api, fields, models, tools
 
 
-class BaseConfiguration(models.TransientModel):
-    """ Inherit the base settings to add a counter of failed email + configure
-    the alias domain. """
-    _inherit = 'base.config.settings'
+class Company(models.Model):
+    _inherit = 'res.company'
 
-    fail_counter = fields.Integer('Fail Mail', readonly=True)
-    alias_domain = fields.Char('Alias Domain', help="If you have setup a catch-all email domain redirected to "
-                               "the Odoo server, enter the domain name here.")
-    mail_template_header = fields.Html(related='company_id.mail_template_footer')
-    mail_template_footer = fields.Html(related='company_id.mail_template_footer')
+    mail_template_header = fields.Html()
+    mail_template_footer = fields.Html()
 
     @api.model
     def get_default_fail_counter(self, fields):
