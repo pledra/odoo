@@ -2164,6 +2164,9 @@ QUnit.module('Views', {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
                     return $.when([]);
                 }
+                if (args.method === 'get_google_drive_config' && args.model === 'google.drive.config') {
+                    return $.when([]);
+                }
                 assert.step(args.method);
                 return this._super.apply(this, arguments);
             }
