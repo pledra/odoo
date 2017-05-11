@@ -5,6 +5,7 @@ var BasicRenderer = require('web.BasicRenderer');
 var config = require('web.config');
 var core = require('web.core');
 var dom = require('web.dom');
+var ButtonWidget = require('web.ButtonWidget');
 
 var _t = core._t;
 var qweb = core.qweb;
@@ -368,6 +369,21 @@ var FormRenderer = BasicRenderer.extend({
      */
     _renderHeaderButton: function (node) {
         var self = this;
+        var widget = new ButtonWidget(this, node, this.state);
+        // Prepare widget rendering and save the related deferred
+        var def = widget.__widgetRenderAndInsert(function () {});
+        if (def.state() === 'pending') {
+            this.defs.push(def);
+        }
+        this._handleAttributes(widget.$el, node);
+        this._registerModifiers(node, this.state, widget.$el);
+        if (node.attrs.class && (node.attrs.class.indexOf('btn-primary') != -1
+            || node.attrs.class.indexOf('oe_highlight') != -1
+            || node.attrs.class.indexOf('oe_stat_button') != -1)) {
+            this.tabindexButtons[this.state.id].push(widget);
+        }
+        return widget.$el;
+        /*
         var $button = $('<button>')
                         .text(node.attrs.string)
                         .addClass('btn btn-sm btn-default');
@@ -396,6 +412,7 @@ var FormRenderer = BasicRenderer.extend({
             this.tabindexButtons[this.state.id].push({'$el': $button, activate: this._activateButton($button)});
         }
         return $button;
+        */
     },
     /**
      * @private
