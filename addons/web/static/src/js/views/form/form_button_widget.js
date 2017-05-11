@@ -21,12 +21,17 @@ var ButtonWidget = ViewWidget.extend({
      */
 	init: function (parent, node, record, options) {
 		this._super(parent);
+
 		this.node = node;
+
 		// the datapoint fetched from the model
         this.record = record;
 
         this.string = this.node.attrs.string;
 
+        if (node.attrs.icon) {
+            this.fa_icon = node.attrs.icon.indexOf('fa-') === 0;
+        }
 	},
 	start: function() {
 		var self = this;
@@ -35,7 +40,6 @@ var ButtonWidget = ViewWidget.extend({
             self.trigger_up('button_clicked', {
                 attrs: self.node.attrs,
                 record: self.record,
-                show_wow: self.$el.hasClass('o_wow'),  // TODO: implement this (in view)
                 callback: function() {
                     self.trigger_up('move_next');
                 }
@@ -47,6 +51,14 @@ var ButtonWidget = ViewWidget.extend({
         // }
         this._addOnFocusAction();
     },
+	/**
+	 * @override
+	 * @returns {jQuery} the focusable checkbox input
+	 */
+	getFocusableElement: function() {
+		return this.$el || $();
+	},
+
     _getFocusTip: function(node) {
         var show_focus_tip = function() {
             var content = node.attrs.on_focus_tip ? node.attrs.on_focus_tip : _.str.sprintf(_t("Press ENTER to %s"), node.attrs.string);
@@ -78,7 +90,7 @@ var ButtonWidget = ViewWidget.extend({
                 });
             }
         });
-    }
+    },
 });
 
 return ButtonWidget;
