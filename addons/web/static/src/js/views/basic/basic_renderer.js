@@ -18,6 +18,7 @@ var qweb = core.qweb;
 var BasicRenderer = AbstractRenderer.extend({
     custom_events: {
         navigation_move: '_onNavigationMove',
+        set_last_tabindex: '_onSetLastTabindex',
     },
     /**
      * Basic renderers implements the concept of "mode", they can either be in
@@ -30,6 +31,7 @@ var BasicRenderer = AbstractRenderer.extend({
         this.activeActions = params.activeActions;
         this.viewType = params.viewType;
         this.mode = params.mode || 'readonly';
+        this.lastTabindex = 0;
     },
     /**
      * This method has two responsabilities: find every invalid fields in the
@@ -160,7 +162,7 @@ var BasicRenderer = AbstractRenderer.extend({
     /**
      * Activates the widget at the given index for the given record if possible
      * or the "next" possible one. Usually, a widget can be activated if it is
-     * in edit mode, and if it is visible.
+     * in edit mode(if it is field widget), and if it is visible.
      *
      * @private
      * @param {Object} record
@@ -174,15 +176,19 @@ var BasicRenderer = AbstractRenderer.extend({
      * @returns {integer} the index of the widget that was activated or -1 if
      *   none was possible to activate
      */
-    _activateFieldWidget: function (record, currentIndex, options) {
-        var tabindex_widgets = !_.isEmpty(this.tabindexWidgets) ? this.tabindexWidgets : this.allFieldWidgets;
+    _activateWidget: function (record, currentIndex, options) {
+        var tabindexWidgets = !_.isEmpty(this.tabindexWidgets) ? this.tabindexWidgets : this.allFieldWidgets;
         options = options || {};
         _.defaults(options, {inc: 1, wrap: true});
 
-        var recordWidgets = tabindex_widgets[record.id] || [];
+        var recordWidgets = tabindexWidgets[record.id] || [];
         for (var i = 0 ; i < recordWidgets.length ; i++) {
-            var activated = recordWidgets[currentIndex].activate({event: options.event});
+            var activated = recordWidgets[currentIndex] && recordWidgets[currentIndex].activate({event: options.event});
             if (activated) {
+                var reverse = true && options.inc < 0; // If options.inc is in negative it means reverse navigation
+                if (recordWidgets[currentIndex]) {
+                    this._scrollTo(recordWidgets[currentIndex], reverse);
+                }
                 return currentIndex;
             }
 
@@ -204,7 +210,7 @@ var BasicRenderer = AbstractRenderer.extend({
         return -1;
     },
     /**
-     * This is a wrapper of the {@see _activateFieldWidget} function to select
+     * This is a wrapper of the {@see _activateWidget} function to select
      * the next possible widget instead of the given one.
      *
      * @private
@@ -212,13 +218,13 @@ var BasicRenderer = AbstractRenderer.extend({
      * @param {integer} currentIndex
      * @return {integer}
      */
-    _activateNextFieldWidget: function (record, currentIndex) {
-        var tabindex_widgets = !_.isEmpty(this.tabindexWidgets) ? this.tabindexWidgets : this.allFieldWidgets;
-        currentIndex = (currentIndex + 1) % (tabindex_widgets[record.id] || []).length;
-        return this._activateFieldWidget(record, currentIndex, {inc: 1});
+    _activateNextWidget: function (record, currentIndex) {
+        var tabindexWidgets = !_.isEmpty(this.tabindexWidgets) ? this.tabindexWidgets : this.allFieldWidgets;
+        currentIndex = (currentIndex + 1) % (tabindexWidgets[record.id] || []).length;
+        return this._activateWidget(record, currentIndex, {inc: 1});
     },
     /**
-     * This is a wrapper of the {@see _activateFieldWidget} function to select
+     * This is a wrapper of the {@see _activateWidget} function to select
      * the previous possible widget instead of the given one.
      *
      * @private
@@ -226,10 +232,31 @@ var BasicRenderer = AbstractRenderer.extend({
      * @param {integer} currentIndex
      * @return {integer}
      */
-    _activatePreviousFieldWidget: function (record, currentIndex) {
-        var tabindex_widgets = !_.isEmpty(this.tabindexWidgets) ? this.tabindexWidgets : this.allFieldWidgets;
-        currentIndex = currentIndex ? (currentIndex - 1) : ((tabindex_widgets[record.id] || []).length - 1);
-        return this._activateFieldWidget(record, currentIndex, {inc:-1});
+    _activatePreviousWidget: function (record, currentIndex) {
+        var tabindexWidgets = !_.isEmpty(this.tabindexWidgets) ? this.tabindexWidgets : this.allFieldWidgets;
+        currentIndex = currentIndex ? (currentIndex - 1) : ((tabindexWidgets[record.id] || []).length - 1);
+        return this._activateWidget(record, currentIndex, {inc:-1});
+    },
+    /**
+     * This will scroll view automatically when widget is at bottom of the screen
+     * Will be called from _activateWidget method so when user using keyboard to navigate
+     * and widget is at bottom of the screen then this method will automatically scroll upto widget position
+     *
+     * @private
+     * @param {Object} widget
+     * @param {boolean} reverse
+     */
+    _scrollTo: function (widget, reverse) {
+        var $scrollableElement = this.$el.scrollParent();
+        var offsetTop = widget.$el.offset().top;
+        if ($scrollableElement.offset()) {
+            offsetTop = offsetTop - $scrollableElement.offset().top;
+            if (reverse && offsetTop < 0) {
+                $scrollableElement.animate({scrollTop: offsetTop - ($scrollableElement.height() * 0.05)}, 1000);
+            } else if (offsetTop > $scrollableElement.height() - ($scrollableElement.height() * 0.10)) {
+                $scrollableElement.animate({scrollTop: offsetTop - ($scrollableElement.height() * 0.05)}, 1000);
+            }
+        }
     },
     /**
      * Does the necessary DOM updates to match the given modifiers data. The
@@ -511,7 +538,7 @@ var BasicRenderer = AbstractRenderer.extend({
         this.allFieldWidgets[record.id].push(widget);
 
         // Note: Can be moved to _render method in then callback to find tabindex widgets from allFieldWidgets
-        if (widget.tabindex != -1 && !widget.no_tabindex) {
+        if (widget.tabindex != -1 && !widget.noTabindex) {
             this.tabindexFieldWidgets[record.id].push(widget);
         }
 
@@ -680,6 +707,18 @@ var BasicRenderer = AbstractRenderer.extend({
      * @param {OdooEvent} ev
      */
     _onNavigationMove: function (ev) {},
+    /**
+     * Set lastTabindex property
+     * When user presses any button then view will be re-rendered
+     * and we will not have reference of last tabindex element, where to set focus next,
+     * so to have next focus after button pressed we will preserve lastTabindex property
+     *
+     * @private
+     * @param {OdooEvent} ev
+     */
+    _onSetLastTabindex: function (ev) {
+        this.lastTabindex = this.tabindexWidgets[this.state.id].indexOf(ev.data.target);
+    }
 });
 
 return BasicRenderer;

@@ -154,6 +154,14 @@ var FieldMany2One = AbstractField.extend({
         this.floating = false;
         this._setValue(value);
     },
+    /**
+     * Will check whether value is set and is valid
+     *
+     * @override
+     */
+    isBlank: function () {
+        return !this.isValid() || !this.isSet();
+    },
 
     //--------------------------------------------------------------------------
     // Private
@@ -185,7 +193,7 @@ var FieldMany2One = AbstractField.extend({
                 }
                 return false;
             },
-            focus: function (event) {
+            focus: function (event, ui) {
                 event.preventDefault(); // don't automatically select values on focus
             },
             close: function (event) {
@@ -421,7 +429,7 @@ var FieldMany2One = AbstractField.extend({
      */
     _searchCreatePopup: function (view, ids, context) {
         var self = this;
-        return new dialogs.SelectCreateDialog(this, _.extend({}, this.nodeOptions, {
+        var selectCreateDialog = new dialogs.SelectCreateDialog(this, _.extend({}, this.nodeOptions, {
             res_model: this.field.relation,
             domain: this.record.getDomain({fieldName: this.name}),
             context: _.extend({}, this.record.getContext(this.recordParams), context || {}),
@@ -434,6 +442,13 @@ var FieldMany2One = AbstractField.extend({
                 self.activate();
             }
         })).open();
+        selectCreateDialog.on('closed', this, function () {
+            // Note: Need to add timeout because focus is not set on element when CompletionMixin/m2o is in bootstrap modal, because focus for bootstrap model(we did it in dialog.js) is called after some timeout
+            _.delay(function () {
+                self.activate();
+            }, 100);
+        });
+        return selectCreateDialog;
     },
     /**
      * @private
@@ -496,7 +511,7 @@ var FieldMany2One = AbstractField.extend({
                 context: context,
             })
             .then(function (view_id) {
-                new dialogs.FormViewDialog(self, {
+                var FormViewDialog = new dialogs.FormViewDialog(self, {
                     res_model: self.field.relation,
                     res_id: self.value.res_id,
                     context: context,
@@ -510,6 +525,9 @@ var FieldMany2One = AbstractField.extend({
                         }
                     },
                 }).open();
+                FormViewDialog.on('closed', self, function () {
+                    self.activate();
+                })
             });
     },
     /**
@@ -526,8 +544,9 @@ var FieldMany2One = AbstractField.extend({
     },
     /**
      * @private
+     * @param {OdooEvent} ev
      */
-    _onInputFocusout: function () {
+    _onInputFocusout: function (ev) {
         if (this.can_create && this.floating) {
             new M2ODialog(this, this.string, this.$input.val()).open();
         }
@@ -555,8 +574,15 @@ var FieldMany2One = AbstractField.extend({
      * @override
      * @private
      */
-    _onKeydown: function () {
+    _onKeydown: function (ev) {
         this.floating = false;
+        // Note: Forcefully set input value to blank because keydown will do navigation to listview in case of escape
+        // and after then keyup will do focus out and M2ODialog opens in listview which is wrong
+        // to avoid opening M2ODialog set input value blank as soon as autocomplete is closed
+        // and event is escape(i.e. cancel) and input value is different that current m2o value
+        if (!this.$input.autocomplete('widget').is(':visible') && this.m2o_value !== this.$input.val() && ev.which === $.ui.keyCode.ESCAPE) {
+            this.$input.val('');
+        }
         this._super.apply(this, arguments);
     },
     /**
@@ -570,10 +596,10 @@ var FieldMany2One = AbstractField.extend({
     _onNavigationMove: function (ev) {
         // TODO Maybe this should be done in a mixin or, better, the m2o field
         // should be an InputField (but this requires some refactoring).
-        basicFields.InputField.prototype._onNavigationMove.apply(this, arguments);
         if (this.mode === 'edit' && $(this.$input.autocomplete('widget')).is(':visible')) {
             ev.stopPropagation();
         }
+        return basicFields.InputField.prototype._onNavigationMove.apply(this, arguments);
     },
     /**
      * @private
@@ -641,6 +667,8 @@ var FieldX2Many = AbstractField.extend({
         save_line: '_onSaveLine',
         resequence: '_onResequence',
         toggle_column_order: '_onToggleColumnOrder',
+        active_next_widget: '_onActiveNextWidget',
+        active_previous_widget: '_onActivePreviousWidget',
     }),
 
     // We need to trigger the reset on every changes to be aware of the parent changes
@@ -751,6 +779,28 @@ var FieldX2Many = AbstractField.extend({
         }
         return this._super.apply(this, arguments);
     },
+    /**
+     * Will add new record when focus comes on widget
+     * if create is enabled and widget is not readonly
+     *
+     * @override
+     */
+    activate: function () {
+        if (!this.activeActions.create || this.isReadonly) {
+            return false;
+        }
+        if (this.editable) {
+            this.trigger_up('add_record');
+        } else {
+            if (this.view.arch.tag === 'kanban') {
+                this.$buttons.find('button.o-kanban-button-new').focus();
+            }
+            if (this.view.arch.tag === 'tree') {
+                this.renderer.$('.o_field_x2many_list_row_add a').focus();
+            }
+        }
+        return true;
+    },
 
 
     //--------------------------------------------------------------------------
@@ -771,6 +821,24 @@ var FieldX2Many = AbstractField.extend({
              }).column_invisible;
         });
     },
+    /*
+     * Move to next widget.
+     *
+     * @private
+     */
+    _onActiveNextWidget: function () {
+        this.renderer.unselectRow();
+        this.trigger_up('navigation_move', {direction: 'next'});
+    },
+    /*
+     * Move to previous widget.
+     *
+     * @private
+     */
+     _onActivePreviousWidget: function() {
+        this.renderer.unselectRow();
+        this.trigger_up('navigation_move', {direction: 'previous'});
+     },
     /**
      * Instanciates or updates the adequate renderer.
      *
@@ -803,6 +871,7 @@ var FieldX2Many = AbstractField.extend({
                 addTrashIcon: !this.isReadonly && this.activeActions.delete,
                 viewType: viewType,
                 columnInvisibleFields: this.currentColInvisibleFields,
+                renderFromX2Many: true,
             });
         }
         if (arch.tag === 'kanban') {
@@ -820,7 +889,7 @@ var FieldX2Many = AbstractField.extend({
         }
         this.$el.addClass('o_field_x2many o_field_x2many_' + viewType);
         // To set tabindex on main div of o2m so that focus is possible on escape
-        this.$el.attr("tabindex", 0);
+        this.$el.attr('tabindex', 0);
         return this.renderer ? this.renderer.appendTo(this.$el) : this._super();
     },
     /**
@@ -972,6 +1041,10 @@ var FieldX2Many = AbstractField.extend({
      */
     _onDiscardChanges: function (ev) {
         ev.data.fieldName = this.name;
+        // Note: On First Escape set focus on o2m and on second escape discard parent records
+        if (!this.$el.is(':focus')) {
+            this.$el.focus();
+        }
     },
     /**
      * Called when the renderer asks to edit a line, in that case simply tells
@@ -1100,16 +1173,6 @@ var FieldX2Many = AbstractField.extend({
     _onToggleColumnOrder: function (ev) {
         ev.data.field = this.name;
     },
-    activate: function() {
-        if (!this.activeActions.create || this.isReadonly) {
-            return false;
-        }
-        if (!this.isReadonly) {
-            // this._onAddRecord();
-            this.trigger_up('add_record');
-            return true;
-        }
-    },
 });
 
 var FieldOne2Many = FieldX2Many.extend({
@@ -1175,6 +1238,7 @@ var FieldOne2Many = FieldX2Many.extend({
             fields_view: this.attrs.views && this.attrs.views.form,
             parentID: this.value.id,
             viewInfo: this.view,
+            widget: this,
         }));
     },
 
@@ -1279,7 +1343,7 @@ var FieldMany2Many = FieldX2Many.extend({
 
         var domain = this.record.getDomain({fieldName: this.name});
 
-        new dialogs.SelectCreateDialog(this, {
+        var selectCreateDialog = new dialogs.SelectCreateDialog(this, {
             res_model: this.field.relation,
             domain: domain.concat(["!", ["id", "in", this.value.res_ids]]),
             context: this.record.getContext(this.recordParams),
@@ -1300,6 +1364,11 @@ var FieldMany2Many = FieldX2Many.extend({
                 }
             }
         }).open();
+        selectCreateDialog.on('closed', this, function () {
+            _.delay(function () {
+                self.$el.focus();
+            }, 100);
+        });
     },
     /**
      * Intercepts the 'open_record' event to edit its data and lets it bubble up
@@ -1580,6 +1649,15 @@ var FieldMany2ManyTags = AbstractField.extend({
             this.activate();
         }
     },
+    /**
+     * Will check whether tags are selected and value is valid
+     *
+     * @override
+     * @returns {boolean}
+     */
+    isBlank: function () {
+        return !this.isValid() || this.value.count ?  false : true;
+    },
 
     //--------------------------------------------------------------------------
     // Private
@@ -1832,11 +1910,6 @@ var FieldMany2ManyCheckBoxes = AbstractField.extend({
     template: 'FieldMany2ManyCheckBoxes',
     events: _.extend({}, AbstractField.prototype.events, {
         change: '_onChange',
-        keydown: function(e) {
-            if (_.contains([$.ui.keyCode.UP, $.ui.keyCode.DOWN], e.which)) {
-                this.selectCheckbox(e);
-            }
-        }
     }),
     specialData: "_fetchSpecialRelation",
     supportedFieldTypes: ['many2many'],
@@ -1851,6 +1924,49 @@ var FieldMany2ManyCheckBoxes = AbstractField.extend({
 
     isSet: function () {
         return true;
+    },
+    /**
+     * will set focus on first checkbox
+     * If few checkbox are already checked then set focus on first checked checkbox
+     *
+     * @override
+     * @returns {boolean}
+     */
+    activate: function () {
+        var $inputs = this.$('input');
+        if ($inputs) {
+            $inputs.filter(':checked').length ? $inputs.filter(':checked').first().focus() : $inputs.first().focus();
+            return true;
+        } else {
+            return false;
+        }
+    },
+    /**
+     * Select checkbox on TAB and if it is first checkbox and SHIFT + TAB pressed
+     * then navigate to previous widget, if last checkbox and TAB pressed
+     * then navigate to next widget.
+     *
+     * @param {jQuery} $inputs
+     * @param {integer} index
+     * @param {string} direction
+     */
+    selectCheckbox: function ($inputs, index, direction) {
+        switch (direction) {
+            case 'next':
+                if (index == $inputs.length - 1) {
+                    $inputs.first().focus();
+                } else {
+                    $inputs[index + 1].focus();
+                }
+                break;
+            case 'previous':
+                if (index === 0) {
+                    $inputs.last().focus();
+                } else {
+                    $inputs[index - 1].focus();
+                }
+                break;
+        }
     },
 
     //--------------------------------------------------------------------------
@@ -1890,24 +2006,27 @@ var FieldMany2ManyCheckBoxes = AbstractField.extend({
             ids: ids,
         });
     },
-    activate: function() {
-        var $inputs = this.$("input");
-        if ($inputs) {
-            $inputs.filter(":checked").length ? $inputs.filter(":checked").first().focus() : $inputs.first().focus();
+    /**
+     * @override
+     * @private
+     * @param {OdooEvent} ev
+     */
+    _onNavigationMove: function (ev) {
+        var $inputs = this.$('input');
+        var index = $inputs.index(this.$('input:focus'));
+        var navigateCheckbox = '';
+        if (ev.data.direction == 'next' && index !== $inputs.length - 1) {
+            ev.stopPropagation();
+            navigateCheckbox = 'next';
+        } else if (ev.data.direction == 'previous' && index !== 0) {
+            ev.stopPropagation();
+            navigateCheckbox = 'previous';
         }
+        if (navigateCheckbox) {
+            return this.selectCheckbox($inputs, index, navigateCheckbox);
+        }
+        return this._super.apply(this, arguments);
     },
-    // TODO: To test
-    selectCheckbox: function(e) {
-        e.preventDefault();
-        var direction = e.which == $.ui.keyCode.UP ? 'previous' : 'next';
-        var $inputs = this.$("input");
-        var index = $inputs.index(this.$("input:focus"));
-        if (this.$("input") && index == $inputs.length-1) {
-            $inputs.first().focus();
-        } else {
-            $inputs[index+1] && $inputs[index+1].focus();
-        }
-    }
 });
 
 //------------------------------------------------------------------------------
@@ -1915,7 +2034,7 @@ var FieldMany2ManyCheckBoxes = AbstractField.extend({
 //------------------------------------------------------------------------------
 
 var FieldStatus = AbstractField.extend({
-    no_tabindex: true,
+    noTabindex: true,
     className: 'o_statusbar_status',
     events: {
         'click button:not(.dropdown-toggle)': '_onClickStage',
@@ -2035,6 +2154,14 @@ var FieldSelection = AbstractField.extend({
     isSet: function () {
         return this.value !== false;
     },
+    /**
+     * Will check whether value is set and is valid
+     *
+     * @override
+     */
+    isBlank: function () {
+        return !this.isValid() || !this.isSet();
+    },
 
     //--------------------------------------------------------------------------
     // Private
@@ -2118,7 +2245,7 @@ var FieldRadio = FieldSelection.extend({
     template: null,
     className: 'o_field_radio',
     tagName: 'span',
-    no_tabindex: true,
+    noTabindex: true,
     specialData: "_fetchSpecialMany2ones",
     supportedFieldTypes: ['selection', 'many2one'],
     events: _.extend({}, AbstractField.prototype.events, {

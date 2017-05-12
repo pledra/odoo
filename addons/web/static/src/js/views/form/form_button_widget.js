@@ -1,6 +1,7 @@
 odoo.define('web.ButtonWidget', function (require) {
 "use strict";
 
+var config = require('web.config');
 var core = require('web.core');
 var ViewWidget = require('web.ViewWidget');
 
@@ -8,8 +9,8 @@ var _t = core._t;
 var qweb = core.qweb;
 
 var ButtonWidget = ViewWidget.extend({
-	template: 'WidgetButton',
-	/**
+    template: 'WidgetButton',
+    /**
      * Button Widget  class
      *
      * @constructor
@@ -19,59 +20,96 @@ var ButtonWidget = ViewWidget.extend({
      * @param {Object} [options]
      * @param {string} [options.mode=readonly] should be 'readonly' or 'edit'
      */
-	init: function (parent, node, record, options) {
-		this._super(parent);
+    init: function (parent, node, record, options) {
+        this._super(parent, record);
 
-		this.node = node;
+        this.node = node;
+        this.__node = node; // TODO: get rid of this, added because we are finding first button based on this
 
-		// the datapoint fetched from the model
-        this.record = record;
-
-        this.string = this.node.attrs.string;
+        // the 'string' property is a human readable (and translated) description of the button.
+        this.string = (this.node.attrs.string || '').replace(/_/g, '');
 
         if (node.attrs.icon) {
             this.fa_icon = node.attrs.icon.indexOf('fa-') === 0;
         }
-	},
-	start: function() {
-		var self = this;
+    },
+    start: function () {
+        var self = this;
         this._super.apply(this, arguments);
+        var enterPressed = false;
         this.$el.click(function () {
+            if (enterPressed) {
+                self.trigger_up('set_last_tabindex', {target: self});
+            }
             self.trigger_up('button_clicked', {
                 attrs: self.node.attrs,
                 record: self.record,
-                callback: function() {
-                    self.trigger_up('move_next');
+                callback: function (direction) {
+                    self.trigger_up('navigation_move', {direction: direction || 'next'});
                 }
             });
         });
-        // TODO: To implement
-        // if (this.node.attrs.help || core.debug) {
-        //     this._addTooltip();
-        // }
+        this.$el.on('keydown', function (e) {
+            // Note: For setting enterPressed variable which will be helpful to set next widget or not,
+            // if mouse is used then do not set next widget focus
+            e.stopPropagation();
+            if (e.which === $.ui.keyCode.ENTER) {
+                enterPressed = true;
+            }
+        });
+        // Display tooltip
+        if (config.debug || this.node.attrs.help) {
+            this.$el.tooltip({
+                delay: {show: 1000, hide: 0},
+                title: function () {
+                    return qweb.render('WidgetButton.tooltip', {
+                        debug: config.debug,
+                        state: self.record,
+                        node: self.node,
+                    });
+                },
+            });
+        }
         this._addOnFocusAction();
     },
-	/**
-	 * @override
-	 * @returns {jQuery} the focusable checkbox input
-	 */
-	getFocusableElement: function() {
-		return this.$el || $();
-	},
-
-    _getFocusTip: function(node) {
-        var show_focus_tip = function() {
-            var content = node.attrs.on_focus_tip ? node.attrs.on_focus_tip : _.str.sprintf(_t("Press ENTER to %s"), node.attrs.string);
-            return content;
-        }
-        return show_focus_tip;
+    /**
+     * @override
+     * @returns {jQuery} the focusable element
+     */
+    getFocusableElement: function () {
+        return this.$el || $();
     },
-    _addOnFocusAction: function() {
+
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * Return on_focus_tip attribute if available else will return current button string
+     *
+     * @private
+     * @param {Object} node
+     */
+    _getFocusTip: function (node) {
+        var showFocusTip = function () {
+            return node.attrs.on_focus_tip ? node.attrs.on_focus_tip : _.str.sprintf(_t('Press ENTER to %s'), node.attrs.string);
+        }
+        return showFocusTip;
+    },
+
+    /**
+     * When focus comes to button show tip on it,
+     * this function will display tip to explain user what this button will do,
+     * this function will _getFocusTip function to get tip on the button,
+     * tip is either explicitly defined as an on_focus_tip attribute else _getFocusTip will return current button string.
+     * @private
+     */
+    _addOnFocusAction: function () {
         var self = this;
         var options = _.extend({
-            delay: { show: 1000, hide: 0 },
+            delay: {show: 1000, hide: 0},
             trigger: 'focus',
-            title: function() {
+            title: function () {
                 return qweb.render('FocusTooltip', {
                     getFocusTip: self._getFocusTip(self.node)
                 });
@@ -79,18 +117,26 @@ var ButtonWidget = ViewWidget.extend({
         }, {});
         this.$el.tooltip(options);
     },
-    _addTooltip: function(widget, $node) {
-    	var self = this;
-        this.$el.tooltip({
-            delay: { show: 1000, hide: 0 },
-            title: function () {
-                return qweb.render('WidgetLabel.tooltip', {
-                    debug: core.debug,
-                    widget: self,
-                });
-            }
-        });
-    },
+
+    //--------------------------------------------------------------------------
+    // Handlers
+    //--------------------------------------------------------------------------
+
+    /**
+     * _onKeydown on ViewWidget will move user to next widget as soon as Enter key is pressed
+     * Next button/widget should be focused once reload is done and once lastTabindex variable is set
+     * So here we skip Enter key, click handler will do the job of trigerring navigation_move once button operation is complete
+     *
+     * @override
+     * @private
+     * @param {KeyEvent} ev
+     */
+    _onKeydown: function (ev) {
+        if (ev.which === $.ui.keyCode.ENTER) {
+            return;
+        }
+        return this._super.apply(this, arguments);
+    }
 });
 
 return ButtonWidget;
