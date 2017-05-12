@@ -47,7 +47,7 @@ Main Features
         'views/mail_alias_views.xml',
         'views/res_users_views.xml',
         'views/mail_templates.xml',
-        'wizard/email_template_preview_view.xml',
+        'wizard/mail_template_preview_views.xml',
         'views/mail_template_views.xml',
         'views/ir_actions_views.xml',
         'views/ir_model_views.xml',

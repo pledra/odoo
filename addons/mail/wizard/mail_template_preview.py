@@ -6,8 +6,8 @@ from odoo import api, fields, models
 
 class TemplatePreview(models.TransientModel):
     _inherit = "mail.template"
-    _name = "email_template.preview"
-    _description = "Email Template Preview"
+    _name = "mail.template.preview"
+    _description = "Mail Template Preview"
 
     @api.model
     def _get_records(self):

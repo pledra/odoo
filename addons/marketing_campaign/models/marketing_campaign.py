@@ -591,12 +591,12 @@ class MarketingCampaignWorkitem(models.Model):
         self.ensure_one()
         res = {}
         if self.activity_id.action_type == 'email':
-            view_ref = self.env.ref('mail.email_template_preview_form')
+            view_ref = self.env.ref('mail.mail_template_preview_view_form')
             res = {
                 'name': _('Email Preview'),
                 'view_type': 'form',
                 'view_mode': 'form,tree',
-                'res_model': 'email_template.preview',
+                'res_model': 'mail.template.preview',
                 'view_id': False,
                 'context': self.env.context,
                 'views': [(view_ref and view_ref.id or False, 'form')],
