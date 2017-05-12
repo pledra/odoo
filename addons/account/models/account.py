@@ -761,11 +761,12 @@ class AccountTax(models.Model):
         else:
             total_excluded, total_included, base = base_values
 
+        # A constant-like helper for computing price_include and not include_base_amount
+        ORIGIN_BASE = None
         # Sorting key is mandatory in this case. When no key is provided, sorted() will perform a
         # search. However, the search method is overridden in account.tax in order to add a domain
         # depending on the context. This domain might filter out some taxes from self, e.g. in the
         # case of group taxes.
-        taxes_rates_includes_temp = {}
         for tax in self.sorted(key=lambda r: r.sequence):
             if tax.amount_type == 'group':
                 children = tax.children_tax_ids.with_context(base_values=(total_excluded, total_included, base))
@@ -783,16 +784,20 @@ class AccountTax(models.Model):
             # Keep base amount used for the current tax
             tax_base = base
 
+            # Hacky: to compute base-non-affecting price-included taxes,
+            # we need a non affectable whatsoever base
+            if ORIGIN_BASE is None:
+                ORIGIN_BASE = base
+
             if tax.price_include:
                 total_excluded -= tax_amount
                 base -= tax_amount
-                if not tax.include_base_amount and tax.amount_type == 'percent':
-                    base += tax_amount
-                    taxes_rates_includes_temp[tax.id] = tax.amount / 100
             else:
                 total_included += tax_amount
 
             if tax.include_base_amount:
+                # In the case of price included the amount is rightfully substracted before
+                # and should stay that way
                 base += tax_amount if not tax.price_include or tax.amount_type != 'percent' else 0
 
             taxes.append({
@@ -804,22 +809,14 @@ class AccountTax(models.Model):
                 'account_id': tax.account_id.id,
                 'refund_account_id': tax.refund_account_id.id,
                 'analytic': tax.analytic,
+                'rate': tax.amount,
+                'is_common_base': tax.price_include and not tax.include_base_amount,
+                'needs_recomputing': tax.price_include and not tax.include_base_amount,
             })
 
-        if taxes_rates_includes_temp:
-            tax_cumul_rate = 1
-            for tax in taxes:
-                if tax['id'] in taxes_rates_includes_temp.keys():
-                    tax_cumul_rate += taxes_rates_includes_temp[tax['id']]
-            total_excluded = tax_base / tax_cumul_rate
-
-            for tax in taxes:
-                if tax['id'] in taxes_rates_includes_temp.keys():
-                    tax['base'] = total_excluded
-                    # this might be misleading: tax.amount is the rate (no unit)
-                    # whereas tax['amount'] is the computed amount of the tax (in currency)
-                    gross_new_amount = total_excluded * taxes_rates_includes_temp[tax['id']]
-                    tax['amount'] = self._rounding_preference(gross_new_amount, round_tax, currency, prec)
+        taxes, new_excluded_amount = self._filter_taxes_included_base_not_affected(taxes, ORIGIN_BASE, round_tax, currency, prec)
+        if new_excluded_amount:
+            total_excluded = new_excluded_amount
 
         return {
             'taxes': sorted(taxes, key=lambda k: k['sequence']),
@@ -842,6 +839,24 @@ class AccountTax(models.Model):
             return round(tax_amount, precision)
         else:
             return currency.round(tax_amount)
+
+    def _filter_taxes_included_base_not_affected(self, list_taxes, base, round_tax, currency, precision):
+        # taxes = dict_taxes.iltered(lambda t: t.price_include and not t.include_base_amount and t.amount_type == 'percent')
+        curr_taxes = self.filtered(lambda t: t.price_include and not t.include_base_amount and t.amount_type == 'percent').sorted(key=lambda r: r.sequence)
+        if not curr_taxes:
+            return list_taxes, None
+
+        taxes_cumul_rate = sum(curr_taxes.mapped(lambda t: t.amount))
+        excluded_amount = base / (1 + (taxes_cumul_rate / 100))
+        for tax in list_taxes:
+            # The needs_recomputing condition might be too much because of the [id] in curr_taxes.ids
+            # Though, we ensure that we do not mess up the list, which contains all taxes across all groups
+            if tax['is_common_base'] and tax['needs_recomputing'] and tax['id'] in curr_taxes.ids:
+                tax['base'] = excluded_amount
+                new_amount = excluded_amount * tax['rate'] / 100
+                tax['amount'] = self._rounding_preference(new_amount, round_tax, currency, precision)
+                tax['needs_recomputing'] = False
+        return list_taxes, excluded_amount
 
 
 class AccountReconcileModel(models.Model):
