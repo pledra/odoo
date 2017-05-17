@@ -397,6 +397,7 @@ class MrpWorkorder(models.Model):
                     'date_start': datetime.now(),
                 })
             timeline.create({
+                'production_id': self.production_id.id,
                 'workorder_id': workorder.id,
                 'workcenter_id': workorder.workcenter_id.id,
                 'description': _('Time Tracking: ')+self.env.user.name,
