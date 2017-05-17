@@ -190,7 +190,23 @@ class TestTax(AccountTestUsers):
         self.assertEquals(len(aml_with_taxes), 1)
         self.assertEquals(aml_with_taxes.credit, 190)
 
-    def test_tax_multiple_keep_base(self):
+    def test_tax_include_one_keep_base(self):
+        self.percent_tax.price_include = True
+        self.percent_tax.include_base_amount = False
+
+        res = self.percent_tax.compute_all(200.0)
+        self.assertEquals(res['total_excluded'], 181.82)
+        self.assertAlmostEqual(res['taxes'][0]['amount'], 18.18)
+
+    def test_tax_include_one_affect_base(self):
+        self.percent_tax.price_include = True
+        self.percent_tax.include_base_amount = True
+
+        res = self.percent_tax.compute_all(200.0)
+        self.assertEquals(res['total_excluded'], 181.82)
+        self.assertAlmostEqual(res['taxes'][0]['amount'], 18.18)
+
+    def test_tax_include_multiple_keep_base(self):
         self.percent_tax.price_include = True
         self.percent_tax_bis.price_include = True
         self.percent_tax.include_base_amount = False
@@ -201,7 +217,7 @@ class TestTax(AccountTestUsers):
         self.assertAlmostEqual(res['taxes'][0]['amount'], 17.39)
         self.assertAlmostEqual(res['taxes'][1]['amount'], 8.70)
 
-    def test_tax_multiple_affect_base(self):
+    def test_tax_include_multiple_affect_base(self):
         self.percent_tax.price_include = True
         self.percent_tax_bis.price_include = True
         self.percent_tax.include_base_amount = True
