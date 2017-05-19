@@ -19,7 +19,8 @@ from odoo.exceptions import QWebException
 from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.base import ir
-from odoo.addons.website.models.website import slug, url_for, _UNSLUG_RE
+from odoo.addons.base.ir.ir_http import _UNSLUG_RE
+from odoo.addons.website.models.website import url_for
 
 
 logger = logging.getLogger(__name__)
@@ -340,9 +341,6 @@ class ModelConverter(ir.ir_http.ModelConverter):
         super(ModelConverter, self).__init__(url_map, model)
         self.domain = domain
         self.regex = _UNSLUG_RE.pattern
-
-    def to_url(self, value):
-        return slug(value)
 
     def to_python(self, value):
         matching = re.match(self.regex, value)

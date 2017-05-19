@@ -11,7 +11,7 @@ from werkzeug import urls
 from odoo import _
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
-from odoo.addons.website.models.website import slug
+from odoo.addons.base.ir.ir_http import slug
 
 from odoo.tools import pycompat
 

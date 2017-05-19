@@ -14,7 +14,7 @@ from odoo import api, fields, models, SUPERUSER_ID, _
 from odoo.tools import image, pycompat
 from odoo.tools.translate import html_translate
 from odoo.exceptions import Warning
-from odoo.addons.website.models.website import slug
+from odoo.addons.base.ir.ir_http import slug
 
 
 class Channel(models.Model):

@@ -13,7 +13,7 @@ from werkzeug import urls
 from odoo import api, fields, models, tools, SUPERUSER_ID, _
 from odoo.exceptions import UserError, ValidationError
 
-from odoo.addons.website.models.website import slug
+from odoo.addons.base.ir.ir_http import slug
 
 from odoo.tools import pycompat
 

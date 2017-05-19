@@ -22,6 +22,7 @@ from lxml import etree
 from werkzeug import url_encode
 
 from odoo import _, api, exceptions, fields, models, tools
+from odoo.addons.base.ir.ir_http import slug
 from odoo.tools import pycompat
 from odoo.tools.safe_eval import safe_eval
 
@@ -1910,11 +1911,7 @@ class MailThread(models.AbstractModel):
         views in batch. This method should probably disappear when templates
         handle ir ui views. """
         values = kwargs.pop('values', None) or dict()
-        try:
-            from odoo.addons.website.models.website import slug
-            values['slug'] = slug
-        except ImportError:
-            values['slug'] = lambda self: self.id
+        values['slug'] = slug
         if isinstance(views_or_xmlid, basestring):
             views = self.env.ref(views_or_xmlid, raise_if_not_found=False)
         else:

@@ -2,7 +2,7 @@
 
 from odoo import http
 from odoo.http import request
-from odoo.addons.website.models.website import unslug
+from odoo.addons.base.ir.ir_http import unslug
 
 
 class WebsitePartnerPage(http.Controller):

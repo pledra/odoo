@@ -20,6 +20,7 @@ from lxml.etree import LxmlError
 from lxml.builder import E
 
 from odoo import api, fields, models, tools, SUPERUSER_ID, _
+from odoo.addons.base.ir.ir_http import slug, unslug_url
 from odoo.exceptions import ValidationError
 from odoo.http import request
 from odoo.modules.module import get_resource_from_path, get_resource_path
@@ -1072,6 +1073,8 @@ actual arch.
             res_company=self.env.user.company_id.sudo(),
             keep_query=keep_query,
             request=request,  # might be unbound if we're not in an httprequest context
+            slug=slug,
+            unslug_url=unslug_url,
             debug=request.debug if request else False,
             json=json,
             quote_plus=werkzeug.url_quote_plus,
