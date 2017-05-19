@@ -34,8 +34,6 @@ from odoo.modules.module import get_resource_path, get_module_path
 
 _logger = logging.getLogger(__name__)
 
-UID_PLACEHOLDER = object()
-
 
 # ------------------------------------------------------------
 # Slug API
@@ -104,16 +102,29 @@ def unslug_url(s):
     return s
 
 
+class RequestUID(object):
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+
+
 class ModelConverter(werkzeug.routing.BaseConverter):
 
-    def __init__(self, url_map, model=False):
+    def __init__(self, url_map, model=False, domain='[]'):
         super(ModelConverter, self).__init__(url_map)
         self.model = model
-        self.regex = r'([0-9]+)'
+        self.domain = domain
+        self.regex = _UNSLUG_RE.pattern
 
     def to_python(self, value):
-        env = api.Environment(request.cr, UID_PLACEHOLDER, request.context)
-        return env[self.model].browse(int(value))
+        matching = re.match(self.regex, value)
+        _uid = RequestUID(value=value, match=matching, converter=self)
+        record_id = int(matching.group(2))
+        env = api.Environment(request.cr, _uid, request.context)
+        if record_id < 0:
+            # limited support for negative IDs due to our slug pattern, assume abs() if not found
+            if not env[self.model].browse(record_id).exists():
+                record_id = abs(record_id)
+        return env[self.model].browse(record_id)
 
     def to_url(self, value):
         return slug(value)
@@ -128,7 +139,8 @@ class ModelsConverter(werkzeug.routing.BaseConverter):
         self.regex = r'([0-9,]+)'
 
     def to_python(self, value):
-        env = api.Environment(request.cr, UID_PLACEHOLDER, request.context)
+        _uid = RequestUID(value=value, converter=self)
+        env = api.Environment(request.cr, _uid, request.context)
         return env[self.model].browse(int(v) for v in value.split(','))
 
     def to_url(self, value):
@@ -277,10 +289,11 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _postprocess_args(cls, arguments, rule):
         """ post process arg to set uid on browse records """
-        for name, arg in list(pycompat.items(arguments)):
-            if isinstance(arg, models.BaseModel) and arg._uid is UID_PLACEHOLDER:
-                arguments[name] = arg.sudo(request.uid)
-                if not arg.exists():
+        for key, val in list(pycompat.items(arguments)):
+            # Replace uid placeholder by the current request.uid
+            if isinstance(val, models.BaseModel) and isinstance(val._uid, RequestUID):
+                arguments[key] = val.sudo(request.uid)
+                if not val.exists():
                     return cls._handle_exception(werkzeug.exceptions.NotFound())
 
     @classmethod
