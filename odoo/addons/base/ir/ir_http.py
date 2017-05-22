@@ -287,6 +287,22 @@ class IrHttp(models.AbstractModel):
         return result
 
     @classmethod
+    def _get_languages(cls):
+        return request.env['res.lang'].search([])
+
+    @classmethod
+    def _get_language_codes(cls):
+        languages = cls._get_languages()
+        return [(lang.code, lang.name) for lang in languages]
+
+    @classmethod
+    def _get_default_lang(cls):
+        lang_code = request.env['ir.values'].sudo().get_default('res.partner', 'lang')
+        if lang_code:
+            return request.env['res.lang'].search([('code', '=', lang_code)], limit=1)
+        return request.env['res.lang'].search([], limit=1)
+
+    @classmethod
     def _postprocess_args(cls, arguments, rule):
         """ post process arg to set uid on browse records """
         for key, val in list(pycompat.items(arguments)):
