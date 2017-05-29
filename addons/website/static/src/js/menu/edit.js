@@ -70,6 +70,10 @@ var EditPageMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 self.$welcomeMessage.remove();
             }
             var def = $.Deferred();
+            // Unbind attached zoom events of images , if any
+            _.each($('img[data-zoom]'), function(img) {
+                $(img).data('zoomOdoo').unbind();
+            });
             self.trigger_up('animation_start_demand', {
                 editableMode: true,
                 onSuccess: def.resolve.bind(def),

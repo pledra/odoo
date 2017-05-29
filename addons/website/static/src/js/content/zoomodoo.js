@@ -27,13 +27,16 @@ var defaults = {
     linkAttribute: 'data-zoom-image',
 
     // event to trigger zoom
-    event: 'click', //or mousenter
+    event: 'mouseenter', //or click
 
     // Prevent clicks on the zoom image link.
     preventClicks: true,
 
     // disable on mobile
     disabledOnMobile: true,
+
+    // Prevent scrolling if image is too large
+    preventOverflow: false,
 
     // Callback function to execute before the flyout is displayed.
     beforeShow: $.noop,
@@ -83,7 +86,7 @@ ZoomOdoo.prototype._init = function () {
         }
         $attach.parent().on('mousemove.zoomodoo touchmove.zoomodoo', $.proxy(this._onMove, this));
         $attach.parent().on('mouseleave.zoomodoo touchend.zoomodoo', $.proxy(this._onLeave, this));
-        this.$target.parent().on(this.opts.event + '.zoomodoo touchstart.zoomodoo', $.proxy(this._onEnter, this));
+        this.$target.on(this.opts.event + '.zoomodoo touchstart.zoomodoo', $.proxy(this._onEnter, this));
 
         if (this.opts.preventClicks) {
             this.$target.on('click.zoomodoo', function (e) { e.preventDefault(); });
@@ -115,6 +118,9 @@ ZoomOdoo.prototype.show = function (e, testMouseOver) {
         $attach = this.$target.parents(this.opts.attach);
     }
     $attach.parent().append(this.$flyout);
+    if (this.opts.preventOverflow && this.$target.parents('.zoomodoo-next').length) {
+        this.$flyout.css('max-width', ( window.outerWidth - this.$flyout.offset().left - 20));
+    }
 
     w1 = this.$target.width();
     h1 = this.$target.height();
@@ -263,6 +269,18 @@ ZoomOdoo.prototype.hide = function () {
 
     this.opts.onHide.call(this);
 };
+    /**
+     * Unbind
+     */
+    ZoomOdoo.prototype.unbind = function() {
+        var $attach = this.$target;
+        if (this.opts.attach !== undefined && this.$target.parents(this.opts.attach).length) {
+            $attach = this.$target.parents(this.opts.attach);
+        }
+        this.$target.removeAttr('data-zoom data-zoom-image');
+        $attach.parent().off('mousemove mouseleave');
+        this.$target.off(this.opts.event);
+    };
 
 // jQuery plugin wrapper
 $.fn.zoomOdoo = function (options) {
