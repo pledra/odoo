@@ -65,6 +65,7 @@ class MailComposer(models.TransientModel):
         result['model'] = result.get('model', self._context.get('active_model'))
         result['res_id'] = result.get('res_id', self._context.get('active_id'))
         result['parent_id'] = result.get('parent_id', self._context.get('message_id'))
+        result['template_id'] = self.env['ir.values'].sudo().get_default('mail.compose.message', 'template_id', condition='model=' + (result['model'] or '')) or result.get('template_id')
         if 'no_auto_thread' not in result and (result['model'] not in self.env or not hasattr(self.env[result['model']], 'message_post')):
             result['no_auto_thread'] = True
 
@@ -124,6 +125,16 @@ class MailComposer(models.TransientModel):
     # mail_message updated fields
     message_type = fields.Selection(default="comment")
     subtype_id = fields.Many2one(default=lambda self: self.sudo().env.ref('mail.mt_comment', raise_if_not_found=False).id)
+
+    is_default_template = fields.Boolean(compute='_compute_is_default_template')
+
+    @api.depends('template_id')
+    def _compute_is_default_template(self):
+        IrValues = self.env['ir.values'].sudo()
+        for compose in self:
+            template_id = IrValues.get_default('mail.compose.message', 'template_id', condition='model=' + (compose.model or ''))
+            if template_id == compose.template_id.id or (not template_id and self.env.context.get('default_template_id') == compose.template_id.id):
+                compose.is_default_template = True
 
     @api.multi
     def check_access_rule(self, operation):
@@ -329,6 +340,12 @@ class MailComposer(models.TransientModel):
             results[res_id] = mail_values
         return results
 
+    @api.multi
+    def mark_template_as_default(self):
+        self.ensure_one()
+        if self.template_id:
+            self.env['ir.values'].sudo().set_default('mail.compose.message', "template_id", self.template_id.id, condition="model=" + (self.model or ''))
+        return _reopen(self, self.id, self.model, context=self.env.context)
     #------------------------------------------------------
     # Template methods
     #------------------------------------------------------
