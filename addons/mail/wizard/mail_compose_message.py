@@ -409,10 +409,13 @@ class MailComposer(models.TransientModel):
     def save_as_template(self):
         """ hit save as template button: current form value will be a new
             template attached to the current document. """
+        Template = self.env['mail.template']
         for record in self:
             model = self.env['ir.model']._get(record.model or 'mail.message')
-            model_name = model.name or ''
-            template_name = "%s: %s" % (model_name, tools.ustr(record.subject))
+            template_name = record.subject or ''
+            if record.template_id:
+                tmpl_count = Template.search_count([('model', '=', record.model), ('name', 'ilike', record.template_id.name)])
+                template_name = record.template_id.name + ' (' + str(tmpl_count) + ')'
             values = {
                 'name': template_name,
                 'subject': record.subject or False,
