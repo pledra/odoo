@@ -134,6 +134,12 @@ class account_register_payments(models.TransientModel):
         if not active_ids:
             raise UserError(_("Programmation error: wizard action executed without active_ids in context."))
 
+        if self._context.get('active_model') != 'account.invoice':
+            # This modal can be reused for other kind of payments where it may be
+            # possible that the payment do not have invoices linked to it(For e.g 'Employee Expenses')
+            # hence it should return super result.
+            return rec
+
         invoices = self.env['account.invoice'].browse(active_ids)
 
         # Check all invoices are open
@@ -184,20 +190,29 @@ class account_register_payments(models.TransientModel):
         :param invoices: The invoices that should have the same commercial partner and the same type.
         :return: The payment values as a dictionary.
         '''
-        amount = self._compute_payment_amount(invoices) if self.multi else self.amount
-        payment_type = ('inbound' if amount > 0 else 'outbound') if self.multi else self.payment_type
-        return {
+        payment_vals = {
             'journal_id': self.journal_id.id,
             'payment_method_id': self.payment_method_id.id,
             'payment_date': self.payment_date,
             'communication': self.communication,
-            'invoice_ids': [(6, 0, invoices.ids)],
-            'payment_type': payment_type,
-            'amount': abs(amount),
-            'currency_id': self.currency_id.id,
-            'partner_id': invoices[0].commercial_partner_id.id,
-            'partner_type': MAP_INVOICE_TYPE_PARTNER_TYPE[invoices[0].type],
         }
+        if self._context.get('active_model') != 'account.invoice':
+            # This modal can be reused for other kind of payments where it may be
+            # possible that the payment do not have invoices linked to it(For e.g 'Employee Expenses')
+            # hence it must return information other than related to that of any invoice.
+            return payment_vals
+
+        amount = self._compute_payment_amount(invoices) if self.multi else self.amount
+        payment_type = ('inbound' if amount > 0 else 'outbound') if self.multi else self.payment_type
+
+        payment_vals.update(
+            invoice_ids=[(6, 0, invoices.ids)],
+            payment_type=payment_type,
+            amount=abs(amount),
+            currency_id=self.currency_id.id,
+            partner_id=invoices[0].commercial_partner_id.id,
+            partner_type=MAP_INVOICE_TYPE_PARTNER_TYPE[invoices[0].type])
+        return payment_vals
 
     @api.multi
     def get_payments_vals(self):
@@ -210,6 +225,14 @@ class account_register_payments(models.TransientModel):
             return [self._prepare_payment_vals(invoices) for invoices in groups.values()]
         return [self._prepare_payment_vals(self.invoice_ids)]
 
+    def _create_payments(self):
+        Payment = self.env['account.payment']
+        payments = Payment
+        for payment_vals in self.get_payments_vals():
+            payments += Payment.create(payment_vals)
+        payments.post()
+        return payments
+
     @api.multi
     def create_payments(self):
         '''Create payments according to the invoices.
@@ -220,11 +243,7 @@ class account_register_payments(models.TransientModel):
 
         :return: The ir.actions.act_window to show created payments.
         '''
-        Payment = self.env['account.payment']
-        payments = Payment
-        for payment_vals in self.get_payments_vals():
-            payments += Payment.create(payment_vals)
-        payments.post()
+        payments = self._create_payments()
         return {
             'name': _('Payments'),
             'domain': [('id', 'in', payments.ids), ('state', '=', 'posted')],
