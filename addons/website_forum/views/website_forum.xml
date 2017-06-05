@@ -54,6 +54,14 @@
             <div t-field="forum.welcome_message"/>
         </div>
 
+        <div class="container mt16" groups="website.group_website_designer">
+            <t t-call="website.publish_management">
+                <t t-set="object" t-value="forum"/>
+                <t t-set="publish_edit" t-value="True"/>
+                <t t-set="action" t-value="'website_forum.action_forum_forum'"/>
+            </t>
+        </div>
+
         <div class="container mt16 website_forum">
             <div class="navbar navbar-default">
                 <div class="navbar-header">
@@ -215,6 +223,19 @@
             </div>
         </div>
         <div class="oe_structure"/>
+    </t>
+</template>
+
+<template id="website.403">
+    <t t-call="website_forum.layout">
+        <div class="text-center text-muted">
+            <p class="css_editable_hidden" groups="!base.group_erp_manager">
+                <h1>No forum post yet.</h1>
+            </p>
+            <p class="css_editable_hidden" groups="base.group_erp_manager">
+                <h2>This forum has been archived.</h2>
+            </p>
+        </div>
     </t>
 </template>
 
@@ -383,11 +404,13 @@
         <div class="container">
             <h1 class="mb32">Our forums</h1>
             <div class="row">
+                <div t-if="not forums" class="well">No forum post yet.</div>
                 <div t-foreach="forums" t-as="forum" class="col-sm-3 text-center mb32">
                     <a t-attf-href="/forum/#{ slug(forum) }">
                         <div class="fa fa-5x fa-comment mb16"/>
                         <div t-field="forum.name"/>
                     </a>
+                    <span t-if="not forum.website_published" class="label label-danger">unpublished</span>
                 </div>
             </div>
         </div>
