@@ -142,6 +142,15 @@ var RecordQuickCreate = AbstractQuickCreate.extend({
     //--------------------------------------------------------------------------
 
     /**
+     * Add the default name again after creating the new record.
+     *
+     * @private
+     */
+    _add: function () {
+        this._super.apply(this, arguments);
+        this._addDefaultName();
+    },
+    /**
      * Set the default value for the record name.
      *
      * @private
@@ -169,23 +178,6 @@ var RecordQuickCreate = AbstractQuickCreate.extend({
      */
     _notifyAdd: function (value) {
         this.trigger_up('quick_create_add_record', {value: value});
-    },
-
-    //--------------------------------------------------------------------------
-    // Handlers
-    //--------------------------------------------------------------------------
-
-    /**
-     * Add the default value for the record name again after creating
-     * the previous record.
-     * 
-     * @override
-     * @private
-     * @param {MouseEvent} event
-     */
-    _onAddClicked: function (event) {
-        this._super.apply(this, arguments);
-        this._addDefaultName();
     },
 });
 
