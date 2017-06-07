@@ -5,6 +5,7 @@ import math
 
 from werkzeug import urls
 
+from odoo.http import Controller, request, route
 
 # --------------------------------------------------
 # Misc tools
@@ -67,3 +68,16 @@ def pager(url, total, page=1, step=30, scope=5, url_args=None):
             {'url': get_url(page_num), 'num': page_num} for page_num in range(pmin, pmax+1)
         ]
     }
+
+
+class CustomerPortal(Controller):
+
+    def _prepare_portal_layout_values(self):
+        return {
+            'page_name': 'home',
+        }
+
+    @route(['/my', '/my/home'], type='http', auth="user", website=True)
+    def home(self, **kw):
+        values = self._prepare_portal_layout_values()
+        return request.render("web.portal_layout", values)

@@ -237,6 +237,10 @@
     <template id="web.assets_frontend" name="Website Assets">
         <t t-call="web.less_helpers"/>
 
+        <link rel="stylesheet" type="text/less" href="/web/static/src/less/website.ui.less"/>
+        <link rel="stylesheet" type="text/less" href="/web/static/src/less/website.wrapwrap.less"/>
+        <link rel="stylesheet" type="text/less" href="/web/static/src/less/bootstrap.extend.less"/>
+
         <link rel="stylesheet" type="text/less" href="/web/static/src/less/import_bootstrap.less"/>
         <script type="text/javascript" src="/web/static/src/js/services/session.js"></script>
     </template>
