@@ -5,7 +5,8 @@ from odoo import http, _
 from odoo.exceptions import AccessError
 from odoo.http import request
 
-from odoo.addons.website_portal.controllers.main import website_account, get_records_pager
+from odoo.addons.web.controllers.portal import get_records_pager
+from odoo.addons.website_portal.controllers.main import website_account
 
 
 class website_account(website_account):

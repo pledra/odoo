@@ -192,14 +192,14 @@
             <script type="text/javascript" src="/website_crm_partner_assign/static/src/js/crm_partner_assign.js" />
         </xpath>
     </template>
-    <template id="portal_my_home_menu_lead" name="Portal layout : lead menu entry" inherit_id="website_portal.portal_layout" priority="15">
+    <template id="portal_my_home_menu_lead" name="Portal layout : lead menu entry" inherit_id="web.portal_layout" priority="15">
         <xpath expr="//ul[contains(@class,'o_portal_submenu')]" position="inside">
-            <t t-if="user.commercial_partner_id.grade_id and lead_count">
+            <t t-if="user_id.commercial_partner_id.grade_id and lead_count">
                 <li t-att-class="page_name == 'lead' and 'active'">
                      <a href="/my/leads">Leads</a>
                 </li>
             </t>
-            <t t-if="user.commercial_partner_id.grade_id">
+            <t t-if="user_id.commercial_partner_id.grade_id">
                 <li t-att-class="page_name == 'opportunity' and 'active'">
                      <a href="/my/opportunities">Opportunities</a>
                 </li>
@@ -207,9 +207,9 @@
         </xpath>
     </template>
 
-    <template id="portal_my_home_lead" name="Portal My Home : lead entries" inherit_id="website_portal.portal_my_home" priority="15">
+    <template id="portal_my_home_lead" name="Portal My Home : lead entries" inherit_id="web.portal_my_home" priority="15">
         <xpath expr="//div[contains(@class,'o_my_home_content')]" position="inside">
-            <t t-if="user.commercial_partner_id.grade_id">
+            <t t-if="user_id.commercial_partner_id.grade_id">
                 <h3 t-if="lead_count" class="page-header">
                     <a href="/my/leads">Your Leads
                         <small class="ml8">
@@ -234,10 +234,10 @@
     </template>
 
     <template id="portal_my_leads" name="My Leads">
-        <t t-call="website_portal.portal_layout">
+        <t t-call="web.portal_layout">
             <h3 class="page-header">
                 Your Leads
-                <t t-call="website_portal.portal_searchbar"/>
+                <t t-call="web.portal_searchbar"/>
             </h3>
             <div t-if="not leads" class="alert alert-warning mt8" role="alert">
                 There are no leads.
@@ -269,10 +269,10 @@
     </template>
 
     <template id="portal_my_opportunities" name="My Opportunities">
-        <t t-call="website_portal.portal_layout">
+        <t t-call="web.portal_layout">
             <h3 class="page-header">
                 Your Opportunities
-                <t t-call="website_portal.portal_searchbar"/>
+                <t t-call="web.portal_searchbar"/>
                 <button name='new_opp' data-toggle="modal" data-target=".modal_new_opp" class="btn btn-default pull-right mr8"><i class="fa fa-plus fa-lg" /></button>
             </h3>
             <div class="modal fade modal_new_opp" role="form" aria-hidden="true">

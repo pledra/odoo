@@ -3,8 +3,8 @@ odoo.define('website_portal', function(require) {
     'use strict';
     require('website.website');
 
-    if(!$('.o_website_portal').length) {
-        return $.Deferred().reject("DOM doesn't contain '.o_website_portal'");
+    if(!$('.o_portal').length) {
+        return $.Deferred().reject("DOM doesn't contain '.o_portal'");
     }
 
     if ($('.o_website_portal_details').length) {
