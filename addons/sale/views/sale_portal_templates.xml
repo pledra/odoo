@@ -1,8 +1,8 @@
 <odoo>
 
-    <template id="assets_frontend" inherit_id="website.assets_frontend" name="Website Portal Sale">
+    <template id="assets_frontend" inherit_id="web.assets_frontend" name="Website Portal Sale">
       <xpath expr="." position="inside">
-          <link rel='stylesheet' href='/website_portal_sale/static/src/less/website_portal_sale.less'/>
+          <link rel='stylesheet' href='/sale/static/src/less/sale_portal.less'/>
       </xpath>
     </template>
 
@@ -82,7 +82,7 @@
                 </t>
             </table></div>
             <div t-if="pager" class="o_portal_pager text-center">
-              <t t-call="website.pager"/>
+              <t t-call="web.pager"/>
             </div>
         </t>
       </t>
@@ -135,14 +135,14 @@
                 </t>
             </table></div>
             <div t-if="pager" class="o_portal_pager text-center">
-              <t t-call="website.pager"/>
+              <t t-call="web.pager"/>
             </div>
         </t>
       </t>
     </template>
 
     <template id="orders_followup" name="Sales Order">
-      <t t-call="website.layout">
+      <t t-call="web.portal_layout">
         <div id="wrap">
             <div class="container">
               <div class="oe_structure">

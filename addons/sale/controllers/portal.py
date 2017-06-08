@@ -5,11 +5,10 @@ from odoo import http, _
 from odoo.exceptions import AccessError
 from odoo.http import request
 
-from odoo.addons.web.controllers.portal import get_records_pager
-from odoo.addons.website_portal.controllers.main import website_account
+from odoo.addons.web.controllers.portal import CustomerPortal, get_records_pager
 
 
-class website_account(website_account):
+class website_account(CustomerPortal):
 
     def _prepare_portal_layout_values(self):
         values = super(website_account, self)._prepare_portal_layout_values()
@@ -63,7 +62,7 @@ class website_account(website_account):
         # count for pager
         quotation_count = SaleOrder.search_count(domain)
         # make pager
-        pager = request.website.pager(
+        pager = request.pager(
             url="/my/quotes",
             url_args={'date_begin': date_begin, 'date_end': date_end, 'sortby': sortby},
             total=quotation_count,
@@ -84,7 +83,7 @@ class website_account(website_account):
             'searchbar_sortings': searchbar_sortings,
             'sortby': sortby,
         })
-        return request.render("website_portal_sale.portal_my_quotations", values)
+        return request.render("sale.portal_my_quotations", values)
 
     @http.route(['/my/orders', '/my/orders/page/<int:page>'], type='http', auth="user", website=True)
     def portal_my_orders(self, page=1, date_begin=None, date_end=None, sortby=None, **kw):
@@ -113,7 +112,7 @@ class website_account(website_account):
         # count for pager
         order_count = SaleOrder.search_count(domain)
         # pager
-        pager = request.website.pager(
+        pager = request.pager(
             url="/my/orders",
             url_args={'date_begin': date_begin, 'date_end': date_end, 'sortby': sortby},
             total=order_count,
@@ -134,7 +133,7 @@ class website_account(website_account):
             'searchbar_sortings': searchbar_sortings,
             'sortby': sortby,
         })
-        return request.render("website_portal_sale.portal_my_orders", values)
+        return request.render("sale.portal_my_orders", values)
 
     @http.route(['/my/orders/<int:order>'], type='http', auth="user", website=True)
     def orders_followup(self, order=None, **kw):
@@ -153,4 +152,4 @@ class website_account(website_account):
             'order_invoice_lines': order_invoice_lines,
         }
         values.update(get_records_pager(history, order))
-        return request.render("website_portal_sale.orders_followup", values)
+        return request.render("sale.orders_followup", values)
