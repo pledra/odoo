@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import datetime
 import json
+import pytz
 
 from odoo import models
+from odoo.addons.web.controllers.portal import pager
 from odoo.http import request
-import pytz
-import datetime
 
 import odoo
 
@@ -47,3 +48,8 @@ class Http(models.AbstractModel):
         Currency = request.env['res.currency']
         currencies = Currency.search([]).read(['symbol', 'position', 'decimal_places'])
         return { c['id']: {'symbol': c['symbol'], 'position': c['position'], 'digits': [69,c['decimal_places']]} for c in currencies} 
+
+    @classmethod
+    def _dispatch(cls):
+        request.pager = pager
+        return super(Http, cls)._dispatch()
