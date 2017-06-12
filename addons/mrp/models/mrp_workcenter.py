@@ -43,7 +43,7 @@ class MrpWorkcenter(models.Model):
     working_state = fields.Selection([
         ('normal', 'Normal'),
         ('blocked', 'Blocked'),
-        ('done', 'In Progress')], 'Status', compute="_compute_working_state", store=True)
+        ('done', 'In Progress')], 'Workcenter Status', compute="_compute_working_state", store=True)
     blocked_time = fields.Float(
         'Blocked Time', compute='_compute_blocked_time',
         help='Blocked hour(s) over the last month', digits=(16, 2))

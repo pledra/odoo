@@ -12,7 +12,7 @@ class ResConfigSettings(models.TransientModel):
     po_order_approval = fields.Boolean("Order Approval", default=lambda self: self.env.user.company_id.po_double_validation == 'two_step')
     po_double_validation = fields.Selection(related='company_id.po_double_validation', string="Levels of Approvals *")
     po_double_validation_amount = fields.Monetary(related='company_id.po_double_validation_amount', string="Minimum Amount", currency_field='company_currency_id')
-    company_currency_id = fields.Many2one('res.currency', related='company_id.currency_id', readonly=True,
+    company_currency_id = fields.Many2one('res.currency', related='company_id.currency_id', string="Company Currency", readonly=True,
         help='Utility field to express amount currency')
     default_purchase_method = fields.Selection([
         ('purchase', 'Ordered quantities'),

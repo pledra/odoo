@@ -317,8 +317,8 @@ class Related(models.Model):
 
     name = fields.Char()
     # related fields with a single field
-    related_name = fields.Char(related='name')
-    related_related_name = fields.Char(related='related_name')
+    related_name = fields.Char(related='name', string='Related Name')
+    related_related_name = fields.Char(related='related_name', string='Test Related Name')
 
 
 class ComputeInverse(models.Model):

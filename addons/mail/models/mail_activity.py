@@ -60,7 +60,7 @@ class MailActivity(models.Model):
     # owner
     res_id = fields.Integer('Related Document ID', index=True, required=True)
     res_model_id = fields.Many2one(
-        'ir.model', 'Related Document Model',
+        'ir.model', 'Document Model',
         index=True, ondelete='cascade', required=True)
     res_model = fields.Char(
         'Related Document Model',
