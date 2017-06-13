@@ -393,8 +393,8 @@ class IrHttp(models.AbstractModel):
 
                 request.lang = context['lang'] = nearest_lang or preferred_lang
 
-            if path[1] == cls._get_default_lang().code:
-                context['edit_translations'] = False
+            # if path[1] == cls._get_default_lang().code:
+            #     context['edit_translations'] = False
 
             # bind modified context
             request.context = context
@@ -478,6 +478,11 @@ class IrHttp(models.AbstractModel):
                     path.pop(1)
                     # request.context = context
                     return cls.reroute('/'.join(path) or '/')
+
+            context = dict(request.context)
+            if path[1] == cls._get_default_lang().code:
+                context['edit_translations'] = False
+            request.context = context
 
         # removed cache for auth public
         request.cache_save = False
