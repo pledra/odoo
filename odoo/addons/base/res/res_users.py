@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+import json
 import pytz
 import datetime
 import itertools
@@ -715,33 +716,51 @@ class GroupsView(models.Model):
         view = self.env.ref('base.user_groups_view', raise_if_not_found=False)
         if view and view.exists() and view._name == 'ir.ui.view':
             group_no_one = view.env.ref('base.group_no_one')
-            xml1, xml2 = [], []
-            xml1.append(E.separator(string=_('Application Accesses'), colspan="2"))
+            group_employee = view.env.ref('base.group_user')
+
+            xml1, xml2, xml3 = [], [], []
+            xml1.append(E.separator(string=_('User Type'), colspan="2", groups='base.group_no_one'))
+            xml2.append(E.separator(string=_('Application Accesses'), colspan="2"))
+
+            user_type_field_name = ''
             for app, kind, gs in self.get_groups_by_application():
-                # hide groups in categories 'Hidden' and 'Extra' (except for group_no_one)
                 attrs = {}
+                # hide groups in categories 'Hidden' and 'Extra' (except for group_no_one)
                 if app.xml_id in ('base.module_category_hidden', 'base.module_category_extra', 'base.module_category_usability'):
                     attrs['groups'] = 'base.group_no_one'
+
+                # User type (employee, portal or public) is a separated group. This is the only 'selection'
+                # group of res.groups without implied groups (with each other).
+                if app.xml_id == 'base.module_category_extra':
+                    # application name with a selection field
+                    field_name = name_selection_groups(gs.ids)
+                    user_type_field_name = field_name
+                    attrs['widget'] = 'radio'
+                    xml1.append(E.field(name=field_name, **attrs))
+                    xml1.append(E.newline())
+                    continue
 
                 if kind == 'selection':
                     # application name with a selection field
                     field_name = name_selection_groups(gs.ids)
-                    xml1.append(E.field(name=field_name, **attrs))
-                    xml1.append(E.newline())
+                    xml2.append(E.field(name=field_name, **attrs))
+                    xml2.append(E.newline())
                 else:
                     # application separator with boolean fields
                     app_name = app.name or _('Other')
-                    xml2.append(E.separator(string=app_name, colspan="4", **attrs))
+                    xml3.append(E.separator(string=app_name, colspan="4", **attrs))
                     for g in gs:
                         field_name = name_boolean_group(g.id)
                         if g == group_no_one:
                             # make the group_no_one invisible in the form view
-                            xml2.append(E.field(name=field_name, invisible="1", **attrs))
+                            xml3.append(E.field(name=field_name, invisible="1", **attrs))
                         else:
-                            xml2.append(E.field(name=field_name, **attrs))
+                            xml3.append(E.field(name=field_name, **attrs))
 
-            xml2.append({'class': "o_label_nowrap"})
-            xml = E.field(E.group(*(xml1), col="2"), E.group(*(xml2), col="4"), name="groups_id", position="replace")
+            xml3.append({'class': "o_label_nowrap"})
+            user_type_attrs = {'invisible': [(user_type_field_name, '!=', group_employee.id)]}
+
+            xml = E.field(E.group(*(xml1), col="2"), E.group(*(xml2), col="2", attrs=str(user_type_attrs)), E.group(*(xml3), col="4", attrs=str(user_type_attrs)), name="groups_id", position="replace")
             xml.addprevious(etree.Comment("GENERATED AUTOMATICALLY BY GROUPS"))
             xml_content = etree.tostring(xml, pretty_print=True, xml_declaration=True, encoding="utf-8")
             view.with_context(lang=None).write({'arch': xml_content, 'arch_fs': False})
@@ -762,6 +781,9 @@ class GroupsView(models.Model):
             reverse implication order.
         """
         def linearize(app, gs):
+            # 'User Type' is an exception
+            if app.xml_id == 'base.module_category_extra':
+                return (app, 'selection', gs)
             # determine sequence order: a group appears after its implied groups
             order = {g: len(g.trans_implied_ids & gs) for g in gs}
             # check whether order is total, i.e., sequence orders are distinct
@@ -887,12 +909,17 @@ class UsersView(models.Model):
         # add reified groups fields
         for app, kind, gs in self.env['res.groups'].sudo().get_groups_by_application():
             if kind == 'selection':
+                # 'User Type' should not be 'False'. A user is either 'employee', 'portal' or 'public' (required).
+                selection_vals = [(False, '')]
+                if app.xml_id == 'base.module_category_extra':
+                    selection_vals = []
+
                 # selection group field
                 tips = ['%s: %s' % (g.name, g.comment) for g in gs if g.comment]
                 res[name_selection_groups(gs.ids)] = {
                     'type': 'selection',
                     'string': app.name or _('Other'),
-                    'selection': [(False, '')] + [(g.id, g.name) for g in gs],
+                    'selection': selection_vals + [(g.id, g.name) for g in gs],
                     'help': '\n'.join(tips),
                     'exportable': False,
                     'selectable': False,
