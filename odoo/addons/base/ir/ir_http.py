@@ -381,9 +381,9 @@ class IrHttp(models.AbstractModel):
             if not context.get('tz'):
                 context['tz'] = request.session.get('geoip', {}).get('time_zone')
 
+            path = request.httprequest.path.split('/')
             if first_pass:
                 langs = [lg.code for lg in cls._get_languages()]
-                path = request.httprequest.path.split('/')
                 is_a_bot = cls.is_a_bot()
                 cook_lang = request.httprequest.cookies.get('website_lang')
                 nearest_lang = not func and cls.get_nearest_lang(path[1])
