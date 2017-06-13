@@ -116,6 +116,52 @@ class AccountMove(models.Model):
     reverse_date = fields.Date(string='Reversal Date', help='Date of the reverse accounting entry.')
     reverse_entry_id = fields.Many2one('account.move', String="Reverse entry", store=True, readonly=True)
 
+    @api.onchange('line_ids')
+    def _onchange_line_ids(self):
+        '''Compute additional lines corresponding to the taxes set on the line_ids.
+
+        For example, add a line with 1000 debit and 15% tax, this onchange will add a new
+        line with 150 debit.
+        '''
+        # Retrieve the existing tax lines and drop them.
+        tax_line_ids = self.line_ids.filtered(lambda l: l.is_tax_line)
+        self.line_ids -= tax_line_ids
+
+        for line in self.line_ids:
+            if not line.tax_ids:
+                continue
+            balance = line.debit - line.credit
+            taxes_vals = line.tax_ids.compute_all(balance,
+                currency=line.currency_id, product=line.product_id, partner=line.partner_id)
+            bank_id = line.statement_id
+
+            # Create a new line for each tax.
+            for tax_vals in taxes_vals['taxes']:
+                name = line.name and line.name + ' ' + line['name'] or tax_vals['name']
+                tax = self.env['account.tax'].browse([tax_vals['id']])
+                line_vals = {
+                    'account_id': line.account_id.id,
+                    'name': name,
+                    'tax_line_id': tax_vals['id'],
+                    'partner_id': line.partner_id.id,
+                    'statement_id': line.statement_id.id,
+                    'debit': tax_vals['amount'] > 0 and tax_vals['amount'] or 0.0,
+                    'credit': tax_vals['amount'] < 0 and -tax_vals['amount'] or 0.0,
+                    'analytic_account_id': line.analytic_account_id.id if tax.analytic else False,
+                    'is_tax_line': True,
+                    'date': line.date,
+                    'move_id': self.id,
+                }
+                if bank_id:
+                    context = {'date': line.date}
+                    from_currency_id = bank_id.company_id.currency_id
+                    to_currency_id = bank_id.currency_id
+                    amount_currency = from_currency_id.with_context(context).compute(
+                        tax_vals['amount'], currency=to_currency_id, round=True)
+                    line_vals['currency_id'] = to_currency_id.id
+                    line_vals['amount_currency'] = amount_currency
+                self.env['account.move.line'].new(line_vals)
+
     @api.model
     def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
         res = super(AccountMove, self).fields_view_get(
@@ -470,6 +516,7 @@ class AccountMoveLine(models.Model):
     analytic_tag_ids = fields.Many2many('account.analytic.tag', string='Analytic tags')
     company_id = fields.Many2one('res.company', related='account_id.company_id', string='Company', store=True)
     counterpart = fields.Char("Counterpart", compute='_get_counterpart', help="Compute the counter part accounts of this journal item for this journal entry. This can be needed in reports.")
+    is_tax_line = fields.Boolean(string='Is a tax line')
 
     # TODO: put the invoice link and partner_id on the account_move
     invoice_id = fields.Many2one('account.invoice', oldname="invoice")
