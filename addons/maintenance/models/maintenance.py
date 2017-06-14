@@ -273,7 +273,7 @@ class MaintenanceRequest(models.Model):
         return super(MaintenanceRequest, self)._track_subtype(init_values)
 
     def _get_default_team_id(self):
-        return self.env.ref('maintenance.equipment_team_maintenance', raise_if_not_found=False)
+        return self.env['maintenance.team'].search([('company_id', '=', self.env.user.company_id.id)], limit=1).id
 
     name = fields.Char('Subjects', required=True)
     company_id = fields.Many2one('res.company', string='Company', required=True,
