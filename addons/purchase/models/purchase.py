@@ -829,6 +829,8 @@ class PurchaseOrderLine(models.Model):
             self.date_planned = self._get_date_planned(seller).strftime(DEFAULT_SERVER_DATETIME_FORMAT)
 
         if not seller:
+            if self.partner_id in self.product_id.seller_ids.mapped('name'):
+                self.price_unit = 0.0
             return
 
         price_unit = self.env['account.tax']._fix_tax_included_price_company(seller.price, self.product_id.supplier_taxes_id, self.taxes_id, self.company_id) if seller else 0.0
@@ -836,7 +838,7 @@ class PurchaseOrderLine(models.Model):
             price_unit = seller.currency_id.compute(price_unit, self.order_id.currency_id)
 
         if seller and self.product_uom and seller.product_uom != self.product_uom:
-            price_unit = seller.product_uom._compute_price(price_unit, self.product_uom)
+            price_unit = 0.0
 
         self.price_unit = price_unit
 
