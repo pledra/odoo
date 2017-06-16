@@ -264,6 +264,19 @@ class account_journal(models.Model):
         }
 
     @api.multi
+    def action_configure_reconcile(self):
+        context = dict(self._context, configure_dashboard=True)
+        return {
+            'name': _('Configure Journal'),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'account.journal',
+            'res_id': self.id,
+            'context': context,
+        }
+
+    @api.multi
     def action_open_reconcile(self):
         if self.type in ['bank', 'cash']:
             # Open reconciliation view for bank statements belonging to this journal

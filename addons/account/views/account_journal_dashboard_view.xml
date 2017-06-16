@@ -223,7 +223,7 @@
                             - If there are statements to reconcile, a link to reconcile them -->
                         <div class="col-xs-6 o_kanban_primary_left">
                             <t t-if="dashboard.bank_statements_source == 'undefined'">
-                                <button type="object" class="btn btn-primary btn-sm">Configure</button>
+                                <button type="object" name="action_configure_reconcile" class="btn btn-primary btn-sm">Configure</button>
                             </t>
                             <t t-elif="dashboard.number_to_reconcile > 0">
                                 <button type="object" name="action_open_reconcile" class="btn btn-primary btn-sm"> Reconcile <t t-esc="dashboard.number_to_reconcile"/> Items</button>
