@@ -222,7 +222,10 @@
                             - A button corresponding to the bank_statements_source, if it wasn't configured, a button for each of them
                             - If there are statements to reconcile, a link to reconcile them -->
                         <div class="col-xs-6 o_kanban_primary_left">
-                            <t t-if="dashboard.number_to_reconcile > 0">
+                            <t t-if="dashboard.bank_statements_source == 'undefined'">
+                                <button type="object" class="btn btn-primary btn-sm">Configure</button>
+                            </t>
+                            <t t-elif="dashboard.number_to_reconcile > 0">
                                 <button type="object" name="action_open_reconcile" class="btn btn-primary btn-sm"> Reconcile <t t-esc="dashboard.number_to_reconcile"/> Items</button>
                             </t>
                             <t t-if="journal_type == 'bank'">
