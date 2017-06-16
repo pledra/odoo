@@ -285,6 +285,13 @@ class Inventory(models.Model):
             })
         return vals
 
+    @api.multi
+    def write(self, vals):
+        result = super(Inventory, self.with_context(no_check_progress=True)).write(vals)
+        for inventory in self:
+            inventory.line_ids._check_progress_lines()
+        return result
+
 
 class InventoryLine(models.Model):
     _name = "stock.inventory.line"
@@ -365,18 +372,8 @@ class InventoryLine(models.Model):
     def create(self, values):
         if 'product_id' in values and 'product_uom_id' not in values:
             values['product_uom_id'] = self.env['product.product'].browse(values['product_id']).uom_id.id
-        existings = self.search([
-            ('product_id', '=', values.get('product_id')),
-            ('inventory_id.state', '=', 'confirm'),
-            ('location_id', '=', values.get('location_id')),
-            ('partner_id', '=', values.get('partner_id')),
-            ('package_id', '=', values.get('package_id')),
-            ('prod_lot_id', '=', values.get('prod_lot_id'))])
         res = super(InventoryLine, self).create(values)
-        if existings:
-            raise UserError(_("You cannot have two inventory adjustements in state 'in Progess' with the same product"
-                              "(%s), same location(%s), same package, same owner and same lot. Please first validate"
-                              "the first inventory adjustement with this product before creating another one.") % (res.product_id.name, res.location_id.name))
+        res._check_progress_lines()
         return res
 
     @api.constrains('product_id')
@@ -387,6 +384,32 @@ class InventoryLine(models.Model):
         for line in self:
             if line.product_id.type != 'product':
                 raise UserError(_("You can only adjust stockable products."))
+
+    def _check_progress_lines(self):
+        existings = self.env['stock.inventory.line']
+        if not self.env.context.get('no_check_progress', False):
+            for record in self:
+                inventory_lines = self.search([
+                    ('product_id', '=', record.product_id.id),
+                    ('inventory_id.state', '=', 'confirm'),
+                    ('location_id', '=', record.location_id.id),
+                    ('partner_id', '=', record.partner_id.id),
+                    ('package_id', '=', record.package_id.id),
+                    ('prod_lot_id', '=', record.prod_lot_id.id)])
+                if len(inventory_lines) > 1:
+                    existings |= inventory_lines
+        if existings:
+            name_list = []
+            for product in existings.mapped('product_id'):
+                variable_attributes = product.attribute_line_ids.filtered(lambda l: len(l.value_ids) > 1).mapped('attribute_id')
+                variant = product.attribute_value_ids._variant_name(variable_attributes)
+                if variant:
+                    name_list += ["%s (%s)" % (product.name, variant)]
+                else:
+                    name_list += ["%s" % (product.name)]
+            raise UserError(_("You cannot have two inventory adjustments in progress for the same product (%s) "
+                              "in the same location, for the same package, the same owner and the same lot number. "
+                              "Please validate or cancel the first inventory adjustment before creating a new one.") % (", ".join(name_list)))
 
     def _get_quants(self):
         return self.env['stock.quant'].search([
