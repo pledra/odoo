@@ -166,7 +166,7 @@ class MrpBom(models.Model):
                 rounding = current_line.product_uom_id.rounding
                 line_quantity = float_round(line_quantity, precision_rounding=rounding, rounding_method='UP')
                 lines_done.append((current_line, {'qty': line_quantity, 'product': current_product, 'original_qty': quantity, 'parent_line': parent_line}))
-
+        print graph
         return boms_done, lines_done
 
 
