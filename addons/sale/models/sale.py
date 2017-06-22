@@ -1046,3 +1046,50 @@ class SaleOrderLine(models.Model):
             discount = (new_list_price - price) / new_list_price * 100
             if discount > 0:
                 self.discount = discount
+
+    ###########################
+    # Analytic Methods
+    ###########################
+
+    @api.multi
+    def _compute_analytic(self, domain=None):
+        lines = {}
+        if not domain:
+            # To filter on analyic lines linked to an expense
+            expense_type_id = self.env.ref('account.data_account_type_expenses', raise_if_not_found=False)
+            expense_type_id = expense_type_id and expense_type_id.id
+            domain = [
+                ('so_line', 'in', self.ids),
+                '|',
+                    ('amount', '<', 0),
+                    '&',
+                        ('amount', '=', 0),
+                        '|',
+                            ('move_id', '=', False),
+                            ('move_id.account_id.user_type_id', '=', expense_type_id)
+            ]
+
+        data = self.env['account.analytic.line'].read_group(
+            domain,
+            ['so_line', 'unit_amount', 'product_uom_id'], ['product_uom_id', 'so_line'], lazy=False
+        )
+        # If the unlinked analytic line was the last one on the SO line, the qty was not updated.
+        force_so_lines = self.env.context.get("force_so_lines")
+        if force_so_lines:
+            for line in force_so_lines:
+                lines.setdefault(line, 0.0)
+        for d in data:
+            if not d['product_uom_id']:
+                continue
+            line = self.browse(d['so_line'][0])
+            lines.setdefault(line, 0.0)
+            uom = self.env['product.uom'].browse(d['product_uom_id'][0])
+            if line.product_uom.category_id == uom.category_id:
+                qty = uom._compute_quantity(d['unit_amount'], line.product_uom)
+            else:
+                qty = d['unit_amount']
+            lines[line] += qty
+
+        for line, qty in pycompat.items(lines):
+            line.qty_delivered = qty
+        return True
