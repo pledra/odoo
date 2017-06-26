@@ -149,7 +149,8 @@ class ProductCategory(models.Model):
     property_valuation = fields.Selection([
         ('manual_periodic', 'Periodic (manual)'),
         ('real_time', 'Perpetual (automated)')], string='Inventory Valuation',
-        company_dependent=True, copy=True, required=True,
+        company_dependent=True, modules_dependent='account_accountant',
+        copy=True, required=True,
         help="If perpetual valuation is enabled for a product, the system "
              "will automatically create journal entries corresponding to "
              "stock moves, with product price as specified by the 'Costing "

@@ -1,0 +1,1 @@
+PluginRegistry::load_plugins: Importing plugin __init__.py failed: 'module' object has no attribute 'AVAILABLE'

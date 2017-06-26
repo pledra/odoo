@@ -589,7 +589,8 @@ class AccountTax(models.Model):
     name = fields.Char(string='Tax Name', required=True, translate=True)
     type_tax_use = fields.Selection([('sale', 'Sales'), ('purchase', 'Purchases'), ('none', 'None')], string='Tax Scope', required=True, default="sale",
         help="Determines where the tax is selectable. Note : 'None' means a tax can't be used by itself, however it can still be used in a group.")
-    tax_adjustment = fields.Boolean(help='Set this field to true if this tax can be used in the tax adjustment wizard, used to manually fill some data in the tax declaration')
+    tax_adjustment = fields.Boolean(modules_dependent='account_accountant',
+        help='Set this field to true if this tax can be used in the tax adjustment wizard, used to manually fill some data in the tax declaration')
     amount_type = fields.Selection(default='percent', string="Tax Computation", required=True, oldname='type',
         selection=[('group', 'Group of Taxes'), ('fixed', 'Fixed'), ('percent', 'Percentage of Price'), ('division', 'Percentage of Price Tax Included')])
     active = fields.Boolean(default=True, help="Set active to false to hide the tax without removing it.")
@@ -598,9 +599,11 @@ class AccountTax(models.Model):
     sequence = fields.Integer(required=True, default=1,
         help="The sequence field is used to define order in which the tax lines are applied.")
     amount = fields.Float(required=True, digits=(16, 4))
-    account_id = fields.Many2one('account.account', domain=[('deprecated', '=', False)], string='Tax Account', ondelete='restrict',
+    account_id = fields.Many2one('account.account', domain=[('deprecated', '=', False)],
+        string='Tax Account', ondelete='restrict', modules_dependent='account_accountant',
         help="Account that will be set on invoice tax lines for invoices. Leave empty to use the expense account.", oldname='account_collected_id')
-    refund_account_id = fields.Many2one('account.account', domain=[('deprecated', '=', False)], string='Tax Account on Credit Notes', ondelete='restrict',
+    refund_account_id = fields.Many2one('account.account', domain=[('deprecated', '=', False)],
+        string='Tax Account on Credit Notes', ondelete='restrict', modules_dependent='account_accountant',
         help="Account that will be set on invoice tax lines for credit notes. Leave empty to use the expense account.", oldname='account_paid_id')
     description = fields.Char(string='Label on Invoices', translate=True)
     price_include = fields.Boolean(string='Included in Price', default=False,
@@ -611,11 +614,11 @@ class AccountTax(models.Model):
     tag_ids = fields.Many2many('account.account.tag', 'account_tax_account_tag', string='Tags', help="Optional tags you may want to assign for custom reporting")
     tax_group_id = fields.Many2one('account.tax.group', string="Tax Group", default=_default_tax_group, required=True)
     use_cash_basis = fields.Boolean(
-        'Use Cash Basis',
+        'Use Cash Basis', modules_dependent='account_accountant',
         help="Select this if the tax should use cash basis,"
         "which will create an entry for this tax on a given account during reconciliation")
     cash_basis_account = fields.Many2one(
-        'account.account',
+        'account.account', modules_dependent='account_accountant',
         string='Tax Received Account',
         domain=[('deprecated', '=', False)],
         help='Account use when creating entry for tax cash basis')
