@@ -320,6 +320,7 @@ class Field(MetaField('DummyField', (object,), {})):
         'related': None,                # sequence of field names, for related fields
         'related_sudo': True,           # whether related fields should be read as admin
         'company_dependent': False,     # whether ``self`` is company-dependent (property field)
+        'modules_dependent': None,      # whether field is modules-dependent (property field)
         'default': None,                # default(recs) returns the default value
 
         'string': None,                 # field label
@@ -629,6 +630,19 @@ class Field(MetaField('DummyField', (object,), {})):
         return Property.search_multi(self.name, self.model_name, operator, value)
 
     #
+    # modules-dependent fields
+    #
+
+    def is_modules_visible(self, env):
+        if not self.modules_dependent:
+            return True
+        modules_names = self.modules_dependent.split(',')
+        for module in env['ir.module.module'].search([('name', 'in', modules_names)]):
+            if module.state != 'installed':
+                return False
+        return True
+
+    #
     # Setup of field triggers
     #
     # The triggers of ``self`` are a collection of pairs ``(field, path)`` of
@@ -703,6 +717,7 @@ class Field(MetaField('DummyField', (object,), {})):
     _description_depends = property(attrgetter('depends'))
     _description_related = property(attrgetter('related'))
     _description_company_dependent = property(attrgetter('company_dependent'))
+    _description_modules_dependent = property(attrgetter('modules_dependent'))
     _description_readonly = property(attrgetter('readonly'))
     _description_required = property(attrgetter('required'))
     _description_states = property(attrgetter('states'))

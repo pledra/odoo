@@ -716,7 +716,8 @@ actual arch.
 
         if node.tag == 'field' and node.get('name') in Model._fields:
             field = Model._fields[node.get('name')]
-            if field.groups and not self.user_has_groups(groups=field.groups):
+            if (field.groups and not self.user_has_groups(groups=field.groups))\
+                    or not field.is_modules_visible(self.env):
                 node.getparent().remove(node)
                 fields.pop(node.get('name'), None)
                 # no point processing view-level ``groups`` anymore, return
