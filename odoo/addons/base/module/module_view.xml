@@ -24,7 +24,6 @@
             <field name="arch" type="xml">
                 <tree string="Module Category">
                     <field name="name"/>
-                    <field name="module_nr"/>
                 </tree>
             </field>
         </record>
