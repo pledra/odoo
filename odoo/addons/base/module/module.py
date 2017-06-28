@@ -61,6 +61,13 @@ class ModuleCategory(models.Model):
     sequence = fields.Integer(string='Sequence')
     exclusive = fields.Boolean(string='Exclusive')
     xml_id = fields.Char(string='External ID', compute='_compute_xml_id')
+    # fields relative to res.groups application
+    group_debug = fields.Boolean("Available in debug mode", help="The user groups of this category will be available in debug mode on the user form view.")
+    group_widget = fields.Selection([
+        ('boolean', 'Checkbox'),
+        ('selection', 'Selection'),
+        ('radio', 'Radio'),
+    ], string='Group Widget', help="The user groups of this category will be display as 'radio', 'selection' or 'checkbox' on the user form view.")
 
     def _compute_xml_id(self):
         xml_ids = defaultdict(list)
