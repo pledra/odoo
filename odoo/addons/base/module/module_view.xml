@@ -9,7 +9,6 @@
                 <form string="Module Category">
                     <group col="4">
                         <field name="name"/>
-                        <field name="parent_id"/>
                         <field name="sequence"/>
                     </group>
                     <field name="description"/>
@@ -20,7 +19,6 @@
         <record id="view_module_category_tree" model="ir.ui.view">
             <field name="name">ir.module.category.tree</field>
             <field name="model">ir.module.category</field>
-            <field name="field_parent">child_ids</field>
             <field name="arch" type="xml">
                 <tree string="Module Category">
                     <field name="name"/>

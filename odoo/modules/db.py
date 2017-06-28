@@ -44,7 +44,7 @@ def initialize(cr):
 
         if not info:
             continue
-        categories = info['category'].split('/')
+        categories = info['category']
         category_id = create_categories(cr, categories)
 
         if info['installable']:
@@ -86,7 +86,7 @@ def initialize(cr):
 
     cr.commit()
 
-def create_categories(cr, categories):
+def create_categories(cr, category_name):
     """ Create the ir_module_category entries for some categories.
 
     categories is a list of strings forming a single category with its
@@ -95,28 +95,21 @@ def create_categories(cr, categories):
     Return the database id of the (last) category.
 
     """
-    p_id = None
-    category = []
-    while categories:
-        category.append(categories[0])
-        xml_id = 'module_category_' + ('_'.join(x.lower() for x in category)).replace('&', 'and').replace(' ', '_')
-        # search via xml_id (because some categories are renamed)
-        cr.execute("SELECT res_id FROM ir_model_data WHERE name=%s AND module=%s AND model=%s",
-                   (xml_id, "base", "ir.module.category"))
+    xml_id = 'module_category_' + category_name.replace('&', 'and').replace(' ', '_').replace('/', '_').lower()
+    # search via xml_id (because some categories are renamed)
+    cr.execute("SELECT res_id FROM ir_model_data WHERE name=%s AND module=%s AND model=%s",
+               (xml_id, "base", "ir.module.category"))
 
-        c_id = cr.fetchone()
-        if not c_id:
-            cr.execute('INSERT INTO ir_module_category \
-                    (name, parent_id) \
-                    VALUES (%s, %s) RETURNING id', (categories[0], p_id))
-            c_id = cr.fetchone()[0]
-            cr.execute('INSERT INTO ir_model_data (module, name, res_id, model) \
-                       VALUES (%s, %s, %s, %s)', ('base', xml_id, c_id, 'ir.module.category'))
-        else:
-            c_id = c_id[0]
-        p_id = c_id
-        categories = categories[1:]
-    return p_id
+    c_id = cr.fetchone()
+    if not c_id:
+        cr.execute('INSERT INTO ir_module_category \
+                (name) \
+                VALUES (%s) RETURNING id', (category_name,))
+        c_id = cr.fetchone()[0]
+        cr.execute('INSERT INTO ir_model_data (module, name, res_id, model) \
+                   VALUES (%s, %s, %s, %s)', ('base', xml_id, c_id, 'ir.module.category'))
+    return c_id
+
 
 def has_unaccent(cr):
     """ Test if the database has an unaccent function.

@@ -56,8 +56,6 @@ class ModuleCategory(models.Model):
     _order = 'name'
 
     name = fields.Char(string='Name', required=True, translate=True, index=True)
-    parent_id = fields.Many2one('ir.module.category', string='Parent Application', index=True)
-    child_ids = fields.One2many('ir.module.category', 'parent_id', string='Child Applications')
     module_ids = fields.One2many('ir.module.module', 'category_id', string='Modules')
     description = fields.Text(string='Description', translate=True)
     sequence = fields.Integer(string='Sequence')
@@ -759,16 +757,10 @@ class Module(models.Model):
             self._cr.execute('DELETE FROM ir_module_module_exclusion WHERE module_id=%s AND name=%s', (self.id, name))
         self.invalidate_cache(['exclusion_ids'], self.ids)
 
-    def _update_category(self, category='Uncategorized'):
-        current_category = self.category_id
-        current_category_path = []
-        while current_category:
-            current_category_path.insert(0, current_category.name)
-            current_category = current_category.parent_id
-
-        categs = category.split('/')
-        if categs != current_category_path:
-            cat_id = modules.db.create_categories(self._cr, categs)
+    def _update_category(self, category_name='Uncategorized'):
+        current_category_name = self.category_id.name
+        if category_name != current_category_name:
+            cat_id = modules.db.create_categories(self._cr, category_name)
             self.write({'category_id': cat_id})
 
     @api.multi
