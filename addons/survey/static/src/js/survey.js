@@ -1,7 +1,7 @@
 odoo.define('survey.survey', function (require) {
 'use strict';
 
-var website = require('website.website');
+require('web.dom_ready');
 
 /*
  * This file is intended to add interactivity to survey forms rendered by
