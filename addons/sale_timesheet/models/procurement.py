@@ -8,9 +8,12 @@ class ProcurementOrder(models.Model):
     _inherit = 'procurement.order'
 
     task_id = fields.Many2one('project.task', 'Task', copy=False)
+    is_service_task = fields.Boolean("Will create a task", compute='_compute_is_service_task')
 
-    def _is_procurement_task(self):
-        return self.product_id.type == 'service' and self.product_id.track_service == 'task'
+    @api.multi
+    def _compute_is_service_task(self):
+        for procurement in self:
+            procurement.is_service_task = procurement.product_id.type == 'service' and procurement.product_id.track_service == 'task'
 
     @api.multi
     def _assign(self):
@@ -18,24 +21,19 @@ class ProcurementOrder(models.Model):
         res = super(ProcurementOrder, self)._assign()
         if not res:
             # if there isn't any specific procurement.rule defined for the product, we may want to create a task
-            return self._is_procurement_task()
+            return self.is_service_task
         return res
 
     @api.multi
     def _run(self):
         self.ensure_one()
-        if self._is_procurement_task() and not self.task_id:
-            # If the SO was confirmed, cancelled, set to draft then confirmed, avoid creating a new
-            # task.
-            if self.sale_line_id:
-                existing_task = self.env['project.task'].search(
-                    [('sale_line_id', '=', self.sale_line_id.id)]
-                )
-                if existing_task:
-                    return existing_task
-            # create a task for the procurement
-            return self._create_service_task()
+        if self.is_service_task and not self.task_id:
+            return self._timesheet_find_task()[self.id]
         return super(ProcurementOrder, self)._run()
+
+    ####################################################################
+    # Services Business
+    ####################################################################
 
     def _convert_qty_company_hours(self):
         company_time_uom_id = self.env.user.company_id.project_time_mode_id
@@ -45,7 +43,7 @@ class ProcurementOrder(models.Model):
             planned_hours = self.product_qty
         return planned_hours
 
-    def _get_project(self):
+    def _timesheet_find_project(self):
         Project = self.env['project.project']
         project = self.product_id.with_context(force_company=self.company_id.id).project_id
         if not project and self.sale_line_id:
@@ -60,8 +58,10 @@ class ProcurementOrder(models.Model):
                 project = Project.browse(project_id)
         return project
 
-    def _prepare_service_task_values(self):
-        project = self._get_project()
+    def _timesheet_create_task_prepare_values(self):
+        """ Prepare task values from the current procurement """
+        self.ensure_one()
+        project = self._timesheet_find_project()
         planned_hours = self._convert_qty_company_hours()
         return {
             'name': '%s:%s' % (self.origin or '', self.product_id.name),
@@ -76,16 +76,50 @@ class ProcurementOrder(models.Model):
             'company_id': self.company_id.id,
         }
 
-    def _create_service_task(self):
-        task_values = self._prepare_service_task_values()
-        task = self.env['project.task'].create(task_values)
-        self.write({'task_id': task.id})
+    @api.multi
+    def _timesheet_create_task(self):
+        """ Generate task for the given procurements, and link it.
 
-        msg_body = _("Task Created (%s): <a href=# data-oe-model=project.task data-oe-id=%d>%s</a>") % (self.product_id.name, task.id, task.name)
-        self.message_post(body=msg_body)
-        if self.sale_line_id.order_id:
-            self.sale_line_id.order_id.message_post(body=msg_body)
-            task_msg = _("This task has been created from: <a href=# data-oe-model=sale.order data-oe-id=%d>%s</a> (%s)") % (self.sale_line_id.order_id.id, self.sale_line_id.order_id.name, self.product_id.name)
-            task.message_post(body=task_msg)
+            :return a mapping with the procurement id and its linked task
+            :rtype dict
+        """
+        result = {}
+        for procurement in self:
+            values = procurement._timesheet_create_task_prepare_values()
+            task = self.env['project.task'].create(values)
+            procurement.write({'task_id': task.id})
 
-        return task
+            msg_body = _("Task Created (%s): <a href=# data-oe-model=project.task data-oe-id=%d>%s</a>") % (procurement.product_id.name, task.id, task.name)
+            procurement.message_post(body=msg_body)
+
+            if procurement.sale_line_id.order_id:
+                procurement.sale_line_id.order_id.message_post(body=msg_body)
+                task_msg = _("This task has been created from: <a href=# data-oe-model=sale.order data-oe-id=%d>%s</a> (%s)") % (self.sale_line_id.order_id.id, self.sale_line_id.order_id.name, self.product_id.name)
+                task.message_post(body=task_msg)
+            result[procurement.id] = task
+        return result
+
+    @api.multi
+    def _timesheet_find_task(self):
+        """ Find the task generated by the procurement. If no task linked, it will be
+            created automatically.
+
+            :return a mapping with the procurement id and its linked task
+            :rtype dict
+        """
+        # one search for all procurements
+        so_line_ids = self.filtered(lambda proc: proc.sale_line_id).mapped('sale_line_id').ids
+        tasks = self.env['project.task'].search([('sale_line_id', 'in', so_line_ids)])
+        task_sol_mapping = {task.sale_line_id.id: task for task in tasks}
+
+        result = {}
+        for procurement in self:
+            task = None
+            # If the SO was confirmed, cancelled, set to draft then confirmed, avoid creating a new task.
+            if procurement.sale_line_id:
+                task = task_sol_mapping.get(procurement.sale_line_id.id)
+            # If not found, create one task for the so line
+            if not task:
+                task = procurement._timesheet_create_task()[procurement.id]
+            result[procurement.id] = task
+        return result
