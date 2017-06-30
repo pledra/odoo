@@ -18,10 +18,10 @@ class SaleOrder(models.Model):
     project_project_id = fields.Many2one('project.project', compute='_compute_project_project_id', string='Project associated to this sale')
 
     @api.multi
-    @api.depends('project_id.line_ids')
+    @api.depends('analytic_account_id.line_ids')
     def _compute_timesheet_ids(self):
         for order in self:
-            if order.project_id:
+            if order.analytic_account_id:
                 order.timesheet_ids = self.env['account.analytic.line'].search(
                     [('so_line', 'in', order.order_line.ids),
                         ('amount', '<=', 0.0),
@@ -38,10 +38,10 @@ class SaleOrder(models.Model):
             order.tasks_count = len(order.tasks_ids)
 
     @api.multi
-    @api.depends('project_id.project_ids')
+    @api.depends('analytic_account_id.project_ids')
     def _compute_project_project_id(self):
         for order in self:
-            order.project_project_id = self.env['project.project'].search([('analytic_account_id', '=', order.project_id.id)])
+            order.project_project_id = self.env['project.project'].search([('analytic_account_id', '=', order.analytic_account_id.id)])
 
     @api.multi
     @api.constrains('order_line')

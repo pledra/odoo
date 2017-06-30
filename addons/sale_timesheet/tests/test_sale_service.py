@@ -125,7 +125,7 @@ class TestSaleService(TestSale):
         })
         sale_order.action_confirm()
 
-        self.assertEqual(sale_order.project_id, sale_order.tasks_ids[0].project_id.analytic_account_id, "Created task should be in the project of the SO")
+        self.assertEqual(sale_order.analytic_account_id, sale_order.tasks_ids[0].project_id.analytic_account_id, "Created task should be in the project of the SO")
         self.assertEqual(sale_order.tasks_count, 1, "A task should have been created on SO confirmation")
 
         # upsell the SO by adding a product creating a task in a given project, and a product without speficied project

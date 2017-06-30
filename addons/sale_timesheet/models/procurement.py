@@ -55,10 +55,10 @@ class ProcurementOrder(models.Model):
         project = self.product_id.with_context(force_company=self.company_id.id).project_id
         if not project and self.sale_line_id:
             # find the project corresponding to the analytic account of the sales order
-            account = self.sale_line_id.order_id.project_id
+            account = self.sale_line_id.order_id.analytic_account_id
             if not account:
                 self.sale_line_id.order_id._create_analytic_account()
-                account = self.sale_line_id.order_id.project_id
+                account = self.sale_line_id.order_id.analytic_account_id
             project = Project.search([('analytic_account_id', '=', account.id)], limit=1)
             if not project:
                 project_id = account.project_create({'name': account.name, 'use_tasks': True})
