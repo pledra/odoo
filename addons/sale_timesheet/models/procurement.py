@@ -8,12 +8,13 @@ class ProcurementOrder(models.Model):
     _inherit = 'procurement.order'
 
     task_id = fields.Many2one('project.task', 'Task', copy=False)
-    is_service_task = fields.Boolean("Will create a task", compute='_compute_is_service_task')
+    is_service = fields.Boolean("Is service", compute='_compute_is_service', help="Procurement should generate a task and/or a project, depending on the product settings.")
 
     @api.multi
-    def _compute_is_service_task(self):
+    @api.depends('product_id', 'product_id.type', 'product_id.track_service')
+    def _compute_is_service(self):
         for procurement in self:
-            procurement.is_service_task = procurement.product_id.type == 'service' and procurement.product_id.track_service == 'task'
+            procurement.is_service = procurement.product_id.type == 'service' and procurement.product_id.track_service in ['task', 'timesheet']
 
     @api.multi
     def _assign(self):
@@ -21,14 +22,17 @@ class ProcurementOrder(models.Model):
         res = super(ProcurementOrder, self)._assign()
         if not res:
             # if there isn't any specific procurement.rule defined for the product, we may want to create a task
-            return self.is_service_task
+            return self.is_service
         return res
 
     @api.multi
     def _run(self):
         self.ensure_one()
-        if self.is_service_task and not self.task_id:
-            return self._timesheet_find_task()[self.id]
+        if self.is_service:
+            if self.product_id.track_service == 'task':
+                return self._timesheet_find_task()[self.id]
+            if self.product_id.track_service == 'timesheet':
+                return self._timesheet_find_project()
         return super(ProcurementOrder, self)._run()
 
     ####################################################################
@@ -44,6 +48,9 @@ class ProcurementOrder(models.Model):
         return planned_hours
 
     def _timesheet_find_project(self):
+        """ Determine the service project of the procurement: take the one from the product. If not
+            set, take the one from the SO, or create it.
+        """
         Project = self.env['project.project']
         project = self.product_id.with_context(force_company=self.company_id.id).project_id
         if not project and self.sale_line_id:

@@ -56,19 +56,6 @@ class SaleOrder(models.Model):
         return {}
 
     @api.multi
-    def action_confirm(self):
-        result = super(SaleOrder, self).action_confirm()
-        for order in self:
-            if not order.project_project_id:
-                for line in order.order_line:
-                    if line.product_id.track_service == 'timesheet':
-                        if not order.project_id:
-                            order._create_analytic_account(prefix=line.product_id.default_code or None)
-                        order.project_id.project_create({'name': order.project_id.name, 'use_tasks': True})
-                        break
-        return result
-
-    @api.multi
     def action_view_task(self):
         self.ensure_one()
         action = self.env.ref('project.action_view_task')
@@ -130,13 +117,6 @@ class SaleOrder(models.Model):
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
-
-    @api.model
-    def create(self, values):
-        line = super(SaleOrderLine, self).create(values)
-        if line.state == 'sale' and not line.order_id.project_id and line.product_id.track_service in ['timesheet', 'task']:
-            line.order_id._create_analytic_account()
-        return line
 
     @api.multi
     def _compute_analytic(self, domain=None):
