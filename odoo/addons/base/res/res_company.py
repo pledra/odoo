@@ -227,6 +227,9 @@ class Company(models.Model):
         vals['partner_id'] = partner.id
         self.clear_caches()
         company = super(Company, self).create(vals)
+        # We called write of `res.users` with `company_ids` instead of passing `user_ids` to current vals
+        # because there are some checks being performed in user's write() when it's `company_ids` field is changed.
+        self.env.user.write({'company_ids': [(4, company.id)]})
         partner.write({'company_id': company.id})
         return company
 
