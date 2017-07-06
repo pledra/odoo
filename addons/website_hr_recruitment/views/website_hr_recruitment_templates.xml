@@ -191,7 +191,7 @@
 </template>
 
 <template id="default_job_application_form">
-    <form action="/website_form/" method="post" class="s_website_form form-horizontal container-fluid mt32" enctype="multipart/form-data" data-model_name="hr.applicant" data-success_page="/job-thank-you">
+    <form action="/website_form/" method="post" class="s_website_form form-horizontal container-fluid mt32" enctype="multipart/form-data" data-model_name="hr.applicant" data-success_page="/page/website_hr_recruitment.thankyou">
         <div class="form-group form-field o_website_form_required_custom">
             <div class="col-md-3 col-sm-4 text-right">
                 <label class="control-label" for="partner_name">Your Name</label>

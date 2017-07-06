@@ -49,6 +49,7 @@
                     </div>
                 </form>
             </div>
+        </xpath>
     </template>
     <record id="contactus_thanks" model="ir.ui.view">
             <field name="name">Thanks (Contact us)</field>
