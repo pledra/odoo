@@ -107,3 +107,16 @@ class BaseConfigSettings(models.TransientModel):
             'view_id': template.id,
             'target': 'new',
         }
+
+class IrModel(models.Model):
+    _inherit = 'ir.model'
+
+    is_setting_model = fields.Boolean(
+        string="Settings", default=False,
+        help="Whether this model inherits res.config.settings",
+    )
+
+    def _reflect_model_params(self, model):
+        vals = super(IrModel, self)._reflect_model_params(model)
+        vals['is_setting_model'] = issubclass(type(model), self.pool['res.config.settings'])
+        return vals

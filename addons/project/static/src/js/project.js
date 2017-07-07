@@ -4,9 +4,25 @@ odoo.define('project.update_kanban', function (require) {
 var core = require('web.core');
 var Dialog = require('web.Dialog');
 var KanbanRecord = require('web.KanbanRecord');
+var KanbanController = require('web.KanbanController');
 
 var QWeb = core.qweb;
 var _t = core._t;
+
+
+KanbanController.include({
+
+    _onDeleteColumn: function(event) {
+        this._rpc({
+            model: 'ir.model',
+            method: 'search_read',
+            
+        })
+        .then(function (response) {
+            console.log("response", response);
+        });
+    },
+});
 
 KanbanRecord.include({
     //--------------------------------------------------------------------------
