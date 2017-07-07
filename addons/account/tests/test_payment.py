@@ -192,11 +192,12 @@ class TestPayment(AccountingTestCase):
         inv_4 = self.create_invoice(amount=50, currency_id=self.currency_eur_id, partner=self.partner_agrolait.id, type='in_invoice')
 
         ids = [inv_1.id, inv_2.id, inv_3.id, inv_4.id]
-        register_payments = self.register_payments_model.with_context(active_ids=ids).create({
+        register_payments = self.register_payments_model.with_context(active_model='account.invoice', active_ids=ids).create({
             'payment_date': time.strftime('%Y') + '-07-15',
             'journal_id': self.bank_journal_euro.id,
             'payment_method_id': self.payment_method_manual_in.id,
         })
+
         register_payments.create_payments()
         payment_ids = self.payment_model.search([('invoice_ids', 'in', ids)], order="id desc")
 
@@ -249,7 +250,7 @@ class TestPayment(AccountingTestCase):
         inv_2 = self.create_invoice(amount=100, currency_id=self.currency_eur_id, partner=self.partner_agrolait.id, type='out_refund')
 
         ids = [inv_1.id, inv_2.id]
-        register_payments = self.register_payments_model.with_context(active_ids=ids).create({
+        register_payments = self.register_payments_model.with_context(active_model='account.invoice', active_ids=ids).create({
             'payment_date': time.strftime('%Y') + '-07-15',
             'journal_id': self.bank_journal_euro.id,
             'payment_method_id': self.payment_method_manual_in.id,
@@ -272,7 +273,7 @@ class TestPayment(AccountingTestCase):
         # Test Customer Invoice
         inv_1 = self.create_invoice(amount=600, currency_id=self.currency_eur_id, partner=self.partner_agrolait.id)
         ids = [inv_1.id]
-        register_payments = self.register_payments_model.with_context(active_ids=ids).create({
+        register_payments = self.register_payments_model.with_context(active_model='account.invoice', active_ids=ids).create({
             'payment_date': time.strftime('%Y') + '-07-15',
             'journal_id': self.bank_journal_euro.id,
             'payment_method_id': self.payment_method_manual_in.id,
@@ -297,7 +298,7 @@ class TestPayment(AccountingTestCase):
         # Test Vendor Bill
         inv_2 = self.create_invoice(amount=500, currency_id=self.currency_eur_id, type='in_invoice', partner=self.partner_china_exp.id)
         ids = [inv_2.id]
-        register_payments = self.register_payments_model.with_context(active_ids=ids).create({
+        register_payments = self.register_payments_model.with_context(active_model='account.invoice', active_ids=ids).create({
             'payment_date': time.strftime('%Y') + '-07-15',
             'journal_id': self.bank_journal_euro.id,
             'payment_method_id': self.payment_method_manual_in.id,
