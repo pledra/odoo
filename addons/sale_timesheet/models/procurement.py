@@ -11,10 +11,10 @@ class ProcurementOrder(models.Model):
     is_service = fields.Boolean("Is service", compute='_compute_is_service', help="Procurement should generate a task and/or a project, depending on the product settings.")
 
     @api.multi
-    @api.depends('product_id', 'product_id.type', 'product_id.track_service')
+    @api.depends('product_id', 'product_id.type', 'product_id.service_type')
     def _compute_is_service(self):
         for procurement in self:
-            procurement.is_service = procurement.product_id.type == 'service' and procurement.product_id.track_service in ['task', 'timesheet']
+            procurement.is_service = procurement.product_id.type == 'service' and procurement.product_id.service_type == 'timesheet'
 
     @api.multi
     def _assign(self):
@@ -29,10 +29,16 @@ class ProcurementOrder(models.Model):
     def _run(self):
         self.ensure_one()
         if self.is_service:
-            if self.product_id.track_service == 'task':
+            # create task
+            if self.product_id.service_tracking == 'task_global_project':
                 return self._timesheet_find_task()[self.id]
-            if self.product_id.track_service == 'timesheet':
+            # create project
+            if self.product_id.service_tracking == 'project_only':
                 return self._timesheet_find_project()
+            # create project and task
+            if self.product_id.service_tracking == 'task_new_project':
+                return self._timesheet_find_task()[self.id]
+            return False  # case of no task creation
         return super(ProcurementOrder, self)._run()
 
     ####################################################################

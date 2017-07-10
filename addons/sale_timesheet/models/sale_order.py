@@ -49,7 +49,7 @@ class SaleOrder(models.Model):
         for order in self:
             count = 0
             for line in order.order_line:
-                if line.product_id.track_service == 'timesheet':
+                if line.product_id.service_type == 'timesheet' and line.product_id.service_tracking in ['task_new_project', 'project_only']:
                     count += 1
                 if count > 1:
                     raise ValidationError(_("You can use only one product on timesheet within the same sales order. You should split your order to include only one contract based on time and material."))

@@ -113,7 +113,7 @@ class AccountAnalyticLine(models.Model):
                 sale_price_unit = so_line.currency_id.compute(so_line.price_unit, analytic_account.currency_id)  # amount from SO should be convert into analytic account currency
                 revenue = analytic_account.currency_id.round(unit_amount * sale_price_unit * (1-so_line.discount))
                 billable_type = 'billable_time'
-            elif so_line.product_id.invoice_policy == 'order' and so_line.product_id.track_service == 'task':
+            elif so_line.product_id.invoice_policy == 'order':
                 # compute the total revenue the SO since we are in fixed price
                 sale_price_unit = so_line.currency_id.compute(so_line.price_unit, analytic_account.currency_id)
                 total_revenue_so = analytic_account.currency_id.round(so_line.product_uom_qty * sale_price_unit * (1-so_line.discount))
@@ -144,7 +144,7 @@ class AccountAnalyticLine(models.Model):
                 sol = self.env['sale.order.line'].search([
                     ('order_id.analytic_account_id', '=', self.account_id.id),
                     ('state', 'in', ('sale', 'done')),
-                    ('product_id.track_service', '=', 'timesheet'),
+                    ('product_id.service_type', '=', 'timesheet'),
                     ('product_id.type', '=', 'service')],
                     limit=1)
             if sol:
