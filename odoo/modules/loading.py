@@ -110,6 +110,10 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
     t0 = time.time()
     t0_sql = odoo.sql_db.sql_counter
 
+    # total modules to install/update
+    total_updates = len([True for package in graph if package.state in ('to install', 'to upgrade')])
+    update_index = 1
+
     for index, package in enumerate(graph, 1):
         module_name = package.name
         module_id = package.id
@@ -123,6 +127,8 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
 
         new_install = package.state == 'to install'
         if new_install:
+            _logger.log(logging.UPDATE, 'Installing module %s (%s/%s)', package.name, update_index, total_updates)
+            update_index += 1
             py_module = sys.modules['odoo.addons.%s' % (module_name,)]
             pre_init = package.info.get('pre_init_hook')
             if pre_init:
@@ -154,6 +160,8 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
             if package.state=='to upgrade':
                 # upgrading the module information
                 module.write(module.get_values_from_terp(package.data))
+                _logger.log(logging.UPDATE, 'Updating module %s (%s/%s)', package.name, update_index, total_updates)
+                update_index += 1
             _load_data(cr, module_name, idref, mode, kind='data')
             has_demo = hasattr(package, 'demo') or (package.dbdemo and package.state != 'installed')
             if has_demo:

@@ -89,6 +89,8 @@ def init_logger():
     _logger_init = True
 
     logging.addLevelName(25, "INFO")
+    logging.addLevelName(28, "UPDATE")
+    logging.UPDATE = 28
 
     from .tools.translate import resetlocale
     resetlocale()
@@ -145,6 +147,7 @@ def init_logger():
         db_levels = {
             'debug': logging.DEBUG,
             'info': logging.INFO,
+            'update': 28,
             'warning': logging.WARNING,
             'error': logging.ERROR,
             'critical': logging.CRITICAL,
@@ -181,6 +184,7 @@ PSEUDOCONFIG_MAPPER = {
     'debug': ['odoo:DEBUG'],
     'debug_sql': ['odoo.sql_db:DEBUG'],
     'info': [],
+    'update': ['odoo:UPDATE', 'werkzeug:WARNING'],
     'warn': ['odoo:WARNING', 'werkzeug:WARNING'],
     'error': ['odoo:ERROR', 'werkzeug:ERROR'],
     'critical': ['odoo:CRITICAL', 'werkzeug:CRITICAL'],
