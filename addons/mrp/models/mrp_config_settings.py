@@ -5,7 +5,7 @@ from odoo import api, fields, models
 
 
 class MrpConfigSettings(models.TransientModel):
-    _name = 'mrp.config.settings'
+    #_name = 'mrp.config.settings'
     _inherit = 'res.config.settings'
 
     company_id = fields.Many2one('res.company', string='Company', required=True,

@@ -5,7 +5,7 @@ from odoo import api, fields, models
 
 class PosConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
-    _name = 'pos.config.settings'
+    #_name = 'pos.config.settings'
 
     group_multi_currency = fields.Boolean("Multi-Currencies", implied_group='base.group_multi_currency')
     group_product_variant = fields.Boolean("Attributes & Variants", implied_group='product.group_product_variant')

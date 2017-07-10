@@ -5,7 +5,7 @@ from odoo import api, fields, models
 
 
 class ProjectConfiguration(models.TransientModel):
-    _name = 'project.config.settings'
+    #_name = 'project.config.settings'
     _inherit = 'res.config.settings'
 
     company_id = fields.Many2one('res.company', string='Company', required=True,

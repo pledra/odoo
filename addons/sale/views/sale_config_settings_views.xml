@@ -1,9 +1,29 @@
+<!-- <?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="sale_config_settings_form_view" model="ir.ui.view">
+            <field name="name">res.config.settings.sale.inherit</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="base.res_config_setting_form" />
+            <field name="arch" type="xml">
+                <xpath expr="//div[@class='apps']" position="inside">
+                    <div style="font-size:17px"><a href="#sales">Sales</a></div>
+                </xpath>
+                <xpath expr="//div[@class='settings']" position="inside">
+                    <h1 id="pos"># Sales</h1>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo> -->
+
+
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
     <record id="sale_config_settings_view_form_inherit_sale" model="ir.ui.view">
         <field name="name">sale.config.settings.inherit.sale</field>
-        <field name="model">sale.config.settings</field>
+        <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="sales_team.sale_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//h2[@id='integration_h2']" position="before">

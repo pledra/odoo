@@ -5,7 +5,7 @@ from odoo import api, fields, models
 
 
 class StockConfigSettings(models.TransientModel):
-    _name = 'stock.config.settings'
+    #_name = 'stock.config.settings'
     _inherit = 'res.config.settings'
 
     company_id = fields.Many2one(

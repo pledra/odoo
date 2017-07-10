@@ -13,13 +13,37 @@ var _t = core._t;
 KanbanController.include({
 
     _onDeleteColumn: function(event) {
+        var self = this;
         this._rpc({
-            model: 'ir.model',
+            model: 'ir.model.fields',
             method: 'search_read',
-            
+            //domain: [['is_setting_model','=',true],['field_id.field_description', 'in',['Online Events','Collaborative Pads']]],
+            //domain: [['model_id.is_setting_model','=',true],['field_description', 'in',['Parent Left','Online Events','Collaborative Pads']]],
+            domain: [['model_id.is_setting_model','=',true],['field_description', 'like', 'Loyalty Program']],
+            //fields: ['display_name','field_id']
         })
         .then(function (response) {
-            console.log("response", response);
+            response = _.groupBy(response, function(res){ return res.modules });
+             console.log("response", response);
+            _.each(_.keys(response),function(module){
+                //console.log("response[module][0].model", response[module][0].model);
+                self._rpc({
+                    model: response[module][0].model,
+                    method: 'search_read',
+                    //fields: [setting.name,'create_date'],
+                }).then(function(data){
+                    //console.log("data", data);
+                    console.log("============== " + module + " ==============");
+                    _.each(response[module],function(setting){
+                        //console.log("setting", setting);
+                        if(data.length > 0) {
+                            console.log(setting.field_description + " : " +  data[data.length-1][setting.name]);
+                        } else {
+                            console.log(setting.field_description + " : " + false );
+                        }
+                    });
+                });
+            });
         });
     },
 });

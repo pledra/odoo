@@ -5,7 +5,7 @@ from odoo import api, fields, models
 
 
 class SaleConfigSettings(models.TransientModel):
-    _inherit = 'sale.config.settings'
+    _inherit = 'res.config.settings'
 
     alias_prefix = fields.Char('Default Alias Name for Leads')
     alias_domain = fields.Char('Alias Domain', default=lambda self: self.env["ir.config_parameter"].sudo().get_param("mail.catchall.domain"))

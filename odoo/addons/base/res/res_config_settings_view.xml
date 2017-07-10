@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- <record id="res_lang_tree" model="ir.ui.view">
+            <field name="name">res.config.settings.form</field>
+            <field name="model">res.config.settings</field>
+            <field name="arch" type="xml">
+                <tree>
+                   
+                </tree>
+            </field>
+        </record> -->
+        <record id="res_config_setting_form" model="ir.ui.view">
+            <field name="name">res.config.settings.form</field>
+            <field name="model">res.config.settings</field>
+            <field name="arch" type="xml">
+                <form string="Settings">
+                    <sheet>
+                        <div class="row">
+                            <div class="col-md-2">
+                            	<div style="font-size:20px">Apps</div>
+                                <div class="apps"/>
+                            </div>
+                            <div class="col-md-10">
+                                <div class="settings"/>
+                            </div>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <!-- <record id="res_lang_search" model="ir.ui.view">
+            <field name="name">res.lang.search</field>
+            <field name="model">res.lang</field>
+            <field name="arch" type="xml">
+                <search string="Languages">
+                    <field name="name"
+                        filter_domain="['|', '|', ('name','ilike',self), ('code','ilike',self), ('iso_code','ilike',self)]"
+                        string="Language"/>
+                    <filter string="Translatable" domain="[('translatable','=',True)]"/>
+                    <filter string="Active" domain="[('active','=',True)]"/>
+                    <field name="direction"/>
+                </search>
+        </record>
+         -->
+        <record id="res_config_setting_act_window" model="ir.actions.act_window">
+            <field name="name">Settings</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="view_type">form</field>
+        </record>
+        <!--  <record id="res_config_setting_act_window" model="ir.actions.act_window">
+           <field name="name">res_config_setting_menu</field>
+           <field name="res_model">res.config.settings</field>
+           <field name="view_type">form</field>
+           <field name="search_view_id" ref="res_lang_search"/>
+       </record> -->
+        <!-- <menuitem action="res_config_setting_act_window" id="menu_res_config_setting_act_window" parent="menu_translation" groups="base.group_no_one" sequence="1"/> -->
+    </data>
+</odoo>
