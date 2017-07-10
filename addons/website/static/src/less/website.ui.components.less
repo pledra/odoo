@@ -274,9 +274,9 @@ body .modal {
                     &:first-child {
                         width: 55%;
                         padding-right: 15px;
-                        border: 1px solid @gray-lighter;
+                        border: 1px solid @o-we-color-text-light;
                         text-align: right;
-                        background-color: lighten(@gray-lighter, 3%);
+                        background-color: @o-we-color-paper;
 
                         @media screen and (min-width: @screen-md-min) {
                             width: 38%;
@@ -344,15 +344,6 @@ body .modal {
                             td:first-child {
                                 padding-bottom: 10px;
                                 border-bottom-width: 1px;
-                            }
-                        }
-
-                        &:hover {
-                            td {
-                                background-color: @gray-lighter;
-                                &:last-child {
-                                    background-color: lighten(@gray-lighter, 3%);
-                                }
                             }
                         }
                     }
