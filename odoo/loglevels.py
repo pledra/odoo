@@ -6,7 +6,6 @@ import sys
 LOG_NOTSET = 'notset'
 LOG_DEBUG = 'debug'
 LOG_INFO = 'info'
-LOG_UPDATE = 'update'
 LOG_WARNING = 'warn'
 LOG_ERROR = 'error'
 LOG_CRITICAL = 'critical'

@@ -27,6 +27,18 @@ def log(logger, level, prefix, msg, depth=None):
 
 path_prefix = os.path.realpath(os.path.dirname(os.path.dirname(__file__)))
 
+
+class WhitelistFilter(logging.Filter):
+    def __init__(self, names=None):
+        self.names = [(name, len(name)) for name in names]
+
+    def filter(self, record):
+        for (name, nlen) in self.names:
+            if record.name == name or record.name.find(name, 0, nlen) == 0:
+                return 1
+        return 0
+
+
 class PostgreSQLHandler(logging.Handler):
     """ PostgreSQL Loggin Handler will store logs in the database, by default
     the current database, can be set using --log-db=DBNAME
@@ -89,8 +101,6 @@ def init_logger():
     _logger_init = True
 
     logging.addLevelName(25, "INFO")
-    logging.addLevelName(28, "UPDATE")
-    logging.UPDATE = 28
 
     from .tools.translate import resetlocale
     resetlocale()
@@ -147,7 +157,6 @@ def init_logger():
         db_levels = {
             'debug': logging.DEBUG,
             'info': logging.INFO,
-            'update': 28,
             'warning': logging.WARNING,
             'error': logging.ERROR,
             'critical': logging.CRITICAL,
@@ -155,6 +164,8 @@ def init_logger():
         postgresqlHandler = PostgreSQLHandler()
         postgresqlHandler.setLevel(int(db_levels.get(tools.config['log_db_level'], tools.config['log_db_level'])))
         logging.getLogger().addHandler(postgresqlHandler)
+        if tools.config['log_db_restrict']:
+            postgresqlHandler.addFilter(WhitelistFilter(names=tools.config['log_db_restrict']))
 
     # Configure loggers levels
     pseudo_config = PSEUDOCONFIG_MAPPER.get(tools.config['log_level'], [])
@@ -184,7 +195,6 @@ PSEUDOCONFIG_MAPPER = {
     'debug': ['odoo:DEBUG'],
     'debug_sql': ['odoo.sql_db:DEBUG'],
     'info': [],
-    'update': ['odoo:UPDATE', 'werkzeug:WARNING'],
     'warn': ['odoo:WARNING', 'werkzeug:WARNING'],
     'error': ['odoo:ERROR', 'werkzeug:ERROR'],
     'critical': ['odoo:CRITICAL', 'werkzeug:CRITICAL'],

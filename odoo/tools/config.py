@@ -95,8 +95,6 @@ class configmanager(object):
             (getattr(loglevels, 'LOG_%s' % x), getattr(logging, x))
             for x in ('CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'NOTSET')
         ])
-        self._LOGLEVELS[getattr(loglevels, 'LOG_UPDATE')] = 28
-        logging.addLevelName(28, 'UPDATE')
 
         version = "%s %s" % (release.description, release.version)
         self.parser = parser = optparse.OptionParser(version=version, option_class=MyOption)
@@ -168,10 +166,11 @@ class configmanager(object):
         group.add_option('--log-sql', action="append_const", dest="log_handler", const="odoo.sql_db:DEBUG", help='shortcut for --log-handler=odoo.sql_db:DEBUG')
         group.add_option('--log-db', dest='log_db', help="Logging database", my_default=False)
         group.add_option('--log-db-level', dest='log_db_level', my_default='warning', help="Logging database level")
+        group.add_option('--log-db-restrict', dest='log_db_restrict', nargs=1, help="Restrict the log-db logging to the specified loggers (separated by commas).")
         # For backward-compatibility, map the old log levels to something
         # quite close.
         levels = [
-            'info', 'debug_rpc', 'warn', 'test', 'update', 'critical',
+            'info', 'debug_rpc', 'warn', 'test', 'critical',
             'debug_sql', 'error', 'debug', 'debug_rpc_answer', 'notset'
         ]
         group.add_option('--log-level', dest='log_level', type='choice',
@@ -399,7 +398,7 @@ class configmanager(object):
                 'db_maxconn', 'import_partial', 'addons_path',
                 'xmlrpc', 'syslog', 'without_demo',
                 'dbfilter', 'log_level', 'log_db',
-                'log_db_level', 'geoip_database', 'dev_mode', 'shell_interface'
+                'log_db_level', 'log_db_restrict', 'geoip_database', 'dev_mode', 'shell_interface'
         ]
 
         for arg in keys:
@@ -415,6 +414,7 @@ class configmanager(object):
             self.options['log_handler'] = self.options['log_handler'].split(',')
         self.options['log_handler'].extend(opt.log_handler)
 
+        self.options['log_db_restrict'] = self.options['log_db_restrict'] and self.options['log_db_restrict'].split(',') or []
         # if defined but None take the configfile value
         keys = [
             'language', 'translate_out', 'translate_in', 'overwrite_existing_translations',
