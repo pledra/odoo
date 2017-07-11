@@ -121,7 +121,7 @@ class SaleOrderLine(models.Model):
     @api.multi
     def _compute_analytic(self, domain=None):
         # Don't update SO lines with a product having 'manual' service type.
-        self = self.filtered(lambda sol: sol.product_id.service_type != 'manual')
+        #self = self.filtered(lambda sol: sol.product_id.service_type != 'manual')
 
         if not domain:
             # To filter on analyic lines linked to an expense
