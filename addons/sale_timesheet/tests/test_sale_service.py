@@ -25,7 +25,8 @@ class TestSaleService(TestSale):
             'uom_id': self.env.ref('product.product_uom_hour').id,
             'uom_po_id': self.env.ref('product.product_uom_hour').id,
             'default_code': 'SERV-DELI',
-            'track_service': 'task',
+            'service_type': 'timesheet',
+            'service_tracking': 'task_new_project',
             'project_id': False,  # project will be created
         })
         self.product_task2 = self.env['product.product'].create({
@@ -37,7 +38,8 @@ class TestSaleService(TestSale):
             'uom_id': self.env.ref('product.product_uom_hour').id,
             'uom_po_id': self.env.ref('product.product_uom_hour').id,
             'default_code': 'SERV-DELI',
-            'track_service': 'task',
+            'service_type': 'timesheet',
+            'service_tracking': 'task_new_project',
             'project_id': False,  # project will be created
         })
         self.product_task_with_project = self.env['product.product'].create({
@@ -49,7 +51,8 @@ class TestSaleService(TestSale):
             'uom_id': self.env.ref('product.product_uom_hour').id,
             'uom_po_id': self.env.ref('product.product_uom_hour').id,
             'default_code': 'SERV-DELI',
-            'track_service': 'task',
+            'service_type': 'timesheet',
+            'service_tracking': 'task_global_project',
             'project_id': self.project_id.id,
         })
         self.product_project = self.env['product.product'].create({
@@ -57,11 +60,12 @@ class TestSaleService(TestSale):
             'standard_price': 37,
             'list_price': 51,
             'type': 'service',
-            'invoice_policy': 'delivery',
+            'invoice_policy': 'order',
             'uom_id': self.env.ref('product.product_uom_hour').id,
             'uom_po_id': self.env.ref('product.product_uom_hour').id,
             'default_code': 'SERV-ORDER',
             'track_service': 'timesheet',
+            'service_tracking': 'task_new_project',
             'project_id': False,  # project will be created
         })
 

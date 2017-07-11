@@ -120,6 +120,9 @@ class SaleOrderLine(models.Model):
 
     @api.multi
     def _compute_analytic(self, domain=None):
+        # Don't update SO lines with a product having 'manual' service type.
+        self = self.filtered(lambda sol: sol.product_id.service_type != 'manual')
+
         if not domain:
             # To filter on analyic lines linked to an expense
             expense_type_id = self.env.ref('account.data_account_type_expenses', raise_if_not_found=False)

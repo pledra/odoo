@@ -28,7 +28,9 @@ class ProductTemplate(models.Model):
     @api.depends('invoice_policy', 'service_type')
     def _compute_service_policy(self):
         for product in self:
-            policy = 'ordered_timesheet'
+            policy = False
+            if product.invoice_policy == 'order' and product.service_type == 'timesheet':
+                policy = 'ordered_timesheet'
             if product.invoice_policy == 'delivery':
                 policy = 'delivered_manual' if product.service_type == 'manual' else 'delivered_timesheet'
             product.service_policy = policy

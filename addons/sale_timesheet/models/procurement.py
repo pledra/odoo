@@ -11,10 +11,10 @@ class ProcurementOrder(models.Model):
     is_service = fields.Boolean("Is service", compute='_compute_is_service', help="Procurement should generate a task and/or a project, depending on the product settings.")
 
     @api.multi
-    @api.depends('product_id', 'product_id.type', 'product_id.service_type')
+    @api.depends('product_id', 'product_id.type', 'product_id.service_type', 'product_id.invoice_policy')
     def _compute_is_service(self):
         for procurement in self:
-            procurement.is_service = procurement.product_id.type == 'service' and procurement.product_id.service_type == 'timesheet'
+            procurement.is_service = procurement.product_id.type == 'service' and procurement.product_id.service_policy
 
     @api.multi
     def _assign(self):
