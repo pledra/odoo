@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import logging
+import re
 from collections import defaultdict
 from difflib import get_close_matches
 
@@ -470,7 +471,7 @@ class IrTranslation(models.Model):
                     discarded += trans
                 elif trans.src not in terms:
                     matches = get_close_matches(trans.src, terms, 1, 0.9)
-                    if matches:
+                    if matches and not (re.match('(.+?)?<img.*?>(.+?)?</img>', trans.src)):
                         trans.write({'src': matches[0], 'state': trans.state})
                     else:
                         outdated += trans
@@ -540,12 +541,12 @@ class IrTranslation(models.Model):
     @api.constrains('type', 'name', 'value')
     def _check_value(self):
         for trans in self.with_context(lang=None):
-            if trans.type == 'model' and trans.value:
+            if trans.type == 'model' and trans.value and not re.match('(.+)?<img.*?>(.+)?</img>', trans.src):
                 mname, fname = trans.name.split(',')
                 record = trans.env[mname].browse(trans.res_id)
                 field = record._fields[fname]
+                src = trans.src
                 if callable(field.translate):
-                    src = trans.src
                     val = trans.value.strip()
                     # check whether applying (src -> val) then (val -> src)
                     # gives the original value back
