@@ -1626,6 +1626,34 @@ QUnit.module('Views', {
                         "column should contain 1 records");
         kanban.destroy();
     });
+
+    QUnit.test('kanban context test on delete record', function (assert) {
+        assert.expect(1);
+
+        var kanban = createView({
+            View: KanbanView,
+            model: 'partner',
+            data: this.data,
+            arch: '<kanban>' +
+                        '<templates><t t-name="kanban-box">' +
+                        '<div><field name="foo"/></div>' +
+                    '</t></templates></kanban>',
+            groupBy: ['product_id'],
+            viewOptions: {
+                context: {'my_context': 'true'},
+            },
+            mockRPC: function (route, args) {
+                if (args.method === 'unlink') {
+                    assert.strictEqual(args.kwargs.context.my_context, "true",
+                        "should have send the correct context");
+                }
+                return this._super.apply(this, arguments);
+            },
+        });
+        kanban.$('.o_kanban_group:last .o_column_delete').click();
+        $('.modal .modal-footer .btn-primary').click();
+        kanban.destroy();
+    });
 });
 
 });

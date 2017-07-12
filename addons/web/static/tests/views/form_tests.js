@@ -5377,5 +5377,35 @@ QUnit.module('Views', {
 
         form.destroy();
     });
+
+    QUnit.test('form context test on delete record', function (assert) {
+        assert.expect(1);
+
+        var form = createView({
+            View: FormView,
+            model: 'partner',
+            data: this.data,
+            arch: '<form string="Partners"><field name="foo"></field></form>',
+            viewOptions: {
+                sidebar: true,
+                context: {'my_context': 'true'},
+            },
+            res_id: 1,
+            mockRPC: function (route, args) {
+                if (args.method === 'unlink') {
+                    assert.strictEqual(args.kwargs.context.my_context, "true",
+                        "should have send the correct context");
+                }
+                return this._super.apply(this, arguments);
+            },
+        });
+
+        // open sidebar
+        form.sidebar.$('button.o_dropdown_toggler_btn').click();
+        form.sidebar.$('a:contains(Delete)').click();
+        // confirm the delete
+        $('.modal .modal-footer button.btn-primary').click();
+        form.destroy();
+    });
 });
 });
