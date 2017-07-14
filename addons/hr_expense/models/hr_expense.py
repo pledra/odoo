@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import re
+from werkzeug import urls
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -367,7 +368,6 @@ class HrExpense(models.Model):
             ('work_email', 'ilike', email_address),
             ('user_id.email', 'ilike', email_address)
         ], limit=1)
-
         expense_description = msg_dict.get('subject', '')
 
         # Match the first occurence of '[]' in the string and extract the content inside it
@@ -375,13 +375,22 @@ class HrExpense(models.Model):
         # of the product to encode on the expense. If not, take the default product instead
         # which is 'Fixed Cost'
         default_product = self.env.ref('hr_expense.product_product_fixed_cost')
-        pattern = '\[([^)]*)\]'
-        product_code = re.search(pattern, expense_description)
-        if product_code is None:
-            product = default_product
-        else:
-            expense_description = expense_description.replace(product_code.group(), '')
-            product = self.env['product.product'].search([('default_code', 'ilike', product_code.group(1))]) or default_product
+        # exp_desc_str = re.sub(r'[^a-zA-Z]+', ' ', expense_description).lower()
+        product = default_product
+        exp_products = self.env['product.product'].search([('product_tmpl_id.can_be_expensed', '=', True)])
+        # Below code will check for each product name/code if its present or not in expense description
+        prod_name = expense_description.split(' ')[0]
+        if '[' and ']' in expense_description:
+            start_index = expense_description.index('[') + 1
+            end_index = expense_description.index(']')
+            prod_name = expense_description[start_index:end_index]
+        for each_exp_prod in exp_products:
+            if each_exp_prod.name.lower() in prod_name.lower():
+                product = each_exp_prod
+                break
+            elif each_exp_prod.code and each_exp_prod.code.lower() in prod_name.lower():
+                product = each_exp_prod
+                break
 
         pattern = '[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?'
         # Match the last occurence of a float in the string
@@ -394,6 +403,8 @@ class HrExpense(models.Model):
         else:
             price = expense_price[-1][0]
             expense_description = expense_description.replace(price, '')
+            if employee and employee.company_id.currency_id.symbol in expense_description:
+                expense_description = expense_description.replace(employee.company_id.currency_id.symbol, '')
             try:
                 price = float(price)
             except ValueError:
@@ -411,7 +422,6 @@ class HrExpense(models.Model):
         if custom_values.get('employee_id'):
             res = super(HrExpense, self).message_new(msg_dict, custom_values)
             self.env.ref('hr_expense.hr_expense_success_email_template').send_mail(res.id)
-            # template_id.send_mail(res.id)
             return res
         else:
             base_partner = self.env.ref('base.partner_root')
@@ -419,7 +429,6 @@ class HrExpense(models.Model):
             template_id.write({'email_to': email_split(msg_dict.get('email_from', False))[0]})
             template_id.sudo().send_mail(base_partner.id, force_send=True)
             return False
-        # return super(HrExpense, self).message_new(msg_dict, custom_values)
 
     @api.multi
     def get_access_action(self, access_uid=None):
@@ -453,7 +462,7 @@ class HrExpense(models.Model):
         params.update(self.employee_id.user_id.partner_id.signup_get_auth_param()[self.employee_id.user_id.partner_id.id])
         res = ('/web?#id=%s&view_type=form&model=%s' %(self.id, params['model']))
         return res
->>>>>>> 184f043... [IMP] hr_expense: templates for creating successfull expense and expense failure has been created
+
 
 class HrExpenseSheet(models.Model):
 
