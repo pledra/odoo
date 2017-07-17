@@ -2827,6 +2827,8 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
         # for recomputing fields
         self.modified(self._fields)
+        for field in self._fields.values():
+            self._recompute_done(field)
 
         self._check_concurrency()
 
