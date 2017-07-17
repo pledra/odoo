@@ -3266,12 +3266,18 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         for key, val in pycompat.items(vals):
             field = self._fields.get(key)
             if field:
+                if field.readonly:
+                    continue
                 if field.store or field.inherited:
                     old_vals[key] = val
                 if field.inverse and not field.inherited:
                     new_vals[key] = val
             else:
                 unknown.append(key)
+
+        if self._log_access:
+            old_vals['create_uid'] = old_vals['write_uid'] = self.env.uid
+            old_vals['create_date'] = old_vals['write_date'] = datetime.datetime.utcnow()
 
         if unknown:
             _logger.warning("%s.create() includes unknown fields: %s", self._name, ', '.join(sorted(unknown)))
@@ -3344,6 +3350,17 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             if field.type == 'boolean' and field.store and name not in vals:
                 vals[name] = False
 
+        # precompute fields on the record to create
+        record = self.new(vals)
+        fields_done = []
+        for name, field in self._fields.items():
+            if name not in vals and field.compute and field.store:
+                if field.relational and not all(record[name]._ids):
+                    # the value contains a new record: skip this field
+                    continue
+                vals[name] = field.convert_to_write(record[name], record)
+                fields_done.append(field)
+
         # determine SQL values
         self = self.browse()
         for name, val in pycompat.items(vals):
@@ -3356,12 +3373,6 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
             if hasattr(field, 'selection') and val:
                 self._check_selection_field_value(name, val)
-
-        if self._log_access:
-            updates.append(('create_uid', '%s', self._uid))
-            updates.append(('write_uid', '%s', self._uid))
-            updates.append(('create_date', "(now() at time zone 'UTC')"))
-            updates.append(('write_date', "(now() at time zone 'UTC')"))
 
         # insert a row for this record
         cr = self._cr
@@ -3436,6 +3447,9 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
             # for recomputing new-style fields
             self.modified(upd_todo)
+
+            for field in fields_done:
+                self._recompute_done(field)
 
             # check Python constraints
             self._validate_fields(vals)
@@ -4451,8 +4465,11 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
     @api.multi
     def update(self, values):
         """ Update the records in ``self`` with ``values``. """
+        fields = self._fields
+        field_seq = self.pool.field_sequence
+        items = sorted(values.items(), key=lambda it: field_seq(fields[it[0]]))
         for record in self:
-            for name, value in pycompat.items(values):
+            for name, value in items:
                 record[name] = value
 
     #
@@ -4469,7 +4486,12 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         in database, it only exists in memory.
         """
         record = self.browse([NewId()])
-        record._cache.update(record._convert_to_cache(values, update=True))
+
+        fields = self._fields
+        field_seq = self.pool.field_sequence
+        items = sorted(values.items(), key=lambda it: field_seq(fields[it[0]]))
+        for name, value in items:
+            record._cache[name] = self._fields[name].convert_to_cache(value, record)
 
         if record.env.in_onchange:
             # The cache update does not set inverse fields, so do it manually.
