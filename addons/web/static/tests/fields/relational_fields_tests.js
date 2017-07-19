@@ -3,6 +3,7 @@ odoo.define('web.relational_fields_tests', function (require) {
 
 var BasicModel = require('web.BasicModel');
 var concurrency = require('web.concurrency');
+var field_utils = require('web.field_utils');
 var FormView = require('web.FormView');
 var ListView = require('web.ListView');
 var relationalFields = require('web.relational_fields');
@@ -624,6 +625,14 @@ QUnit.module('relational_fields', {
                 done();
             });
         });
+    });
+
+    QUnit.test('many2one string formatting', function (assert) {
+        assert.expect(1);
+
+        var record = {data: this.data.partner.records[2]};
+        assert.strictEqual(field_utils.format.many2one(record),
+            "aaa", 'should match the display_name of the record');
     });
 
     // QUnit.test('onchange on a many2one to a different model', function (assert) {

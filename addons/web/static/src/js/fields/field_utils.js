@@ -224,7 +224,15 @@ function formatInteger(value, field, options) {
  * @returns {string}
  */
 function formatMany2one(value, field, options) {
-    value = value && (_.isArray(value) ? value[1] : value.data.display_name) || '';
+    // value = value && (_.isArray(value) ? value[1] : value.data.display_name) || '';
+    if (_.isArray(value)) {
+        value = value || '';
+    } else if (value && value.data) {
+        value = value.data.display_name || '';
+    } else {
+        value = '';
+    }
+
     if (options && options.escape) {
         value = _.escape(value);
     }
