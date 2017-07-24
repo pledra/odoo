@@ -114,6 +114,7 @@ class TestPyLint(TransactionCase):
                 paths.append(module_path)
 
         options = [
+            '--rcfile=%s' % os.devnull,
             '--disable=all',
             '--enable=%s' % ','.join(self.ENABLED_CODES),
             '--reports=n',
@@ -132,4 +133,4 @@ class TestPyLint(TransactionCase):
         else:
             out, err = process.communicate()
             if process.returncode:
-                self.fail("\n" + out + "\n" + err)
+                self.fail("pylint test failed:\n" + (out + "\n" + err).strip())
