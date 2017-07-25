@@ -490,8 +490,7 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
         };
         // Instantiate the SearchView, but do not append it nor its buttons to the DOM as this will
         // be done later, simultaneously to all other ControlPanel elements
-        this.searchview = new SearchView(this, this.dataset, this.search_fields_view, options);
-
+        this.initializeSearchView(this, this.dataset, this.search_fields_view, options);
         return $.when(this.searchview.appendTo($("<div>"))).done(function() {
             self.searchview_elements = {};
             self.searchview_elements.$searchview = self.searchview.$el;

@@ -53,6 +53,17 @@ var ControlPanelMixin = {
     update_control_panel: function(cp_status, options) {
         this.cp_bus.trigger("update", cp_status || {}, options || {});
     },
+
+    /**
+     * Triggers 'initializeSearchView' on the cp_bus to instantiate searchview which will later pushed in ControlPanel
+     * @param {Object} [widget] see web.ControlPanel.initializeSearchView() for description
+     * @param {Object} [dataset] see web.ControlPanel.update() for a description
+     * @param {Object} [view] see web.ControlPanel.update() for a description
+     * @param {Object} [options] see web.ControlPanel.update() for a description
+     */
+    initializeSearchView: function(widget, dataset, view, options) {
+        this.cp_bus.trigger("initializeSearchView", widget, dataset, view, options);
+    }
 };
 
 return ControlPanelMixin;
@@ -65,6 +76,7 @@ odoo.define('web.ControlPanel', function (require) {
 var Bus = require('web.Bus');
 var data = require('web.data');
 var Widget = require('web.Widget');
+var SearchView = require('web.SearchView');
 
 var ControlPanel = Widget.extend({
     template: 'ControlPanel',
@@ -80,6 +92,7 @@ var ControlPanel = Widget.extend({
 
         this.bus = new Bus();
         this.bus.on("update", this, this.update);
+        this.bus.on("initializeSearchView" ,this, this.initializeSearchView);
     },
     /**
      * Renders the control panel and creates a dictionnary of its exposed elements
@@ -116,6 +129,16 @@ var ControlPanel = Widget.extend({
      */
     get_bus: function() {
         return this.bus;
+    },
+    /**
+     * Inializes the SearchView and store it in widget.
+     * @param {Object} [widget] widget reference from initializeSearchView is trigerred.
+     * @param {Object} [dataset] dataset required to initialize searchview.
+     * @param {Object} [view] required for searchview initialization.
+     * @param {Object} [options] required options for searchview.
+     */
+    initializeSearchView: function(widget, dataset, view, options) {
+        widget.searchview = new SearchView(widget, dataset, view, options);
     },
     /**
      * Updates the content and displays the ControlPanel

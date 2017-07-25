@@ -58,7 +58,7 @@ var PlanAction = Widget.extend(ControlPanelMixin, {
         };
 
         var dataset = new data.DataSetSearch(this, 'account.analytic.line');
-        this.searchview = new SearchView(this, dataset, this.fields_view, options);
+        this.initializeSearchView(this, dataset, this.fields_view, options);
         this.searchview.on('search', this, this._onSearch);
 
         var def1 = this._super.apply(this, arguments);

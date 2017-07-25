@@ -13,7 +13,6 @@ var data = require('web.data');
 var Dialog = require('web.Dialog');
 var dom = require('web.dom');
 var pyeval = require('web.pyeval');
-var SearchView = require('web.SearchView');
 var session = require('web.session');
 var Widget = require('web.Widget');
 
@@ -378,7 +377,7 @@ var ChatAction = Widget.extend(ControlPanelMixin, {
             action: this.action,
             disable_groupby: true,
         };
-        this.searchview = new SearchView(this, this.dataset, this.fields_view, options);
+        this.initializeSearchView(this, this.dataset, this.fields_view, options);
         return this.searchview.appendTo($("<div>")).then(function () {
             self.$searchview_buttons = self.searchview.$buttons.contents();
         });
