@@ -25,6 +25,8 @@ var Dialog = Widget.extend({
      * @param {string} [options.title=Odoo]
      * @param {string} [options.subtitle]
      * @param {string} [options.size=large] - 'large', 'medium' or 'small'
+     * @param {boolean} [options.isMobile] - true or false, to decide whether
+               Dialog in mobile should open in full-screen mode or not
      * @param {string} [options.dialogClass] - class to add to the modal-body
      * @param {jQuery} [options.$content]
      *        Element which will be the $el, replace the .modal-body and get the
@@ -50,6 +52,7 @@ var Dialog = Widget.extend({
         options = _.defaults(options || {}, {
             title: _t('Odoo'), subtitle: '',
             size: 'large',
+            isMobile: false,
             dialogClass: '',
             $content: false,
             buttons: [{text: _t("Ok"), close: true}],
@@ -59,6 +62,7 @@ var Dialog = Widget.extend({
         this.$content = options.$content;
         this.title = options.title;
         this.subtitle = options.subtitle;
+        this.isMobile = options.isMobile;
         this.dialogClass = options.dialogClass;
         this.size = options.size;
         this.buttons = options.buttons;
@@ -78,6 +82,7 @@ var Dialog = Widget.extend({
                 title: self.title,
                 subtitle: self.subtitle,
                 technical: self.technical,
+                isMobile: self.isMobile,
             }));
             switch (self.size) {
                 case 'large':
@@ -87,6 +92,7 @@ var Dialog = Widget.extend({
                     self.$modal.find('.modal-dialog').addClass('modal-sm');
                     break;
             }
+            self.$header = self.$modal.find(".modal-header");
             self.$footer = self.$modal.find(".modal-footer");
             self.set_buttons(self.buttons);
             self.$modal.on('hidden.bs.modal', _.bind(self.destroy, self));
@@ -128,6 +134,11 @@ var Dialog = Widget.extend({
             });
             self.$footer.append($button);
         });
+        // Adding a ghost button to organize footer buttons
+        // better in full-screen mode on small devices
+        if (this.isMobile) {
+            this.$footer.append($('<button class="btn o_btn_ghost"/>'));
+        }
     },
 
     set_title: function (title, subtitle) {
@@ -155,7 +166,16 @@ var Dialog = Widget.extend({
         this.appendTo($('<div/>')).then(function () {
             self.$modal.find(".modal-body").replaceWith(self.$el);
             self.$modal.modal('show');
-            self._opened.resolve();
+            self._opened.resolve().then(function () {
+                // set top and bottom of modal content to make sure no content
+                // is hidden under header / footer in full-screen mode
+                if (self.isMobile) {
+                    self.$modal.find('.modal-body').css({
+                        top: self.$header.outerHeight(),
+                        bottom: self.$footer.outerHeight(),
+                    });
+                }
+            });
         });
 
         return self;

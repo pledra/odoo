@@ -1,6 +1,7 @@
 odoo.define('web.view_dialogs', function (require) {
 "use strict";
 
+var config = require('web.config');
 var core = require('web.core');
 var data = require('web.data');
 var Dialog = require('web.Dialog');
@@ -71,6 +72,7 @@ var FormViewDialog = ViewDialog.extend({
     /**
      * @param {Widget} parent
      * @param {Object} [options]
+     * @param {Boolean} [options.isMobile]
      * @param {string} [options.parentID] the id of the parent record. It is
      *   useful for situations such as a one2many opened in a form view dialog.
      *   In that case, we want to be able to properly evaluate domains with the
@@ -94,6 +96,8 @@ var FormViewDialog = ViewDialog.extend({
     init: function (parent, options) {
         var self = this;
 
+        options = options || {};
+        options.isMobile = config.device.isMobile;
         this.res_id = options.res_id || null;
         this.on_saved = options.on_saved || (function () {});
         this.on_remove = options.on_remove || (function () {});
@@ -108,7 +112,6 @@ var FormViewDialog = ViewDialog.extend({
         var readonly = _.isNumber(options.res_id) && options.readonly;
 
         if (!options || !options.buttons) {
-            options = options || {};
             options.buttons = [{
                 text: (readonly ? _t("Close") : _t("Discard")),
                 classes: "btn-default o_form_button_cancel",
@@ -141,13 +144,12 @@ var FormViewDialog = ViewDialog.extend({
                     });
                 }
 
-                if (!options.disable_multiple_selection && this.activeActions.delete) {
+                if (!options.disable_multiple_selection && this.activeActions.delete && !options.isMobile) {
                     options.buttons.push({
                         text: _t("Remove"),
                         classes: "btn-default o_btn_remove pull-right",
                         click: function() {
-                            self.on_remove(self.form_view.model.get(self.form_view.handle));
-                            self.close();
+                            self._remove();
                         }
                     });
                 }
@@ -220,10 +222,31 @@ var FormViewDialog = ViewDialog.extend({
 
         return this;
     },
+    /**
+     * @override
+     * Adds a trash icon on header in full-screen mode
+     * if relational record is removable
+     */
+    set_buttons: function (buttons) {
+        var self = this;
+        this._super.apply(this, arguments);
+        var readonly = _.isNumber(self.options.res_id) && self.options.readonly;
+        if (!self.options.disable_multiple_selection && self.activeActions.delete && !readonly && self.isMobile) {
+            var $trash = $('<i class="fa fa-trash o_btn_remove ml8" aria-hidden="true"/>').on('click', function() {
+                self._remove();
+            })
+            self.$header.find('.modal-title').after($trash);
+        }
+    },
 
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
+
+    _remove: function () {
+        this.on_remove(this.form_view.model.get(this.form_view.handle));
+        this.close();
+    },
 
     _save: function () {
         var self = this;
@@ -279,13 +302,16 @@ var SelectCreateDialog = ViewDialog.extend({
 
     /**
      * options:
+     * - isMobile
      * - initial_ids
      * - initial_view: form or search (default search)
      * - list_view_options: dict of options to pass to the List View
      * - on_selected: optional callback to execute when records are selected
      * - disable_multiple_selection: true to allow create/select multiple records
      */
-    init: function () {
+    init: function (parent, options) {
+        options = options || {};
+        options.isMobile = config.isMobile;
         this._super.apply(this, arguments);
         _.defaults(this.options, { initial_view: 'search' });
         this.on_selected = this.options.on_selected || (function () {});
