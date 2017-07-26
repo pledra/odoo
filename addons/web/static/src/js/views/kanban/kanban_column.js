@@ -55,6 +55,7 @@ var KanbanColumn = Widget.extend({
         this.records_editable = options.records_editable;
         this.records_deletable = options.records_deletable;
         this.relation = options.relation;
+        this.onCreate = options.onCreate;
         this.offset = 0;
         this.remaining = this.size - this.data_records.length;
 
@@ -146,7 +147,11 @@ var KanbanColumn = Widget.extend({
         }
         var self = this;
         var width = this.records.length ? this.records[0].$el.innerWidth() : this.$el.width() - 8;
-        this.quickCreateWidget = new RecordQuickCreate(this, width);
+        this.quickCreateWidget = new RecordQuickCreate(this, {
+            width: width,
+            onCreate: this.onCreate,
+            actionParams: {additional_context: this.data.context, on_close: function() {}},
+        });
         this.quickCreateWidget.insertAfter(this.$header);
         this.quickCreateWidget.$el.focusout(function () {
             var taskName = self.quickCreateWidget.$('[type=text]')[0].value;

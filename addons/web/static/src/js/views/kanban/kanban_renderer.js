@@ -94,6 +94,7 @@ var KanbanRenderer = BasicRenderer.extend({
         var templates = findInNode(this.arch, function (n) { return n.tag === 'templates';});
         transformQwebTemplate(templates, state.fields);
         this.qweb.add_template(utils.json_node_to_xml(templates));
+        this.onCreate = params.onCreate;
 
         this.recordOptions = _.extend({}, params.record_options, {
             qweb: this.qweb,
@@ -108,9 +109,11 @@ var KanbanRenderer = BasicRenderer.extend({
 
     /**
      * Displays the quick create record in the first column.
+     *
+     * @param {Object} actionParams Params to send to action
      */
-    addQuickCreate: function () {
-        this.widgets[0].addQuickCreate();
+    addQuickCreate: function (actionParams) {
+        this.widgets[0].addQuickCreate(actionParams);
     },
     /**
      * Toggle fold/unfold the Column quick create widget
@@ -214,6 +217,7 @@ var KanbanRenderer = BasicRenderer.extend({
             group_by_tooltip: groupByTooltip,
             grouped_by_m2o: groupedByM2O,
             relation: grouped_by_field,
+            onCreate: this.onCreate,
         });
 
         // Render columns

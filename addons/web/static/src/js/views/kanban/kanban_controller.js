@@ -37,7 +37,7 @@ var KanbanController = BasicController.extend({
     init: function (parent, model, renderer, params) {
         this._super.apply(this, arguments);
 
-        this.on_create = params.on_create;
+        this.onCreate = params.onCreate;
         this.hasButtons = params.hasButtons;
 
         this.createColumnEnabled = this._isCreateColumnEnabled();
@@ -277,12 +277,13 @@ var KanbanController = BasicController.extend({
      */
     _onButtonNew: function () {
         var data = this.model.get(this.handle, {raw: true});
-        if (data.groupedBy.length > 0 && data.count > 0 && this.on_create === 'quick_create') {
+        console.log(data);
+        if (data.groupedBy.length > 0 && data.count > 0 && this.onCreate) {
             // Activate the quick create in the first column
             this.renderer.addQuickCreate();
-        } else if (this.on_create && this.on_create !== 'quick_create') {
+        } else if (this.onCreate) {
             // Execute the given action
-            this.do_action(this.on_create, {
+            this.do_action(this.onCreate, {
                 on_close: this.reload.bind(this),
                 additional_context: data.context,
             });

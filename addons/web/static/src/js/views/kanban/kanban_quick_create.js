@@ -7,6 +7,7 @@ odoo.define('web.kanban_quick_create', function (require) {
  */
 
 var Widget = require('web.Widget');
+var data_manager = require('web.data_manager');
 
 var AbstractQuickCreate = Widget.extend({
     events: {
@@ -119,21 +120,41 @@ var RecordQuickCreate = AbstractQuickCreate.extend({
      * @param {Widget} parent
      * @param {Object} options
      * @param {string|number} options.width defines the element's width
+     * @param {string|string} options.onCreate Name of the action
      * @param {string} [options.defaultName] the record's default name
      */
     init: function (parent, options) {
         this._super.apply(this, arguments);
         this.width = options.width;
+        this.onCreate = options.onCreate;
         this.defaultName = options.defaultName;
+        this.actionParams = options.actionParams || {};
+        this.actionWidget = undefined;
     },
     /**
      * @override
      */
     start: function () {
         this.$el.css({width: this.width});
-        this.$input = this.$('input');
-        this._addDefaultName();
-        this.$input.focus();
+        if (!this.onCreate) {
+            // Use default widget with one input line.
+            this.$input = this.$('input');
+            this._addDefaultName();
+            this.$input.focus();
+        }
+        return this._super.apply(this, arguments);
+    },
+    /**
+     * @override
+     */
+    willStart: function () {
+        var self = this;
+        if (this.onCreate) {
+            return data_manager.load_action(this.onCreate, this.actionParams).then(function(result) {
+                result.target = 'inlineview';
+                return self.do_action(result, this.actionParams).then(function(widget) {this.actionWidget = widget;});
+            });
+        }
         return this._super.apply(this, arguments);
     },
 

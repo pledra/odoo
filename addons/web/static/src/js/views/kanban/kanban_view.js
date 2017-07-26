@@ -44,6 +44,7 @@ var KanbanView = BasicView.extend({
             deletable: activeActions.group_delete,
             group_creatable: activeActions.group_create,
             quick_create: params.isQuickCreateEnabled || this._isQuickCreateEnabled(viewInfo),
+            onCreate: arch.attrs.on_create,
         };
         this.rendererParams.record_options = {
             editable: activeActions.edit,
@@ -51,7 +52,8 @@ var KanbanView = BasicView.extend({
             read_only_mode: params.readOnlyMode,
         };
 
-        this.controllerParams.on_create = arch.attrs.on_create;
+        this.rendererParams.onCreate = arch.attrs.on_create;
+        this.controllerParams.onCreate = arch.attrs.on_create;
 
         this.controllerParams.readOnlyMode = false;
         this.controllerParams.hasButtons = true;
