@@ -130,6 +130,73 @@ response = request.render("website.template_partner_comment", {
             <field name="name">Website 0.0.0.0</field>
             <field name="domain">0.0.0.0</field>
         </record>
+        
+        
+        
+        
+        
+        
+        
+        
+        <record id="default_website_homepage" model="website.page">
+            <field name="name">Homepage</field>
+            <field name="type">qweb</field>
+            <field name="key">website.homepage</field>
+            <field name="path">/homepage</field>
+            <field name="website_id" ref="default_website"/>
+            <field name="arch" type="xml">
+                <t name="Homepage" priority="29" t-name="website.homepage">
+                    <t t-call="website.layout">
+                        <t t-set="pageName" t-value="'homepage'"/>
+                        <div id="wrap" class="oe_structure oe_empty"/>
+                    </t>
+                </t>
+            </field>
+        </record>
+        
+        <record id="default_website_contactus" model="website.page">
+            <field name="name">Contact Us</field>
+            <field name="type">qweb</field>
+            <field name="key">website.contactus</field>
+            <field name="path">/contactus</field>
+            <field name="website_id" ref="default_website"/>
+            <field name="arch" type="xml">
+                <t name="Contact Us" priority="29" t-name="website.contactus">
+                  <t t-call="website.layout">
+                    <div id="wrap">
+                      <div class="oe_structure"/>
+                      <div class="container">
+                          <h1>Contact us</h1>
+                          <div class="row">
+                              <div class="col-md-8">
+                                  <div class="oe_structure">
+                                      <div>
+                                          <p>Contact us about anything related to our company or services.</p>
+                                          <p>We'll do our best to get back to you as soon as possible.</p>
+                                      </div>
+                                  </div>
+                                  <div class="text-center mt64" name="mail_button">
+                                      <a t-attf-href="mailto:{{ res_company.email }}" class="btn btn-primary" id="o_contact_mail">Send us an email</a>
+                                  </div>
+                              </div>
+                              <div class="col-md-4 mb32">
+                                  <t t-call="website.company_description"/>
+                              </div>
+                          </div>
+                      </div>
+                      <div class="oe_structure"/>
+                    </div>
+                  </t>
+                </t>
+            </field>
+        </record>
+        
+        
+        
+        
+        
+        
+        
 
         <record id="website2_homepage" model="ir.ui.view">
             <field name="name">Homepage</field>
@@ -152,7 +219,7 @@ response = request.render("website.template_partner_comment", {
                                   <h2>Homepage 0.0.0.0</h2>
                                   <h3>Click to customize this text</h3>
                                   <p>
-                                    <a class="btn btn-success btn-large" href="/page/website.contactus">Contact us</a>
+                                    <a class="btn btn-success btn-large" href="/website.contactus">Contact us</a>
                                   </p>
                                 </div>
                                 <span class="carousel-img col-md-6 hidden-sm hidden-xs"> </span>
@@ -180,7 +247,7 @@ response = request.render("website.template_partner_comment", {
 
         <record id="website2_menu_homepage" model="website.menu">
             <field name="name">Home</field>
-            <field name="url">/page/homepage</field>
+            <field name="url">/homepage</field>
             <field name="parent_id" ref="website.website2_main_menu"/>
             <field name="sequence" type="int">10</field>
             <field name="website_id" ref="website2"/>
@@ -188,7 +255,7 @@ response = request.render("website.template_partner_comment", {
 
         <record id="website2_menu_contactus" model="website.menu">
             <field name="name">Contact us</field>
-            <field name="url">/page/website.contactus</field>
+            <field name="url">/website.contactus</field>
             <field name="parent_id" ref="website.website2_main_menu"/>
             <field name="sequence" type="int">60</field>
             <field name="website_id" ref="website2"/>

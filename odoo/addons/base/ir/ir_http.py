@@ -158,6 +158,34 @@ class IrHttp(models.AbstractModel):
             return response
 
     @classmethod
+    def _serve_page(cls):
+        print request.httprequest.path
+        req_page = request.httprequest.path
+        
+        if req_page.startswith('/website.'):
+            return request.redirect('/%s?%s' % (req_page[9:], request.httprequest.query_string), code=301)
+        domain = [('path', '=', req_page), ('website_id', '=', request.website.id)]
+        publish = request.env.user.has_group('website.group_website_publisher')
+        if not publish:
+            domain.append(('website_published', '=', True))
+        mypage = request.env['website.page'].with_context(active_test=False).sudo().search(domain, limit=1)
+        values = {
+            'path': req_page,
+            'deletable': True,  # used to add 'delete this page' in content menu
+            'main_object': mypage,
+        }
+        
+        if mypage:
+            #TODO: call render of mypage not ir.ui.view so main_object is mypage not ir.ui.view
+            return mypage.ir_ui_view_id.render(values)
+        else:
+            if request.website.is_publisher():
+                values.pop('deletable')
+                return request.render('website.page_404', values)
+            else:
+                return request.env['ir.http']._handle_exception(cls, 404)
+
+    @classmethod
     def _handle_exception(cls, exception):
         # If handle_exception returns something different than None, it will be used as a response
 
@@ -167,7 +195,10 @@ class IrHttp(models.AbstractModel):
             attach = cls._serve_attachment()
             if attach:
                 return attach
-
+            website_page = cls._serve_page()
+            if website_page:
+                return website_page
+        
         # Don't handle exception but use werkeug debugger if server in --dev mode
         if 'werkzeug' in tools.config['dev_mode']:
             raise

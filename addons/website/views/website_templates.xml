@@ -528,6 +528,12 @@
 
 <template id="default_page">
     <t t-call="website.layout">
+        <div class="container" style="position: relative;">
+            <t t-call="website.publish_management">
+                <t t-set="object" t-value="main_object"/>
+                <t t-set="publish_edit" t-value="False"/>
+            </t>
+        </div>
         <div id="wrap" class="oe_structure oe_empty"/>
     </t>
 </template>
@@ -802,12 +808,12 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
 </template>
 
 <!-- Actual pages -->
-<template id="homepage" name="Homepage" page="True" priority="29">
+<!--<template id="homepage" name="Homepage" page="True" priority="29">
     <t t-call="website.layout">
         <t t-set="pageName" t-value="'homepage'"/>
         <div id="wrap" class="oe_structure oe_empty"/>
     </t>
-</template>
+</template>-->
 
 <template id="company_description" name="Company Description">
     <address itemscope="itemscope" itemtype="http://schema.org/Organization">
@@ -826,7 +832,7 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
     </t>
 </template>
 
-<template id="contactus" name="Contact us" page="True">
+<!--<template id="contactus" name="Contact us" page="True">
     <t t-call="website.layout">
       <div id="wrap">
         <div class="oe_structure"/>
@@ -852,7 +858,7 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
         <div class="oe_structure"/>
       </div>
     </t>
-</template>
+</template>-->
 
 <template id="aboutus" name="About us" page="True">
     <t t-call="website.layout">

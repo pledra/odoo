@@ -71,9 +71,9 @@ class Website(Home):
         if main_menu:
             first_menu = main_menu.child_id and main_menu.child_id[0]
             if first_menu:
-                if first_menu.url and (not (first_menu.url.startswith(('/page/', '/?', '/#')) or (first_menu.url == '/'))):
+                if first_menu.url and (not (first_menu.url.startswith(('/', '/?', '/#')) or (first_menu.url == '/'))):
                     return request.redirect(first_menu.url)
-                if first_menu.url and first_menu.url.startswith('/page/'):
+                if first_menu.url and first_menu.url.startswith('/'):
                     return request.env['ir.http'].reroute(first_menu.url)
         return self.page(page)
 
@@ -106,15 +106,15 @@ class Website(Home):
         redirect.set_cookie('frontend_lang', lang)
         return redirect
 
-    @http.route('/page/<page:page>', type='http', auth="public", website=True, cache=300)
+    """@http.route('/page/<page:page>', type='http', auth="public", website=True, cache=300)
     def page(self, page, **opt):
         values = {
             'path': page,
             'deletable': True,  # used to add 'delete this page' in content menu
         }
-        # /page/website.XXX --> /page/XXX
+        # /website.XXX --> /XXX
         if page.startswith('website.'):
-            return request.redirect(b'/page/%s?%s' % (page[8:].encode('utf-8'), request.httprequest.query_string), code=301)
+            return request.redirect('/%s?%s' % (page[8:], request.httprequest.query_string), code=301)
         elif '.' not in page:
             page = 'website.%s' % page
 
@@ -122,13 +122,14 @@ class Website(Home):
             request.website.get_template(page)
         except ValueError as e:
             # page not found
+
             if request.website.is_publisher():
                 values.pop('deletable')
                 page = 'website.page_404'
             else:
                 return request.env['ir.http']._handle_exception(e, 404)
 
-        return request.render(page, values)
+        return request.render(page, values)"""
 
     @http.route(['/website/country_infos/<model("res.country"):country>'], type='json', auth="public", methods=['POST'], website=True)
     def country_infos(self, country, **kw):
@@ -236,12 +237,12 @@ class Website(Home):
         if add_menu:
             request.env['website.menu'].create({
                 'name': path,
-                'url': "/page/" + xml_id[8:],
+                'url': "/" + xml_id[8:],
                 'parent_id': request.website.menu_id.id,
                 'website_id': request.website.id,
             })
-        # Reverse action in order to allow shortcut for /page/<website_xml_id>
-        url = "/page/" + re.sub(r"^website\.", '', xml_id)
+        # Reverse action in order to allow shortcut for /<website_xml_id>
+        url = "/" + re.sub(r"^website\.", '', xml_id)
 
         if noredirect:
             return werkzeug.wrappers.Response(url, mimetype='text/plain')

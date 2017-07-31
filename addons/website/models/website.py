@@ -94,6 +94,7 @@ class Website(models.Model):
             :param template : potential xml_id of the page to create
             :param namespace : module part of the xml_id if none, the template module name is used
         """
+        #import pudb; pu.db
         if namespace:
             template_module = namespace
         else:
@@ -114,13 +115,24 @@ class Website(models.Model):
 
         # new page
         template_record = self.env.ref(template)
+        #rde
         key = '%s.%s' % (template_module, page_name)
-        page = template_record.copy({'website_id': website_id, 'key': key})
+        """page = template_record.copy({'website_id': website_id, 'key': key})
         page.with_context(lang=None).write({
             'arch': page.arch.replace(template, page_xmlid),
             'name': page_name,
             'page': ispage,
+        })"""
+        
+        self.env['website.page'].create({
+            'name': page_name,
+            'path': '/' + page_name,
+            'arch': template_record.arch.replace(template, page_xmlid),
+            'website_id': self._context.get('website_id'),
+            'type': 'qweb',
+            'key': key
         })
+        print "page_xmlid is " + page_xmlid + "\n | page_name is " + page_name + " \n | key is " + key
         return page_xmlid
 
     def key_to_view_id(self, view_id):
@@ -538,3 +550,19 @@ class WebsitePublishedMixin(models.AbstractModel):
             'url': self.website_url,
             'target': 'self',
         }
+
+
+#rde
+class Page(models.Model):
+    _name = "website.page"
+    _description = "Page"
+
+    _inherits = {'ir.ui.view': 'ir_ui_view_id'}
+    ir_ui_view_id = fields.Many2one('ir.ui.view', string='View', required=True, ondelete="cascade")
+    _inherit = ["website.published.mixin"]
+
+    path = fields.Char('Page Path')
+    #rde quid website_id from ir.ui.view
+    #website_id = fields.Many2one('website', 'Website')
+    
+    #TODO: implement render so main_object is website.page not ir.ui.view
