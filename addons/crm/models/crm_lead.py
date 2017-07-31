@@ -111,6 +111,7 @@ class Lead(models.Model):
     color = fields.Integer('Color Index', default=0)
     partner_address_name = fields.Char('Partner Contact Name', related='partner_id.name', readonly=True)
     partner_address_email = fields.Char('Partner Contact Email', related='partner_id.email', readonly=True)
+    partner_address_phone = fields.Char('Partner Contact Phone', related='partner_id.phone', readonly=True)
     company_currency = fields.Many2one(string='Currency', related='company_id.currency_id', readonly=True, relation="res.currency")
     user_email = fields.Char('User Email', related='user_id.email', readonly=True)
     user_login = fields.Char('User Login', related='user_id.login', readonly=True)
@@ -1211,6 +1212,20 @@ class Lead(models.Model):
                 if email and self.email_from and email.lower() == self.email_from.lower():
                     partner_info['full_name'] = '%s <%s>' % (self.partner_name or self.contact_name, email)
                     break
+            if partner_info.get('partner_id'):
+                self.env['res.partner'].browse(partner_info.get('partner_id')).write({
+                    'phone': self.phone,
+                    'mobile': self.mobile,
+                    'function': self.function,
+                    'title': self.title.id,
+                    'website': self.website,
+                    'street': self.street,
+                    'street2': self.street2,
+                    'city': self.city,
+                    'state_id': self.state_id.id,
+                    'country_id': self.country_id.id,
+                    'zip': self.zip
+                })
         return result
 
 

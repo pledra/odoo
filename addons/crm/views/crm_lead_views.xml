@@ -482,8 +482,10 @@
                                         'default_phone': phone, 'default_mobile': mobile,
                                         'default_email': email_from,
                                         'default_user_id': user_id, 'default_team_id': team_id, 'default_website': website}"/>
-                                <field name="email_from" string="Email" widget="email"/>
-                                <field name="phone" widget="phone"/>
+                                <field name="partner_address_email" invisible="1"/>
+                                <field name="partner_address_phone" invisible="1"/>
+                                <field name="email_from" attrs="{'readonly': [('partner_address_email', '!=', False)]}" string="Email" widget="email" force_save="1"/>
+                                <field name="phone" attrs="{'readonly': [('partner_address_phone', '!=', False)]}" widget="phone" force_save="1"/>
                             </group>
 
                             <group>
@@ -506,9 +508,9 @@
                         <page string="Internal Notes">
                             <field name="description"/>
                         </page>
-                        <page name="lead" string="Contact Information">
+                        <page name="lead" string="Followup">
                             <group>
-                                <group>
+                                <group string="Initial Contact Information">
                                     <field name="partner_name"/>
                                     <label for="street" string="Address"/>
                                     <div class="o_address_format">
@@ -522,7 +524,7 @@
                                     <field name="website" widget="url" placeholder="e.g. www.odoo.com"/>
                                 </group>
 
-                                <group>
+                                <group class="mt48">
                                     <label for="contact_name"/>
                                     <div class="o_row">
                                         <field name="contact_name"/>
