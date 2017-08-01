@@ -39,7 +39,9 @@ class ProductionLot(models.Model):
 
     @api.one
     def _product_qty(self):
-        self.product_qty = sum(self.quant_ids.mapped('quantity'))
+        self.product_qty = sum(self.quant_ids
+                               .filtered(lambda q: q.location_id.usage == 'internal')
+                               .mapped('quantity'))
 
     @api.multi
     def action_traceability(self):
