@@ -117,22 +117,16 @@ class Website(models.Model):
         template_record = self.env.ref(template)
         #rde
         key = '%s.%s' % (template_module, page_name)
-        """page = template_record.copy({'website_id': website_id, 'key': key})
-        page.with_context(lang=None).write({
-            'arch': page.arch.replace(template, page_xmlid),
-            'name': page_name,
-            'page': ispage,
-        })"""
         
         self.env['website.page'].create({
-            'name': page_name,
+            'name': name,
             'path': '/' + page_name,
             'arch': template_record.arch.replace(template, page_xmlid),
             'website_id': self._context.get('website_id'),
             'type': 'qweb',
-            'key': key
+            'key': key,
+            'page': True
         })
-        print "page_xmlid is " + page_xmlid + "\n | page_name is " + page_name + " \n | key is " + key
         return page_xmlid
 
     def key_to_view_id(self, view_id):
@@ -148,9 +142,13 @@ class Website(models.Model):
         """ Delete a page, given its identifier
             :param view_id : ir.ui.view identifier
         """
-        view = self.key_to_view_id(view_id)
+        """view = self.key_to_view_id(view_id)
         if view:
-            view.unlink()
+            view.unlink()"""
+        #rde
+        page = self.env['website.page'].browse(view_id)
+        if page:
+            page.unlink()
 
     @api.model
     def rename_page(self, view_id, new_name):
@@ -158,11 +156,16 @@ class Website(models.Model):
             :param view_id : id of the view to rename
             :param new_name : name to use
         """
-        view = self.key_to_view_id(view_id)
+        page = self.env['website.page'].browse(view_id)
+        view = self.key_to_view_id(int(page.ir_ui_view_id))
+        
         if view:
             # slugify the new name and prefix by module if
             # not already done by end user
             new_name = slugify(new_name, max_length=50)
+            page.write({
+                'path': '/' + new_name
+            })
             prefix = view.key.split('.')[0]
             if not new_name.startswith(prefix):
                 new_name = "%s.%s" % (prefix, new_name)
@@ -171,6 +174,7 @@ class Website(models.Model):
                 'key': new_name,
                 'arch_db': view.arch_db.replace(view.key, new_name, 1)
             })
+            print new_name
             return new_name
         return False
 
@@ -186,37 +190,40 @@ class Website(models.Model):
         if not view_id:
             return dependencies
 
-        view = self.env['ir.ui.view'].browse(view_id)
-        website_id = self._context.get('website_id')
-        name = view.key.replace("website.", "")
-        fullname = "website.%s" % name
+        page = self.env['website.page'].browse(view_id)
 
-        if view.page:
+        website_id = self._context.get('website_id')
+
+        path = page.path.replace("website.", "")
+        fullpath = "/website.%s" % path[1:]
+
+        if page.page:
             # search for page with link
             page_search_dom = [
                 '|', ('website_id', '=', website_id), ('website_id', '=', False),
-                '|', ('arch_db', 'ilike', '/page/%s' % name), ('arch_db', 'ilike', '/page/%s' % fullname)
+                '|', ('arch_db', 'ilike', path), ('arch_db', 'ilike', fullpath)
             ]
 
             page_key = _('Page')
-            pages = self.env['ir.ui.view'].search(page_search_dom)
-            for page in pages:
+            views = self.env['ir.ui.view'].search(page_search_dom)
+            for view in views:
                 dependencies.setdefault(page_key, [])
-                if page.page:
+                if view.page:
+                    related_website_page = self.env['website.page'].search([('ir_ui_view_id', '=', view.id)])
                     dependencies[page_key].append({
-                        'text': _('Page <b>%s</b> contains a link to this page') % page.key,
-                        'link': '/page/%s' % page.key
+                        'text': _('Page <b>%s</b> contains a link to this page') % view.key,
+                        'link': related_website_page.path
                     })
                 else:
                     dependencies[page_key].append({
-                        'text': _('Template <b>%s (id:%s)</b> contains a link to this page') % (page.key, page.id),
+                        'text': _('Template <b>%s (id:%s)</b> contains a link to this page') % (view.key, view.id),
                         'link': '#'
                     })
 
             # search for menu with link
             menu_search_dom = [
                 '|', ('website_id', '=', website_id), ('website_id', '=', False),
-                '|', ('url', 'ilike', '/page/%s' % name), ('url', 'ilike', '/page/%s' % fullname)
+                '|', ('url', 'ilike', path), ('url', 'ilike', fullpath)
             ]
 
             menu_key = _('Menu')
@@ -226,13 +233,13 @@ class Website(models.Model):
                     'text': _('This page is in the menu <b>%s</b>') % menu.name,
                     'link': False
                 })
-
+                
         return dependencies
 
     @api.model
     def page_exists(self, name, module='website'):
         try:
-            name = (name or "").replace("/page/website.", "").replace("/page/", "")
+            name = (name or "").replace("/website.", "").replace("/", "")
             if not name:
                 return False
             return self.env.ref('%s.%s' % module, name)
@@ -555,14 +562,15 @@ class WebsitePublishedMixin(models.AbstractModel):
 #rde
 class Page(models.Model):
     _name = "website.page"
+    _inherits = {'ir.ui.view': 'ir_ui_view_id'}
+    _inherit = ["website.published.mixin"]
     _description = "Page"
 
-    _inherits = {'ir.ui.view': 'ir_ui_view_id'}
     ir_ui_view_id = fields.Many2one('ir.ui.view', string='View', required=True, ondelete="cascade")
-    _inherit = ["website.published.mixin"]
-
     path = fields.Char('Page Path')
+    
     #rde quid website_id from ir.ui.view
-    #website_id = fields.Many2one('website', 'Website')
+    website_id = fields.Many2one('website', 'Website')
+    #website_ids = fields.Many2many('website', 'Websites', default=request.website.id)
     
     #TODO: implement render so main_object is website.page not ir.ui.view

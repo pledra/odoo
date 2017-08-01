@@ -66,16 +66,44 @@ class Website(Home):
 
     @http.route('/', type='http', auth="public", website=True)
     def index(self, **kw):
-        page = 'homepage'
-        main_menu = request.env.ref('website.main_menu', raise_if_not_found=False)
-        if main_menu:
-            first_menu = main_menu.child_id and main_menu.child_id[0]
-            if first_menu:
-                if first_menu.url and (not (first_menu.url.startswith(('/', '/?', '/#')) or (first_menu.url == '/'))):
-                    return request.redirect(first_menu.url)
-                if first_menu.url and first_menu.url.startswith('/'):
-                    return request.env['ir.http'].reroute(first_menu.url)
-        return self.page(page)
+        """
+        # possibles cases :
+        # No menu & admin & '/' exist in db                                 => return /
+        # No menu & admin & '/' does not exist in db                        => return editable 404
+        # No menu & not admin & '/' exist in db                             => return /
+        # No menu & not admin & '/' doest not exist in db                   => return 404
+
+        # First menu is '/' & admin & '/' exist in db                       => return /
+        # First menu is '/' & admin & '/' does not exist in db              => return editable 404
+        # First menu is '/' & not admin & '/' exist in db                   => return /
+        # First menu is '/' & not admin & '/' does not exist in db          => return 404
+
+        # First menu is not '/' & admin & '/' exist in db                   => return /
+        # First menu is not '/' & admin & '/' does not exist in db          => return editable 404
+        # First menu is not '/' & not admin & '/' exist in db               => return /
+        # First menu is not '/' & not admin & '/' does not exist in db      => return first_menu url (not /)
+        """
+        # try will return page or editable 404 if user has right
+        # except will return 404 or first_menu url if not "/"
+        try:
+            website_page = request.env['ir.http']._serve_page()
+            if website_page:
+                return website_page
+        except:
+            main_menu = request.env.ref('website.main_menu', raise_if_not_found=False)
+            if main_menu:
+                first_menu = main_menu.child_id and main_menu.child_id[0]
+                if first_menu:
+                    if first_menu.url and (not (first_menu.url.startswith(('/', '/?', '/#')))):
+                        return request.redirect(first_menu.url)
+                    elif first_menu.url == '/':
+                        # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page
+                        return request.env['ir.http']._serve_page()
+                    else:
+                        return request.env['ir.http'].reroute(first_menu.url)
+                else:
+                    # if no menu & "/" does not exists (we are in except) -> trigger 404 by rendering not existing page
+                    return request.env['ir.http']._serve_page()
 
     #------------------------------------------------------
     # Login - overwrite of the web login so that regular users are redirected to the backend
@@ -234,16 +262,16 @@ class Website(Home):
             xml_id = request.env['website'].new_page(path, template=template)
         else:
             xml_id = request.env['website'].new_page(path)
+        
+        url = "/" + xml_id[8:]
         if add_menu:
             request.env['website.menu'].create({
                 'name': path,
-                'url': "/" + xml_id[8:],
+                'url': url,
                 'parent_id': request.website.menu_id.id,
                 'website_id': request.website.id,
             })
-        # Reverse action in order to allow shortcut for /<website_xml_id>
-        url = "/" + re.sub(r"^website\.", '', xml_id)
-
+        
         if noredirect:
             return werkzeug.wrappers.Response(url, mimetype='text/plain')
         return werkzeug.utils.redirect(url + "?enable_editor=1")

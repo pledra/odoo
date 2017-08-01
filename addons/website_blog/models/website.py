@@ -11,12 +11,12 @@ class Website(models.Model):
     def page_search_dependencies(self, view_id):
         dep = super(Website, self).page_search_dependencies(view_id)
 
-        view = self.env['ir.ui.view'].browse(view_id)
-        name = view.key.replace("website.", "")
-        fullname = "website.%s" % name
+        page = self.env['website.page'].browse(view_id)
+        path = page.path.replace("website.", "")
+        fullpath = "/website.%s" % path[1:]
 
         dom = [
-            '|', ('content', 'ilike', '/page/%s' % name), ('content', 'ilike', '/page/%s' % fullname)
+            '|', ('content', 'ilike', path), ('content', 'ilike', fullpath)
         ]
         posts = self.env['blog.post'].search(dom)
         if posts:

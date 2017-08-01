@@ -68,15 +68,15 @@
 <!-- Layout -->
 <template id="submenu" name="Submenu">
     <li t-if="not submenu.child_id" t-att-class="
-        'active' if submenu.url and submenu.url != '/' and unslug_url(request.httprequest.path) == unslug_url(submenu.url.replace('/page/website.', '/page/')) else None
+        'active' if submenu.url and submenu.url != '/' and unslug_url(request.httprequest.path) == unslug_url(submenu.url.replace('/website.', '/')) else None
         ">
         <a t-att-href="(website.menu_id.child_id[0] == submenu) and '/' or submenu.url" t-ignore="true" t-att-target="'_blank' if submenu.new_window else None">
             <span t-field="submenu.name"/>
         </a>
     </li>
     <li t-if="submenu.child_id" t-attf-class="dropdown #{
-        (submenu.url and submenu.url != '/' and any([request.httprequest.path == child.url.replace('/page/website.', '/page/') for child in submenu.child_id if child.url]) or
-         (submenu.url and request.httprequest.path == submenu.url.replace('/page/website.', '/page/'))) and 'active'
+        (submenu.url and submenu.url != '/' and any([request.httprequest.path == child.url.replace('/website.', '/') for child in submenu.child_id if child.url]) or
+         (submenu.url and request.httprequest.path == submenu.url.replace('/website.', '/'))) and 'active'
         }">
         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
             <span t-field="submenu.name"/> <span class="caret" t-ignore="true"></span>
@@ -299,7 +299,7 @@
                 <div class="col-md-4  col-lg-3" id="info">
                     <h4>Connect with us</h4>
                     <ul class="list-unstyled">
-                        <li><a href="/page/website.contactus">Contact us</a></li>
+                        <li><a href="/website.contactus">Contact us</a></li>
                     </ul>
                     <ul class="list-unstyled">
                         <li t-ignore="true"><i class="fa fa-phone"></i> <span t-field="res_company.phone"></span></li>
@@ -317,7 +317,7 @@
                 <div class="col-md-4 col-lg-5 col-lg-offset-1">
                     <h4>
                         <span t-field="res_company.name" />
-                        <small> - <a href="/page/website.aboutus">About us</a></small>
+                        <small> - <a href="/website.aboutus">About us</a></small>
                     </h4>
                     <div>
                         <p>
@@ -634,7 +634,7 @@
                 <p>Maybe you were looking for one of these popular pages ?</p>
                 <ul>
                     <li><a href="/">Homepage</a></li>
-                    <li><a href="/page/website.contactus/">Contact Us</a></li>
+                    <li><a href="/website.contactus/">Contact Us</a></li>
                 </ul>
             </div>
             <t t-if="editable or request.debug">
@@ -659,7 +659,7 @@
                     <p>Maybe you were looking for one of these popular pages ?</p>
                     <ul>
                         <li><a href="/">Homepage</a></li>
-                        <li><a href="/page/website.contactus/">Contact Us</a></li>
+                        <li><a href="/website.contactus/">Contact Us</a></li>
                     </ul>
                 </div>
             </div>
@@ -858,7 +858,7 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
         <div class="oe_structure"/>
       </div>
     </t>
-</template>-->
+</template>
 
 <template id="aboutus" name="About us" page="True">
     <t t-call="website.layout">
@@ -901,7 +901,7 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
             <div class="oe_structure"></div>
         </div>
     </t>
-</template>
+</template>-->
 
 <template id="website_search_box" name="Website Searchbox">
     <div class="input-group">

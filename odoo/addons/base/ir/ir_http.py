@@ -159,12 +159,12 @@ class IrHttp(models.AbstractModel):
 
     @classmethod
     def _serve_page(cls):
-        print request.httprequest.path
         req_page = request.httprequest.path
         
         if req_page.startswith('/website.'):
             return request.redirect('/%s?%s' % (req_page[9:], request.httprequest.query_string), code=301)
-        domain = [('path', '=', req_page), ('website_id', '=', request.website.id)]
+        
+        domain = [('path', '=', req_page), '|', ('website_id', '=', request.website.id), ('website_id', '=', False)]
         publish = request.env.user.has_group('website.group_website_publisher')
         if not publish:
             domain.append(('website_published', '=', True))
@@ -176,14 +176,13 @@ class IrHttp(models.AbstractModel):
         }
         
         if mypage:
-            #TODO: call render of mypage not ir.ui.view so main_object is mypage not ir.ui.view
             return mypage.ir_ui_view_id.render(values)
         else:
             if request.website.is_publisher():
                 values.pop('deletable')
                 return request.render('website.page_404', values)
             else:
-                return request.env['ir.http']._handle_exception(cls, 404)
+                raise werkzeug.exceptions.NotFound
 
     @classmethod
     def _handle_exception(cls, exception):
@@ -195,10 +194,12 @@ class IrHttp(models.AbstractModel):
             attach = cls._serve_attachment()
             if attach:
                 return attach
-            website_page = cls._serve_page()
-            if website_page:
-                return website_page
-        
+            # Avoid error on /web/database/manager
+            if hasattr(request, 'website'):
+                website_page = cls._serve_page()
+                if website_page:
+                    return website_page
+
         # Don't handle exception but use werkeug debugger if server in --dev mode
         if 'werkzeug' in tools.config['dev_mode']:
             raise
@@ -209,13 +210,15 @@ class IrHttp(models.AbstractModel):
 
     @classmethod
     def _dispatch(cls):
+        #print request.httprequest.path
+        #import pudb;pu.db
         # locate the controller method
         try:
             rule, arguments = cls._find_handler(return_rule=True)
             func = rule.endpoint
         except werkzeug.exceptions.NotFound as e:
             return cls._handle_exception(e)
-
+        
         # check authentication level
         try:
             auth_method = cls._authenticate(func.routing["auth"])
@@ -224,6 +227,7 @@ class IrHttp(models.AbstractModel):
 
         processing = cls._postprocess_args(arguments, rule)
         if processing:
+            #rde 403 forbidden (blog post unpublished for instance)
             return processing
 
         # set and execute handler
