@@ -131,6 +131,7 @@ class MaintenanceEquipment(models.Model):
     model = fields.Char('Model')
     serial_no = fields.Char('Serial Number', copy=False)
     assign_date = fields.Date('Assigned Date', track_visibility='onchange')
+    effective_date = fields.Date('Effective Date', default=fields.Date.context_today, help="Date at which the equipment becomes effective. This date will be used to compute the Mean Time Between Failure")
     cost = fields.Float('Cost')
     note = fields.Text('Note')
     warranty = fields.Date('Warranty')
@@ -144,7 +145,7 @@ class MaintenanceEquipment(models.Model):
     maintenance_team_id = fields.Many2one('maintenance.team', string='Maintenance Team')
     maintenance_duration = fields.Float(help="Maintenance Duration in hours.")
 
-    @api.depends('period', 'maintenance_ids.request_date', 'maintenance_ids.close_date')
+    @api.depends('effective_date', 'period', 'maintenance_ids.request_date', 'maintenance_ids.close_date')
     def _compute_next_maintenance(self):
 
         date_now = fields.Date.context_today(self)
@@ -183,9 +184,10 @@ class MaintenanceEquipment(models.Model):
                 if next_date < fields.Date.from_string(date_now):
                     next_date = date_now
             else:
-                next_date = fields.Date.to_string(fields.Date.from_string(date_now) + timedelta(days=equipment.period))
+                next_date = fields.Date.to_string(fields.Date.from_string(self.effective_date) + timedelta(days=equipment.period))
 
             equipment.next_action_date = next_date
+
     @api.one
     @api.depends('maintenance_ids.stage_id.done')
     def _compute_maintenance_count(self):
