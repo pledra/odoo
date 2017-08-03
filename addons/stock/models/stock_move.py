@@ -822,10 +822,15 @@ class StockMove(models.Model):
 
             prout_move_qty = {}
             for link in operation.linked_move_operation_ids:
-                prout_move_qty[link.move_id] = prout_move_qty.get(link.move_id, 0.0) + link.qty
+                if link.move_id:  # useless probably
+                    prout_move_qty[link.move_id] = prout_move_qty.get(link.move_id, 0.0) + link.qty
 
             # Process every move only once for every pack operation
+            i = 0
+            total = len(prout_move_qty.keys())
             for move in prout_move_qty.keys():
+                i += 1
+                print 'action_done on move ' + i + '/' + total
                 # TDE FIXME: do in batch ?
                 move.check_tracking(operation)
 
@@ -834,6 +839,7 @@ class StockMove(models.Model):
                     raise UserError(_("The roundings of your unit of measure %s on the move vs. %s on the product don't allow to do these operations or you are not transferring the picking at once. ") % (move.product_uom.name, move.product_id.uom_id.name))
 
                 if not operation.pack_lot_ids:
+                    print 'if not operation.pack_lot_ids'
                     preferred_domain_list = [[('reservation_id', '=', move.id)], [('reservation_id', '=', False)], ['&', ('reservation_id', '!=', move.id), ('reservation_id', '!=', False)]]
                     quants = Quant.quants_get_preferred_domain(
                         prout_move_qty[move], move, ops=operation, domain=[('qty', '>', 0)],
@@ -842,6 +848,7 @@ class StockMove(models.Model):
                                       lot_id=False, owner_id=operation.owner_id.id, src_package_id=operation.package_id.id,
                                       dest_package_id=quant_dest_package_id, entire_pack=entire_pack)
                 else:
+                    print 'if operation.pack_lot_ids'
                     # Check what you can do with reserved quants already
                     qty_on_link = prout_move_qty[move]
                     rounding = operation.product_id.uom_id.rounding
@@ -864,6 +871,8 @@ class StockMove(models.Model):
 
                 remaining_move_qty[move.id] -= prout_move_qty[move]
 
+
+            print "action_done finished"
             # Handle lots separately
             if operation.pack_lot_ids:
                 # TDE FIXME: fix call to move_quants_by_lot to ease understanding
