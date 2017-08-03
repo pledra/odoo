@@ -3,7 +3,7 @@
 
 from operator import itemgetter
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models, _, tools
 from odoo.exceptions import UserError
 
 TYPE2FIELD = {
@@ -138,6 +138,7 @@ class Property(models.Model):
         return [('fields_id', '=', res[0]), ('company_id', 'in', [company_id, False])]
 
     @api.model
+    @tools.ormcache_context('name', 'model', 'ids', keys=('force_company',))
     def get_multi(self, name, model, ids):
         """ Read the property field `name` for the records of model `model` with
             the given `ids`, and return a dictionary mapping `ids` to their

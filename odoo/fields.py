@@ -617,7 +617,7 @@ class Field(object):
 
     def _compute_company_dependent(self, records):
         Property = records.env['ir.property']
-        values = Property.get_multi(self.name, self.model_name, records.ids)
+        values = Property.get_multi(self.name, self.model_name, frozenset(records.ids))
         for record in records:
             record[self.name] = values.get(record.id)
 
