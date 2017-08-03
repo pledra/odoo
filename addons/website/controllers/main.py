@@ -134,31 +134,6 @@ class Website(Home):
         redirect.set_cookie('frontend_lang', lang)
         return redirect
 
-    """@http.route('/page/<page:page>', type='http', auth="public", website=True, cache=300)
-    def page(self, page, **opt):
-        values = {
-            'path': page,
-            'deletable': True,  # used to add 'delete this page' in content menu
-        }
-        # /website.XXX --> /XXX
-        if page.startswith('website.'):
-            return request.redirect('/%s?%s' % (page[8:], request.httprequest.query_string), code=301)
-        elif '.' not in page:
-            page = 'website.%s' % page
-
-        try:
-            request.website.get_template(page)
-        except ValueError as e:
-            # page not found
-
-            if request.website.is_publisher():
-                values.pop('deletable')
-                page = 'website.page_404'
-            else:
-                return request.env['ir.http']._handle_exception(e, 404)
-
-        return request.render(page, values)"""
-
     @http.route(['/website/country_infos/<model("res.country"):country>'], type='json', auth="public", methods=['POST'], website=True)
     def country_infos(self, country, **kw):
         fields = country.get_address_fields()
@@ -263,7 +238,7 @@ class Website(Home):
         else:
             xml_id = request.env['website'].new_page(path)
         
-        url = "/" + xml_id[8:]
+        url = "/" + xml_id # "/" + xml_id[8:]
         if add_menu:
             request.env['website.menu'].create({
                 'name': path,
@@ -325,6 +300,7 @@ class Website(Home):
         if 'website_published' in Model._fields:
             values['website_published'] = not record.website_published
         record.write(values)
+        raise
         return bool(record.website_published)
 
     @http.route(['/website/seo_suggest'], type='json', auth="user", website=True)

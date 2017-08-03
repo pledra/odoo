@@ -160,17 +160,18 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _serve_page(cls):
         req_page = request.httprequest.path
-        
+        #import pudb;pu.db
         if req_page.startswith('/website.'):
             return request.redirect('/%s?%s' % (req_page[9:], request.httprequest.query_string), code=301)
         
-        domain = [('path', '=', req_page), '|', ('website_id', '=', request.website.id), ('website_id', '=', False)]
+        domain = [('path', '=', req_page), '|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
         publish = request.env.user.has_group('website.group_website_publisher')
         if not publish:
             domain.append(('website_published', '=', True))
         mypage = request.env['website.page'].with_context(active_test=False).sudo().search(domain, limit=1)
+        
         values = {
-            'path': req_page,
+            'path': req_page[1:],
             'deletable': True,  # used to add 'delete this page' in content menu
             'main_object': mypage,
         }

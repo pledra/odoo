@@ -58,6 +58,31 @@ var TopBarContent = Widget.extend({
             });
         });
     },
+    manage_pages: function (action_before_reload) {
+        var context = base.get_context();
+        var def = $.Deferred();
+        def.resolve(null);
+        
+        return def.then(function (root_id) {
+            return ajax.jsonRpc('/web/dataset/call_kw', 'call', {
+                model: 'website.page',
+                method: 'get_pages',
+                args: [context.website_id],
+                kwargs: {
+                    context: context
+                },
+            }).then(function (pages) {
+                var dialog = new EditMenuPagesDialog(this, {}, pages).open();
+                //TODO: not sure ?
+                /*dialog.on("save", null, function () {
+                    $.when(action_before_reload && action_before_reload()).then(function () {
+                        editor.reload();
+                    });
+                });*/
+                return dialog;
+            });
+        });
+    },
     new_page: function () {
         website.prompt({
             id: "editor_new_page",
@@ -188,6 +213,55 @@ var SelectEditMenuDialog = widget.Dialog.extend({
     save: function () {
         this.final_data = parseInt(this.$el.find("select").val() || null);
         this._super.apply(this, arguments);
+    }
+});
+
+var EditMenuPagesDialog = widget.Dialog.extend({
+    template: 'website.contentMenu.pagesManagement.dialog.edit',
+    events: _.extend({}, widget.Dialog.prototype.events, {
+        'click a.js_goto_page': 'goto_page',
+        'click button.js_publish_page': 'publish_page',
+        'click button.js_edit_page': 'edit_page',
+        'click button.js_delete_page': 'delete_page',
+        'click button.js_rename_page': 'rename_page',
+        'click a.js_create_page': 'create_page',
+    }),
+    init: function (parent, options, pages) {
+        this.pages = pages;
+        this._super(parent, _.extend({}, {
+            title: _t("Pages Management"),
+            size: 'medium',
+        }, options || {}));
+    },
+    delete_page: function(ev){
+        var topBarContent = new TopBarContent();
+        topBarContent.delete_page();
+    },
+    rename_page: function(ev){
+        var topBarContent = new TopBarContent();
+        topBarContent.rename_page();
+    },
+    publish_page: function (ev){
+        var page_id = $(ev.currentTarget).closest('[data-page-id]').data('page-id');
+        ajax.jsonRpc('/website/publish', 'call', {'id': +page_id, 'object': 'website.page'})
+            .then(function (result) {
+                $(ev.currentTarget).closest('.js_publish_page').toggleClass("fa-eye-slash fa-eye").toggleClass("btn-primary btn-danger");
+            }).fail(function (err, data) {
+                website.error(data.data ? data.data.arguments[0] : "", data.data ? data.data.arguments[1] : data.statusText, '/web#return_label=Website&model=website.page&id='+page_id);
+            });
+    },
+    edit_page: function (ev) {
+        var page_path = $(ev.currentTarget).closest('[data-page-path]').data('page-path');
+        document.location = page_path + '?enable_editor=1';
+    },
+    goto_page: function (ev) {
+        var self = this;
+        var page_path = $(ev.currentTarget).closest('[data-page-path]').data('page-path');
+        document.location = page_path;
+    },
+    create_page: function (ev) {
+        var topBarContent = new TopBarContent();
+        topBarContent.new_page();
     }
 });
 

@@ -94,40 +94,33 @@ class Website(models.Model):
             :param template : potential xml_id of the page to create
             :param namespace : module part of the xml_id if none, the template module name is used
         """
-        #import pudb; pu.db
-        if namespace:
-            template_module = namespace
-        else:
-            template_module, dummy = template.split('.')
-        website_id = self._context.get('website_id')
-
         # completely arbitrary max_length
         page_name = slugify(name, max_length=50)
-        page_xmlid = "%s.%s" % (template_module, page_name)
 
-        # find a free xmlid
-        inc = 0
-        domain_static = [('website_id', '=', False), ('website_id', '=', website_id)]
-        while self.env['ir.ui.view'].with_context(active_test=False).sudo().search([('key', '=', page_xmlid), '|'] + domain_static):
-            inc += 1
-            page_xmlid = "%s.%s" % (template_module, page_name + ("-%s" % inc if inc else ""))
-        page_name += (inc and "-%s" % inc or "")
+        page_name = self.get_unique_path(page_name)
 
         # new page
         template_record = self.env.ref(template)
-        #rde
-        key = '%s.%s' % (template_module, page_name)
-        
+
         self.env['website.page'].create({
             'name': name,
             'path': '/' + page_name,
-            'arch': template_record.arch.replace(template, page_xmlid),
-            'website_id': self._context.get('website_id'),
+            'arch': template_record.arch.replace(template, page_name),
+            'website_ids': [(6, None, [self.get_current_website().id])],
             'type': 'qweb',
-            'key': key,
             'page': True
         })
-        return page_xmlid
+        return page_name
+        
+    def get_unique_path(self, page_name):
+        website_id = self.get_current_website().id
+        inc = 0
+        domain_static = [('website_ids', '=', False), ('website_ids', 'in', website_id)]
+        page_temp = page_name
+        while self.env['website.page'].with_context(active_test=False).sudo().search([('path', '=', '/' + page_temp), '|'] + domain_static):
+            inc += 1
+            page_temp = page_name + (inc and "-%s" % inc or "")
+        return page_temp
 
     def key_to_view_id(self, view_id):
         return self.env['ir.ui.view'].search([
@@ -140,12 +133,8 @@ class Website(models.Model):
     @api.model
     def delete_page(self, view_id):
         """ Delete a page, given its identifier
-            :param view_id : ir.ui.view identifier
+            :param view_id : website.page identifier
         """
-        """view = self.key_to_view_id(view_id)
-        if view:
-            view.unlink()"""
-        #rde
         page = self.env['website.page'].browse(view_id)
         if page:
             page.unlink()
@@ -157,25 +146,16 @@ class Website(models.Model):
             :param new_name : name to use
         """
         page = self.env['website.page'].browse(view_id)
-        view = self.key_to_view_id(int(page.ir_ui_view_id))
-        
-        if view:
-            # slugify the new name and prefix by module if
-            # not already done by end user
-            new_name = slugify(new_name, max_length=50)
+        if page:
+            # slugify the new name
+            page_name = slugify(new_name, max_length=50)
+            page_name = self.get_unique_path(page_name)
             page.write({
-                'path': '/' + new_name
+                'path': '/' + page_name,
+                'name': new_name,
+                'arch_db': page.arch_db.replace(slugify(page.name), page_name, 1)
             })
-            prefix = view.key.split('.')[0]
-            if not new_name.startswith(prefix):
-                new_name = "%s.%s" % (prefix, new_name)
-
-            view.write({
-                'key': new_name,
-                'arch_db': view.arch_db.replace(view.key, new_name, 1)
-            })
-            print new_name
-            return new_name
+            return page_name
         return False
 
     @api.model
@@ -198,7 +178,7 @@ class Website(models.Model):
         fullpath = "/website.%s" % path[1:]
 
         if page.page:
-            # search for page with link
+            # search for ir_ui_view (not from a website_page) with link
             page_search_dom = [
                 '|', ('website_id', '=', website_id), ('website_id', '=', False),
                 '|', ('arch_db', 'ilike', path), ('arch_db', 'ilike', fullpath)
@@ -208,17 +188,24 @@ class Website(models.Model):
             views = self.env['ir.ui.view'].search(page_search_dom)
             for view in views:
                 dependencies.setdefault(page_key, [])
-                if view.page:
-                    related_website_page = self.env['website.page'].search([('ir_ui_view_id', '=', view.id)])
-                    dependencies[page_key].append({
-                        'text': _('Page <b>%s</b> contains a link to this page') % view.key,
-                        'link': related_website_page.path
-                    })
-                else:
+                if not view.page:
                     dependencies[page_key].append({
                         'text': _('Template <b>%s (id:%s)</b> contains a link to this page') % (view.key, view.id),
                         'link': '#'
                     })
+
+            # search for website_page with link
+            website_page_search_dom = [
+                '|', ('website_ids', 'in', website_id), ('website_ids', '=', False),
+                '|', ('arch_db', 'ilike', path), ('arch_db', 'ilike', fullpath)
+            ]
+            pages = self.env['website.page'].search(website_page_search_dom)
+            for page in pages:
+                dependencies.setdefault(page_key, [])
+                dependencies[page_key].append({
+                    'text': _('Page <b>%s</b> contains a link to this page') % page.path,
+                    'link': page.path
+                })
 
             # search for menu with link
             menu_search_dom = [
@@ -385,7 +372,6 @@ class Website(models.Model):
         for rule in router.iter_rules():
             if not self.rule_is_enumerable(rule):
                 continue
-
             converters = rule._converters or {}
             if query_string and not converters and (query_string not in rule.build([{}], append_unknown=False)[1]):
                 continue
@@ -418,6 +404,21 @@ class Website(models.Model):
                 url_set.add(url)
 
                 yield page
+
+        Page = request.env['website.page']
+        # '/' already has a http.route & is in the routing_map so it will already have an entry in the xml
+        domain = [('page', '=', True), ('path', '!=', '/'), ('website_published', '=', True)]
+        website = request.env['website'].get_current_website()
+        domain += ['|', ('website_ids', 'in', website.id), ('website_ids', '=', False)]
+
+        pages = Page.search_read(domain, fields=['path', 'priority', 'write_date'], order='name')
+        for page in pages:
+            record = {'loc': page['path']}
+            if page['priority'] != 16:
+                record['priority'] = min(round(page['priority'] / 32.0, 1), 1)
+            if page['write_date']:
+                record['lastmod'] = page['write_date'][:10]
+            yield record
 
     @api.multi
     def search_pages(self, needle=None, limit=None):
@@ -568,9 +569,24 @@ class Page(models.Model):
 
     ir_ui_view_id = fields.Many2one('ir.ui.view', string='View', required=True, ondelete="cascade")
     path = fields.Char('Page Path')
-    
-    #rde quid website_id from ir.ui.view
-    website_id = fields.Many2one('website', 'Website')
-    #website_ids = fields.Many2many('website', 'Websites', default=request.website.id)
-    
-    #TODO: implement render so main_object is website.page not ir.ui.view
+
+    #website_id = fields.Many2one('website', 'Website')
+    website_ids = fields.Many2many('website', string='Websites')
+
+    @api.multi
+    def unlink(self):
+        #will it be possible to have a website record pointing to an ir_ui_view from odoo (not a website one) or it does not make sense ?
+        #if yes, we somehow have to check that we can delete the ir_ui_view record (page true ?)
+        for page in self:
+            pages_linked_to_iruiview = self.env['website.page'].search(
+                [('ir_ui_view_id', '=', self.ir_ui_view_id.id), ('id', '!=', self.id)]
+            )
+            if len(pages_linked_to_iruiview) == 0:
+                self.env['ir.ui.view'].search([('id', '=', self.ir_ui_view_id.id)]).unlink()
+        return super(Page, self).unlink()
+
+    @api.model
+    def get_pages(self, website_id):
+        domain = ['|', ('website_ids', 'in', website_id), ('website_ids', '=', False)]
+        pages = self.search_read(domain, fields=['path', 'website_published', 'name'], order='path')
+        return pages

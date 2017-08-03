@@ -6,7 +6,7 @@ from odoo.http import request
 
 class WebsiteHr(http.Controller):
 
-    @http.route(['/page/website.aboutus', '/page/aboutus'], type='http', auth="public", website=True)
+    @http.route(['/website.aboutus', '/aboutus'], type='http', auth="public", website=True)
     def blog(self, **post):
         employees_domain = []
         if not request.env['res.users'].has_group('website.group_website_publisher'):

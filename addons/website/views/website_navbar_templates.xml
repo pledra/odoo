@@ -36,6 +36,7 @@
                             <li>
                                 <a data-action="edit_menu" href="#" title="Edit Top Menu">Edit Menu</a>
                             </li>
+                            <li><a data-action="manage_pages" href="#" title="Manage your website's page">Pages Management</a></li>
                             <li t-if="deletable" role="separator" class="divider"></li>
                             <li t-if="deletable"><a href="#" data-action="rename_page">Rename Page</a></li>
                             <li t-if="deletable"><a href="#" data-action="delete_page">Delete Page</a></li>
@@ -56,6 +57,13 @@
                         <a class="dropdown-toggle waves" data-toggle="dropdown" href="#">Promote</a>
                         <ul class="dropdown-menu oe_promote_menu" role="menu">
                             <li><a data-action="promote-current-page" href="#" title="Promote page on the web">Optimize SEO</a></li>
+                        </ul>
+                    </li>
+                    <!-- Page management -->
+                    <li class="dropdown">
+                        <a class="dropdown-toggle waves" data-toggle="dropdown" href="#" id="pages-menu-button">Pages</a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a data-action="manage_pages" href="#" title="Manage your website's page">Pages Management</a></li>
                         </ul>
                     </li>
                 </ul>
