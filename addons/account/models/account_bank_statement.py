@@ -83,6 +83,12 @@ class AccountBankStatement(models.Model):
         for bank_stmt in self:
             bank_stmt.is_difference_zero = float_is_zero(bank_stmt.difference, precision_digits=bank_stmt.currency_id.decimal_places)
 
+    @api.depends('date', 'balance_start', 'balance_end_real')
+    def _compute_is_valid_balance_start(self):
+        for bank_stmt in self:
+            prev_bank_stmt = self.search([('date','<', bank_stmt.date), ('state', '=', 'confirm')], limit=1, order='date desc')
+            bank_stmt.is_valid_balance_start = True if bank_stmt.balance_start == prev_bank_stmt.balance_end_real else False
+
     @api.one
     @api.depends('journal_id')
     def _compute_currency(self):
@@ -158,6 +164,9 @@ class AccountBankStatement(models.Model):
     cashbox_start_id = fields.Many2one('account.bank.statement.cashbox', string="Starting Cashbox")
     cashbox_end_id = fields.Many2one('account.bank.statement.cashbox', string="Ending Cashbox")
     is_difference_zero = fields.Boolean(compute='_is_difference_zero', string='Is zero', help="Check if difference is zero.")
+    # Technical field to show warning message on form view if starting balance is not matched with ending balance of previous statement.
+    is_valid_balance_start = fields.Boolean(compute='_compute_is_valid_balance_start', string="Is Valid Starting Balance",
+        help="If True, it indicates the `Starting Balance` of current statement has matched with the `Ending Balance` of previous statement, False otherwise.")
 
     @api.onchange('journal_id')
     def onchange_journal_id(self):
