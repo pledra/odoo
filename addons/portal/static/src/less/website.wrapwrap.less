@@ -237,9 +237,16 @@ ul.nav-stacked > li > a {
     }
 }
 
-.oe_search_box {
-    padding-right: 23px;
-}
+.oe_search{
+    position: relative;
+    .oe_search_box {
+        padding-right: 23px;
+    }
+    .oe_search_clear{
+        .o-position-absolute(@right: 8px, @top: 8px);
+        z-index: 3;
+    }
+ }
 
 // Kept for (up to) saas-12 compatibility
 .para_large {
