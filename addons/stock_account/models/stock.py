@@ -186,6 +186,7 @@ class StockMove(models.Model):
     def action_done(self):
         companies = self.env['res.company'].sudo().search([]).ids
         cacacache = [self.with_context(force_company=id) for id in companies]
+        cacacache2 = [self.with_context(force_company=id).sudo() for id in companies]
         self.product_price_update_before_done()
         res = super(StockMove, self).action_done()
         self.product_price_update_after_done()
