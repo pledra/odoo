@@ -306,10 +306,10 @@ class OperationLink(models.Model):
                          "remaining quantity of the move (and inverse). Given in the product main uom.")
     operation_id = fields.Many2one(
         'stock.pack.operation', 'Operation',
-        ondelete="cascade", required=True)
+        ondelete="cascade", required=True, index=True)
     move_id = fields.Many2one(
         'stock.move', 'Move',
-        ondelete="cascade", required=True)
+        ondelete="cascade", required=True, index=True)
     reserved_quant_id = fields.Many2one(
         'stock.quant', 'Reserved Quant',
         help="Technical field containing the quant that created this link between an operation and a stock move. "
