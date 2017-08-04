@@ -148,6 +148,8 @@ class StockQuant(models.Model):
                                  current datetime will be used.
         :return: tuple (available_quantity, in_date as a datetime)
         """
+        if quantity == 0:
+            return self._get_available_quantity(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=False), fields.Datetime.from_string(in_date)
         self = self.sudo()
         quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=True)
 
