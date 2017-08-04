@@ -130,8 +130,12 @@ class TestRecurrentEvent(common.TransactionCase):
         self.assertEqual(meetings_count, 1, 'Recurrent weekly meetings are not found using time filter !')
 
         # I search using the filter 'start date is set'
+        # I assume current user's time zone in Brussels
+        # Time Changes in Brussels Over the Years(2017)
+        # march +1 hour(DST start) and oct -1 hour(DST end)
+        # so that we need to update datetime as per DST for test
         meetings_count = self.CalendarEvent.with_context({'virtual_id': True}).search_count([
-            ('start', '!=', False), ('stop', '>=', '2017-06-30 11:55:00'), ('name', '=', 'Review code with programmer')
+            ('start', '!=', False), ('stop', '>=', '2017-06-30 10:55:00'), ('name', '=', 'Review code with programmer')
         ])
         self.assertEqual(meetings_count, 1, "Last recurrent weekly meetings are not found using 'is set' filter !")
 
