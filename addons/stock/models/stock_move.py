@@ -13,6 +13,8 @@ from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.tools.float_utils import float_compare, float_round, float_is_zero
 
 
+import datetime
+
 class StockMove(models.Model):
     _name = "stock.move"
     _description = "Stock Move"
@@ -799,7 +801,11 @@ class StockMove(models.Model):
         # Sort operations according to entire packages first, then package + lot, package only, lot only
         operations = operations.sorted(key=lambda x: ((x.package_id and not x.product_id) and -4 or 0) + (x.package_id and -2 or 0) + (x.pack_lot_ids and -1 or 0))
 
+        x = 0
+        xtot = len(operations)
         for operation in operations:
+            x+=1
+            print 'action_done outer loop for operation ' + str(x) + ' on' + str(xtot)
 
             # product given: result put immediately in the result package (if False: without package)
             # but if pack moved entirely, quants should not be written anything for the destination package
@@ -821,16 +827,20 @@ class StockMove(models.Model):
             lot_move_qty = {}
 
             prout_move_qty = {}
+            print 'computing prout_move_qty'
+            t0 = datetime.datetime.now()
             for link in operation.linked_move_operation_ids:
                 if link.move_id:  # useless probably
                     prout_move_qty[link.move_id] = prout_move_qty.get(link.move_id, 0.0) + link.qty
+            t1 = datetime.datetime.now()
+            print 'computed in %s' % str(t1 - t0)
 
             # Process every move only once for every pack operation
             i = 0
             total = len(prout_move_qty.keys())
             for move in prout_move_qty.keys():
                 i += 1
-                print 'action_done on move ' + i + '/' + total
+                print 'action_done inner loop, move ' + str(i) + ' on ' + str(total)
                 # TDE FIXME: do in batch ?
                 move.check_tracking(operation)
 
@@ -841,12 +851,17 @@ class StockMove(models.Model):
                 if not operation.pack_lot_ids:
                     print 'if not operation.pack_lot_ids'
                     preferred_domain_list = [[('reservation_id', '=', move.id)], [('reservation_id', '=', False)], ['&', ('reservation_id', '!=', move.id), ('reservation_id', '!=', False)]]
+
+                    print 'moving quants'
+                    t0 = datetime.datetime.now()
                     quants = Quant.quants_get_preferred_domain(
                         prout_move_qty[move], move, ops=operation, domain=[('qty', '>', 0)],
                         preferred_domain_list=preferred_domain_list)
                     Quant.quants_move(quants, move, operation.location_dest_id, location_from=operation.location_id,
                                       lot_id=False, owner_id=operation.owner_id.id, src_package_id=operation.package_id.id,
                                       dest_package_id=quant_dest_package_id, entire_pack=entire_pack)
+                    t1 = datetime.datetime.now()
+                    print 'quants moved in %s' % str(t1 - t0)
                 else:
                     print 'if operation.pack_lot_ids'
                     # Check what you can do with reserved quants already
