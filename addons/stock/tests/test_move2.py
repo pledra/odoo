@@ -282,7 +282,8 @@ class TestPickShip(TestStockCommon):
 
 class TestSinglePicking(TestStockCommon):
     def test_backorder_1(self):
-        """ Check the good behavior of creating a backorder for an available stock move.
+        """ Check the good behavior of creating a backorder for an available stock move and a done
+        quantity.
         """
         delivery_order = self.env['stock.picking'].create({
             'location_id': self.pack_location,
@@ -320,7 +321,8 @@ class TestSinglePicking(TestStockCommon):
         self.assertEqual(backorder.state, 'assigned')
 
     def test_backorder_2(self):
-        """ Check the good behavior of creating a backorder for a partially available stock move.
+        """ Check the good behavior of creating a backorder for a partially available stock move
+        and a done quantity.
         """
         delivery_order = self.env['stock.picking'].create({
             'location_id': self.pack_location,
@@ -356,6 +358,62 @@ class TestSinglePicking(TestStockCommon):
 
         backorder = self.env['stock.picking'].search([('backorder_id', '=', delivery_order.id)])
         self.assertEqual(backorder.state, 'confirmed')
+
+    def test_backorder_3(self):
+        """ Check the good behavior of creating a backorder for two stock moves, one available without
+        quantity done and one partially available.
+        """
+        delivery_order = self.env['stock.picking'].create({
+            'location_id': self.pack_location,
+            'location_dest_id': self.customer_location,
+            'partner_id': self.partner_delta_id,
+            'picking_type_id': self.picking_type_out,
+        })
+        move1 = self.MoveObj.create({
+            'name': self.productA.name,
+            'product_id': self.productA.id,
+            'product_uom_qty': 2,
+            'product_uom': self.productA.uom_id.id,
+            'picking_id': delivery_order.id,
+            'location_id': self.pack_location,
+            'location_dest_id': self.customer_location,
+        })
+        self.MoveObj.create({
+            'name': self.productB.name,
+            'product_id': self.productB.id,
+            'product_uom_qty': 2,
+            'product_uom': self.productB.uom_id.id,
+            'picking_id': delivery_order.id,
+            'location_id': self.pack_location,
+            'location_dest_id': self.customer_location,
+        })
+
+        # make some stock
+        pack_location = self.env['stock.location'].browse(self.pack_location)
+        self.env['stock.quant']._update_available_quantity(self.productA, pack_location, 1)
+        self.env['stock.quant']._update_available_quantity(self.productB, pack_location, 2)
+
+        # assign
+        delivery_order.action_confirm()
+        delivery_order.action_assign()
+        self.assertEqual(delivery_order.state, 'partially_available')
+
+        # fulfill productA with a new move lien
+        self.env['stock.move.line'].create({
+            'picking_id': delivery_order.id,
+            'product_id': move1.product_id.id,
+            'qty_done': 1,
+            'product_uom_id': move1.product_uom.id,
+            'location_id': move1.location_id.id,
+            'location_dest_id': move1.location_dest_id.id,
+        })
+
+        # valid with backorder creation
+        delivery_order.do_transfer()
+        self.assertNotEqual(delivery_order.date_done, False)
+
+        backorder = self.env['stock.picking'].search([('backorder_id', '=', delivery_order.id)])
+        self.assertEqual(backorder.state, 'partially_available')
 
     def test_extra_move_1(self):
         """ Check the good behavior of creating an extra move in a delivery order. This usecase
