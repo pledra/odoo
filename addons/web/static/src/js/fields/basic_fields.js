@@ -513,6 +513,13 @@ var FieldMonetary = InputField.extend({
         this.formatOptions.currency = this.currency;
         this.formatOptions.digits = [16, 2];
     },
+    _prepareInput: function () {
+        this._super.apply(this, arguments);
+        if(config.isMobile){
+            this.$input.attr('type', 'tel');
+        }
+        return this.$input;
+    },
 
     //--------------------------------------------------------------------------
     // Public
@@ -718,6 +725,13 @@ var FieldInteger = InputField.extend({
     isSet: function () {
         return this.value === 0 || this._super.apply(this, arguments);
     },
+    _prepareInput: function () {
+        this._super.apply(this, arguments);
+        if(config.isMobile){
+            this.$input.attr('type', 'tel');
+        }
+        return this.$input;
+    },
 
     //--------------------------------------------------------------------------
     // Private
@@ -764,6 +778,13 @@ var FieldFloat = InputField.extend({
         if (this.attrs.digits) {
             this.nodeOptions.digits = JSON.parse(this.attrs.digits);
         }
+    },
+    _prepareInput: function () {
+        this._super.apply(this, arguments);
+        if(config.isMobile){
+            this.$input.attr('type', 'tel');
+        }
+        return this.$input;
     },
 
     //--------------------------------------------------------------------------
@@ -907,6 +928,14 @@ var FieldPhone = FieldEmail.extend({
             this.tagName = 'span';
         }
     },
+    _prepareInput: function () {
+        this._super.apply(this, arguments);
+        if(config.isMobile){
+            this.$input.attr('type', 'tel');
+        }
+        return this.$input;
+    },
+
     /**
      * Returns the associated link only if there is one.
      *
