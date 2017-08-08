@@ -132,10 +132,10 @@ class StockMove(models.Model):
     @api.multi
     def action_confirm(self):
         moves = self.env['stock.move']
-        for move in self:
+        for move in self.filtered(lambda m: m.production_id):
             moves |= move.action_explode()
         # we go further with the list of ids potentially changed by action_explode
-        return super(StockMove, moves).action_confirm()
+        return super(StockMove, self).action_confirm()
 
     def action_explode(self):
         """ Explodes pickings """
