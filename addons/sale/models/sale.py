@@ -458,6 +458,7 @@ class SaleOrder(models.Model):
             'default_template_id': template_id,
             'default_composition_mode': 'comment',
             'mark_so_as_sent': True,
+            'show_mark_tmpl_as_default_btn': True,
             'custom_layout': "sale.mail_template_data_notification_email_sale_order",
             'proforma': self.env.context.get('proforma', False)
         }
