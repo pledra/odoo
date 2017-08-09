@@ -16,7 +16,7 @@ This module adds a Survey design button inside survey views and all website feat
     'depends': ['website', 'survey'],
     'data': [
         'views/website_survey_templates.xml',
-        'views/website_survey.xml',
+        'views/website_survey_views.xml',
     ],
     'installable': True,
     'auto_install': True

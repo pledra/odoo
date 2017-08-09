@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="survey_form_inherit_view" model="ir.ui.view">
-        <field name="name">Survey inherit form view</field>
+    <record id="survey_survey_view_form_inherit_website_survey" model="ir.ui.view">
+        <field name="name">survey.survey.form.inherit.website.survey</field>
         <field name="model">survey.survey</field>
         <field name="inherit_id" ref="survey.survey_form"/>
         <field name="arch" type="xml">
@@ -10,8 +10,8 @@
             </xpath>
         </field>
     </record>
-    <record id="survey_kanban_inherit_view" model="ir.ui.view">
-        <field name="name">Survey inherit kanban view</field>
+    <record id="survey_survey_view_kanban_inherit_website_survey" model="ir.ui.view">
+        <field name="name">survey.survey.kanban.inherit.website.survey</field>
         <field name="model">survey.survey</field>
         <field name="inherit_id" ref="survey.survey_kanban"/>
         <field name="arch" type="xml">
