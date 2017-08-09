@@ -794,7 +794,11 @@
                             <group>
                                 <field name="account_id" domain="[('company_id', '=', company_id)]"/>
                                 <field name="amount_type"/>
-                                <field name="tax_id" domain="[('company_id', '=', company_id)]" widget="selection" />
+                                <field name="tax_id"
+                                       domain="[('company_id', '=', company_id)]"
+                                       widget="selection"
+                                       context="{'include_taxes_type': True}"
+                                />
                                 <field name="analytic_account_id" groups="analytic.group_analytic_accounting" domain="[('company_id', '=', company_id)]"/>
                                 <field name="company_id" groups="base.group_multi_company"/>
                             </group>
@@ -816,7 +820,12 @@
                             <group>
                                 <field name="second_account_id" string="Account" domain="[('company_id', '=', company_id)]"/>
                                 <field name="second_amount_type" string="Amount type"/>
-                                <field name="second_tax_id" string="Tax" domain="[('company_id', '=', company_id)]" widget="selection"/>
+                                <field name="second_tax_id"
+                                       string="Tax"
+                                       domain="[('company_id', '=', company_id)]"
+                                       widget="selection"
+                                       context="{'include_taxes_type': True}"
+                                />
                                 <field name="second_analytic_account_id" string="Analytic Account" groups="analytic.group_analytic_accounting" domain="[('company_id', '=', company_id)]"/>
                             </group>
                             <group>

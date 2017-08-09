@@ -785,6 +785,18 @@ class AccountTax(models.Model):
         default = dict(default or {}, name=_("%s (Copy)") % self.name)
         return super(AccountTax, self).copy(default=default)
 
+    @api.multi
+    def name_get(self):
+        if not self._context.get('include_taxes_type'):
+            return super(AccountTax, self).name_get()
+        result = []
+        type_tax_use_selection = dict(self._fields['type_tax_use'].selection)
+        for tax in self:
+            type_name = type_tax_use_selection[tax.type_tax_use]
+            name = '%s - %s' % (type_name, tax.name)
+            result.append((tax.id, name))
+        return result
+
     @api.model
     def name_search(self, name, args=None, operator='ilike', limit=80):
         """ Returns a list of tupples containing id, name, as internally it is called {def name_get}
