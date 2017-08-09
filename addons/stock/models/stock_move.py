@@ -779,10 +779,10 @@ class StockMove(models.Model):
                         if need - taken_quantity == 0.0:
                             assigned_moves |= move
                             break
-                        if move not in partially_available_moves:
-                            partially_available_moves |= move
+                        partially_available_moves |= move
         partially_available_moves.write({'state': 'partially_available'})
         assigned_moves.write({'state': 'assigned'})
+        self.mapped('picking_id')._check_entire_pack()
 
     @api.multi
     def action_cancel(self):
