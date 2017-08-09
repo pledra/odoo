@@ -127,7 +127,7 @@
                 <div class="container mt16 mb8">
                     <div class="pull-right" t-ignore="true" t-if="not editable"> Powered by <a href="http://www.odoo.com">Odoo</a>
                     </div>
-                    <div class="pull-left text-muted" itemscope="itemscope" itemtype="http://schema.org/Organization">Copyright &amp;copy; <span t-field="survey.company_id">Company Name</span>
+                    <div class="pull-left text-muted" itemscope="itemscope" itemtype="http://schema.org/Organization">Copyright &amp;copy; <span t-field="res_company.name">Company Name</span>
                     </div>
                 </div>
             </footer>
