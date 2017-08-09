@@ -86,15 +86,15 @@ class WebsiteForum(http.Controller):
 
     @http.route('/forum/new', type='json', auth="user", methods=['POST'], website=True)
     def forum_create(self, forum_name="New Forum", add_menu=False):
-        forum_id = request.env['forum.forum'].create({'name': forum_name})
+        forum_id = request.env['forum.forum'].create({'name': forum_name}).id
         if add_menu:
             request.env['website.menu'].create({
                 'name': forum_name,
-                'url': "/forum/%s" % slug(forum_id),
+                'url': "/forum/%d" % forum_id,
                 'parent_id': request.website.menu_id.id,
                 'website_id': request.website.id,
             })
-        return "/forum/%s" % slug(forum_id)
+        return "/forum/%d" % forum_id
 
     @http.route('/forum/notification_read', type='json', auth="user", methods=['POST'], website=True)
     def notification_read(self, **kwargs):
@@ -109,16 +109,17 @@ class WebsiteForum(http.Controller):
             if not qs or qs.lower() in loc:
                 yield {'loc': loc}
 
-    @http.route(['/forum/<model("forum.forum"):forum>',
-                 '/forum/<model("forum.forum"):forum>/page/<int:page>',
-                 '''/forum/<model("forum.forum"):forum>/tag/<model("forum.tag"):tag>/questions''',
-                 '''/forum/<model("forum.forum"):forum>/tag/<model("forum.tag"):tag>/questions/page/<int:page>''',
+    @http.route(['/forum/<int:forum_id>',
+                 '/forum/<int:forum_id>/page/<int:page>',
+                 '''/forum/<int:forum_id>/tag/<model("forum.tag"):tag>/questions''',
+                 '''/forum/<int:forum_id>/tag/<model("forum.tag"):tag>/questions/page/<int:page>''',
                  ], type='http', auth="public", website=True, sitemap=sitemap_forum)
-    def questions(self, forum, tag=None, page=1, filters='all', sorting=None, search='', post_type=None, **post):
+    def questions(self, forum_id, tag=None, page=1, filters='all', sorting=None, search='', post_type=None, **post):
         Post = request.env['forum.post']
+        forum = request.env['forum.forum'].sudo().browse([forum_id])
 
-        if not forum.active:
-            return request.render("website.403")
+        if not forum.active or (not forum.website_published and not request.env.user.has_group('base.group_erp_manager')):
+            return request.render("website_forum.403")
 
         domain = [('forum_id', '=', forum.id), ('parent_id', '=', False), ('state', '=', 'active')]
         if search:
@@ -146,9 +147,9 @@ class WebsiteForum(http.Controller):
         question_count = Post.search_count(domain)
 
         if tag:
-            url = "/forum/%s/tag/%s/questions" % (slug(forum), slug(tag))
+            url = "/forum/%d/tag/%s/questions" % (forum_id, slug(tag))
         else:
-            url = "/forum/%s" % slug(forum)
+            url = "/forum/%d" % forum_id
 
         url_args = {
             'sorting': sorting
@@ -322,7 +323,7 @@ class WebsiteForum(http.Controller):
     def forum_post(self, forum, post_type=None, **post):
         user = request.env.user
         if post_type not in ['question', 'link', 'discussion']:  # fixme: make dynamic
-            return werkzeug.utils.redirect('/forum/%s' % slug(forum))
+            return werkzeug.utils.redirect('/forum/%d' % forum.id)
         if not user.email or not tools.single_email_re.match(user.email):
             return werkzeug.utils.redirect("/forum/%s/user/%s/edit?email_required=1" % (slug(forum), request.session.uid))
         values = self._prepare_forum_values(forum=forum, searches={}, header={'ask_hide': True})
@@ -383,7 +384,7 @@ class WebsiteForum(http.Controller):
         post.unlink()
         if question:
             werkzeug.utils.redirect("/forum/%s/question/%s" % (slug(forum), slug(question)))
-        return werkzeug.utils.redirect("/forum/%s" % slug(forum))
+        return werkzeug.utils.redirect("/forum/%d" % forum.id)
 
     @http.route('/forum/<model("forum.forum"):forum>/post/<model("forum.post"):post>/edit', type='http', auth="user", website=True)
     def post_edit(self, forum, post, **kwargs):
@@ -613,7 +614,7 @@ class WebsiteForum(http.Controller):
         # Users with high karma can see users with karma <= 0 for
         # moderation purposes, IFF they have posted something (see below)
         if (not user or (user.karma < 1 and current_user.karma < forum.karma_unlink_all)):
-            return werkzeug.utils.redirect("/forum/%s" % slug(forum))
+            return werkzeug.utils.redirect("/forum/%d" % forum.id)
         values = self._prepare_forum_values(forum=forum, **post)
 
         # questions and answers by user
@@ -751,7 +752,7 @@ class WebsiteForum(http.Controller):
     def convert_comment_to_answer(self, forum, post, comment, **kwarg):
         post = request.env['forum.post'].convert_comment_to_answer(comment.id)
         if not post:
-            return werkzeug.utils.redirect("/forum/%s" % slug(forum))
+            return werkzeug.utils.redirect("/forum/%d" % forum.id)
         question = post.parent_id if post.parent_id else post
         return werkzeug.utils.redirect("/forum/%s/question/%s" % (slug(forum), slug(question)))
 
@@ -760,7 +761,7 @@ class WebsiteForum(http.Controller):
         question = post.parent_id
         new_msg = post.convert_answer_to_comment()
         if not new_msg:
-            return werkzeug.utils.redirect("/forum/%s" % slug(forum))
+            return werkzeug.utils.redirect("/forum/%d" % forum.id)
         return werkzeug.utils.redirect("/forum/%s/question/%s" % (slug(forum), slug(question)))
 
     @http.route('/forum/<model("forum.forum"):forum>/post/<model("forum.post"):post>/comment/<model("mail.message"):comment>/delete', type='json', auth="user", website=True)

@@ -70,17 +70,17 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" t-attf-href="/forum/#{slug(forum)}">
+                    <a class="navbar-brand" t-attf-href="/forum/#{forum.id}">
                         <span t-field="forum.name"/>
                     </a>
                 </div>
                 <div class="collapse navbar-collapse" id="oe-help-navbar-collapse">
                     <ul class="nav navbar-nav">
                         <li t-att-class="sorting == 'relevancy desc' and 'active' or None ">
-                            <a t-attf-href="/forum/#{ slug(forum) }?{{ keep_query( 'search', 'post_type', 'filters', sorting='relevancy desc') }}">Trending</a>
+                            <a t-attf-href="/forum/#{forum.id}?{{ keep_query( 'search', 'post_type', 'filters', sorting='relevancy desc') }}">Trending</a>
                         </li>
                         <li t-att-class="sorting == 'create_date desc' and 'active' or None ">
-                            <a t-attf-href="/forum/#{ slug(forum) }?{{ keep_query( 'search', 'post_type', 'filters', sorting='create_date desc') }}">Newest</a>
+                            <a t-attf-href="/forum/#{forum.id}?{{ keep_query( 'search', 'post_type', 'filters', sorting='create_date desc') }}">Newest</a>
                         </li>
                         <li t-att-class="searches.get('users') and 'active' or None ">
                             <a t-attf-href="/forum/#{ slug(forum) }/users">People</a>
@@ -180,7 +180,7 @@
                         <div class="panel-body">
                             <span t-field="forum.description"/>
                             <a t-if="not header.get('is_guidelines')" t-attf-href="/forum/#{slug(forum)}/faq" class="fa fa-arrow-right"> Read Guidelines</a>
-                            <a t-if="header.get('is_guidelines')" t-attf-href="/forum/#{slug(forum)}" class="fa fa-arrow-right"> Back to <span t-field="forum.name"/></a>
+                            <a t-if="header.get('is_guidelines')" t-attf-href="/forum/#{forum.id}" class="fa fa-arrow-right"> Back to <span t-field="forum.name"/></a>
                         </div>
                     </div>
                     <div class="panel panel-default" id="moderation_tools" t-if="user.karma>=forum.karma_moderate">
@@ -226,7 +226,7 @@
     </t>
 </template>
 
-<template id="website.403">
+<template id="403">
     <t t-call="website_forum.layout">
         <div class="text-center text-muted">
             <p class="css_editable_hidden" groups="!base.group_erp_manager">
@@ -264,7 +264,7 @@
         </div>
         <div><t t-raw="post_content"/></div>
         <t t-foreach="question.tag_ids" t-as="question_tag">
-            <a t-attf-href="/forum/#{ slug(forum) }/tag/#{slug(question_tag)}/questions">
+            <a t-attf-href="/forum/#{forum.id}/tag/#{slug(question_tag)}/questions">
                 <span t-attf-class="pull-right label #{tag and tag.name == question_tag.name and 'label-primary' or 'label-default'}" t-field="question_tag.name"
                     style="margin-right: 4px;"/>
             </a>
@@ -406,7 +406,7 @@
             <div class="row">
                 <div t-if="not forums" class="well">No forum post yet.</div>
                 <div t-foreach="forums" t-as="forum" class="col-sm-3 text-center mb32">
-                    <a t-attf-href="/forum/#{ slug(forum) }">
+                    <a t-attf-href="/forum/#{forum.id}">
                         <div class="fa fa-5x fa-comment mb16"/>
                         <div t-field="forum.name"/>
                     </a>
@@ -817,7 +817,7 @@
                 <div class="pull-right">
                     <div class="text-right">
                         <t t-foreach="question.tag_ids" t-as="tag">
-                            <a t-attf-href="/forum/#{ slug(forum) }/tag/#{ tag.id }/questions" class="label label-default" t-field="tag.name"/>
+                            <a t-attf-href="/forum/#{forum.id}/tag/#{ tag.id }/questions" class="label label-default" t-field="tag.name"/>
                         </t>
                     </div>
                 </div>
@@ -1174,7 +1174,7 @@
         <div class="row">
             <div class="col-sm-3 mt16 o_js_forum_tag_follow" t-foreach="tags" t-as="tag">
                 <span><t t-esc="tag.posts_count"/>&amp;nbsp;&amp;nbsp;<i class='fa fa-times'/>&amp;nbsp;&amp;nbsp;</span>
-                <a t-attf-href="/forum/#{ slug(forum) }/tag/#{ slug(tag) }/questions?{{ keep_query( filters='tag') }}"
+                <a t-attf-href="/forum/#{forum.id}/tag/#{ slug(tag) }/questions?{{ keep_query( filters='tag') }}"
                         t-attf-class="label #{'label-primary' if tag.message_is_follower else 'label-default'}">
                     <span t-field="tag.name"/>
                 </a>
@@ -1314,7 +1314,7 @@
     <t t-call="website_forum.header">
         <h1 class="mt32">This profile is private!</h1>
         <p>
-            <a t-attf-href="/forum/#{slug(forum)}">Return to the question list.</a>
+            <a t-attf-href="/forum/#{forum.id}">Return to the question list.</a>
         </p>
     </t>
 </template>

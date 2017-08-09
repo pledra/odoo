@@ -11,7 +11,6 @@ from datetime import datetime
 from werkzeug.exceptions import Forbidden
 
 from odoo import api, fields, models, modules, tools, SUPERUSER_ID, _
-from odoo.addons.http_routing.models.ir_http import slug
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import pycompat, misc
 
@@ -152,7 +151,7 @@ class Forum(models.Model):
     def _compute_website_url(self):
         super(Forum, self)._compute_website_url()
         for forum in self:
-            forum.website_url = "/forum/%s" % (slug(forum))
+            forum.website_url = "/forum/%d" % forum.id
 
     @api.model
     def create(self, values):
