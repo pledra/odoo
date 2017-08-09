@@ -1183,11 +1183,7 @@ $.summernote.pluginEvents.visible = function (event, editor, layoutInfo) {
             } else {
                 text = node.parentNode.insertBefore(document.createTextNode( "." ), node);
                 range.create(text, 1, text, 1).select();
-                setTimeout(function () {
-                    var text = range.create().sc;
-                    text.textContent = text.textContent.replace(/^./, '');
-                    range.create(text, text.textContent.length, text, text.textContent.length).select();
-                },0);
+                text.textContent = text.textContent.replace(/^\./, '');
             }
             break;
         }
