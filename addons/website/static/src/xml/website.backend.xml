@@ -65,4 +65,24 @@
             <button class="btn btn-sm btn-default js_date_range" data-date="year">Last Year</button>
         </div>
     </t>
+
+    <t t-name="website.SalesChartTooltip">
+        <table>
+            <thead>
+                <tr><td colspan="3"><strong><t t-esc="chartData.series[0].key"/></strong></td></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="legend-color-guide"><div/></td>
+                    <td class="key"><t t-esc="format.date(moment(chartData.value))"/></td>
+                    <td class="value"><t t-esc="format.float(chartData.series[0].data[1])"/></td>
+                </tr>
+                <tr>
+                    <td class="legend-color-guide"><div/></td>
+                    <td class="key"><t t-esc="format.date(moment(chartData.value).subtract(1, dateRange))"/></td>
+                    <td class="value"><t t-esc="format.float(chartData.series[1].data[1])"/></td>
+                </tr>
+            </tbody>
+        </table>
+    </t>
 </templates>

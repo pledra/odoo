@@ -152,6 +152,14 @@ var Dashboard = Widget.extend(ControlPanelMixin, {
                 .tickValues(_.map(tick_values, function(d) { return self.getDate(d); }))
                 .rotateLabels(-45);
 
+            chart.interactiveLayer.tooltip.contentGenerator(function(data) {
+                return QWeb.render('website.SalesChartTooltip', {
+                    format: field_utils.format,
+                    chartData: data,
+                    dateRange: self.date_range
+                });
+            });
+
             chart.yAxis
                 .tickFormat(d3.format('.02f'));
 
