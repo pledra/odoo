@@ -85,4 +85,11 @@
             </tbody>
         </table>
     </t>
+
+    <t t-name="website.GoToButtons">
+        <a href="/" class="btn btn-primary" title="Go to Website">
+            Go to Website
+        </a>
+    </t>
+
 </templates>
