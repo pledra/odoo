@@ -102,36 +102,36 @@
     </template>
 
     <!-- new layout for survey -->
-    <template id="layout" name="Survey Layout">&lt;!DOCTYPE html&gt;
-        <html>
-            <head>
-                <meta charset="utf-8" />
-                <meta name="viewport" content="initial-scale=1"/>
-                <title><t t-esc="title or 'Odoo Survey'"/></title>
+    <template id="survey.layout" name="Survey Layout">
+        <t t-call="web.layout">
+            <t t-set="head">
                 <t t-call-assets="web.assets_common"/>
                 <t t-call-assets="survey.survey_assets"/>
-            </head>
+            </t>
             <body>
                 <header>
-                    <div id="wrapwrap"></div>
                     <div><title>Odoo</title></div>
                     <div class="text-center">
                         <img t-attf-src="/web/binary/company_logo{{ '' }}"/>
                     </div>
                 </header>
+                <div id="wrap" class="oe_structure oe_empty"/>
                 <main>
                     <t t-raw="0"/>
                 </main>
             </body>
-            <footer>
+            <xpath expr="//footer" position="replace">
                 <div class="container mt16 mb8">
-                    <div class="pull-right" t-ignore="true" t-if="not editable"> Powered by <a href="http://www.odoo.com">Odoo</a>
+                    <div class="pull-right" t-ignore="true" t-if="not editable">
+                        Create a <a target="_blank" href="http://www.odoo.com/page/website-builder">free website</a> with
+                        <a target="_blank" class="label label-danger" href="http://www.odoo.com/page/website-builder">Odoo</a>
                     </div>
-                    <div class="pull-left text-muted" itemscope="itemscope" itemtype="http://schema.org/Organization">Copyright &amp;copy; <span t-field="res_company.name">Company Name</span>
+                    <div class="pull-left text-muted" itemscope="itemscope" itemtype="http://schema.org/Organization">
+                        Copyright &amp;copy; <span t-field="res_company.name" itemprop="name">Company name</span>
                     </div>
                 </div>
-            </footer>
-        </html>
+            </xpath>
+        </t>
     </template>
 
     <!-- First page of a survey -->
