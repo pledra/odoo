@@ -504,7 +504,7 @@ var LineRenderer = Widget.extend(FieldManagerMixin, {
                 'journal_id', record, {mode: 'edit'});
 
             self.fields.tax_id = new relational_fields.FieldMany2One(self,
-                'tax_id', record, {mode: 'edit'});
+                'tax_id', record, {mode: 'edit', additionalContext: {include_taxes_type: true}});
 
             self.fields.analytic_account_id = new relational_fields.FieldMany2One(self,
                 'analytic_account_id', record, {mode: 'edit'});
