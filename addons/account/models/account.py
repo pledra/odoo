@@ -790,7 +790,7 @@ class AccountTax(models.Model):
         if not self._context.get('include_taxes_type'):
             return super(AccountTax, self).name_get()
         result = []
-        type_tax_use_selection = dict(self._fields['type_tax_use'].selection)
+        type_tax_use_selection = dict(self._fields['type_tax_use']._description_selection(self.env))
         for tax in self:
             type_name = type_tax_use_selection[tax.type_tax_use]
             name = '%s - %s' % (type_name, tax.name)
