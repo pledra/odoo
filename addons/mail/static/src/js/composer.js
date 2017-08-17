@@ -6,6 +6,7 @@ var DocumentViewer = require('mail.DocumentViewer');
 var utils = require('mail.utils');
 
 var config = require('web.config');
+var ajax = require('web.ajax');
 var core = require('web.core');
 var data = require('web.data');
 var dom = require('web.dom');
@@ -357,6 +358,7 @@ var BasicComposer = Widget.extend(chat_mixin, {
         'focusout .o_composer_button_emoji': '_onEmojiButtonFocusout',
         'focus .o_mail_emoji_container .o_mail_emoji': '_onEmojiImageFocus',
         'click .o_mail_emoji_container .o_mail_emoji': '_onEmojiImageClick',
+        "drop .o_file_drop_zone_container": "_onFileDragDropped",
     },
     // RPCs done to fetch the mention suggestions are throttled with the following value
     MENTION_THROTTLE: 200,
@@ -447,6 +449,27 @@ var BasicComposer = Widget.extend(chat_mixin, {
         // Mention
         this.mention_manager.prependTo(this.$('.o_composer'));
 
+        // Drag-Drop files
+        // Allowing html to detect dragenter and dragleave for display
+        // Drop area when user drag any external files to browser window.
+        var $root = $("html");
+
+        // On every dragenter chain created with parent child element and
+        // released at dragleave from bottom child to parent
+        // dragingToElement counter will make sure that all drag leaved outof window
+        this.dragingToElement = 0;
+        $root.on("dragenter", function (event) {
+            self.dragingToElement++;
+        });
+        $root.on("dragleave", function (event) {
+            self.dragingToElement--;
+            if (self.dragingToElement === 0) {
+                self.$(".o_file_drop_zone_container").addClass("hidden");
+            }
+        });
+        $root.on("dragover", function (event) {
+            self._onFileDragOver(event);
+        });
         return this._super();
     },
 
@@ -513,11 +536,72 @@ var BasicComposer = Widget.extend(chat_mixin, {
         this.$input.focus();
     },
 
+    on_click_emoji_img: function(event) {
+        this.$input.val(this.$input.val() + " " + $(event.currentTarget).data('emoji') + " ");
+        this.$input.focus();
+    },
     setState: function (state) {
         this.set('attachment_ids', state.attachments);
         this.$input.val(state.text);
     },
+    /**
+     * Making sure that dragging content is external files.
+     *
+     * @private
+     * @param {DataTransfer} dataTransfer
+     */
+    _isDragSourceExternalFile: function (dataTransfer){
+        // Source detection for Safari v5.1.7 on Windows.
+        if (typeof Clipboard != 'undefined') {
+            if (dataTransfer.constructor == Clipboard) {
+                return dataTransfer.files.length > 0;
+            }
+        }
+        // Source detection for Firefox on Windows.
+        var DragDataType;
+        if (typeof DOMStringList != 'undefined'){
+            DragDataType = dataTransfer.types;
+            if (DragDataType.constructor == DOMStringList) {
+                return DragDataType.contains('Files');
+            }
+        }
 
+        // Source detection for Chrome on Windows.
+        if (typeof Array != 'undefined'){
+            DragDataType = dataTransfer.types;
+            if (DragDataType.constructor == Array){
+                return DragDataType.indexOf('Files') != -1;
+            }
+        }
+    },
+    /**
+     * Called when user drop selected files on drop area
+     *
+     * @private
+     * @param {MouseEvent} event
+     */
+    _onFileDragDropped: function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.$(".o_file_drop_zone_container").addClass("hidden");
+        var self = this;
+        if(this._isDragSourceExternalFile(event.originalEvent.dataTransfer)) {
+            var files = event.originalEvent.dataTransfer.files;
+            this._processAttachmentChange(files, false);
+        }
+    },
+    /**
+     * When user dragging on element drop area will be visible to drop selected files.
+     * @private
+     * @param {MouseEvent} event
+     */
+    _onFileDragOver: function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (this._isDragSourceExternalFile(event.originalEvent.dataTransfer)) {
+            this.$(".o_file_drop_zone_container").removeClass("hidden");
+        }
+    },
     /**
      * Send the message on ENTER, but go to new line on SHIFT+ENTER
      */
@@ -579,11 +663,15 @@ var BasicComposer = Widget.extend(chat_mixin, {
         }
     },
 
-    // Attachments
-    on_attachment_change: function(event) {
+    /**
+     * Allowing to upload attachment with file selector as well drag drop feature.
+     *
+     * @private
+     * @param {Array<File>, Boolean} files, isFormSubmit
+     */
+    _processAttachmentChange: function (files, isFormSubmit) {
         var self = this,
-            files = event.target.files,
-            attachments = self.get('attachment_ids');
+        attachments = self.get('attachment_ids');
 
         _.each(files, function(file){
             var attachment = _.findWhere(attachments, {name: file.name});
@@ -593,9 +681,29 @@ var BasicComposer = Widget.extend(chat_mixin, {
                 attachments = _.without(attachments, attachment);
             }
         });
-
-        this.$('form.o_form_binary_form').submit();
-        this.$attachment_button.prop('disabled', true);
+        var $form = this.$('form.o_form_binary_form');
+        if (isFormSubmit) {
+            $form.submit();
+            this.$attachment_button.prop('disabled', true);
+        } else {
+            var action = $form.attr("action");
+            var data = new FormData($form[0]);
+            _.each(files, function(file) {
+                data.set("ufile", file, file.name);
+                $.ajax({
+                    url: action,
+                    type: "POST",
+                    enctype: 'multipart/form-data',
+                    processData: false,
+                    contentType: false,
+                    data: data,
+                    success: function(result) {
+                        var el = $(result);
+                        $.globalEval(el.contents().text());
+                    }
+                });
+            });
+        }
         var upload_attachments = _.map(files, function(file){
             return {
                 'id': 0,
@@ -608,6 +716,9 @@ var BasicComposer = Widget.extend(chat_mixin, {
         });
         attachments = attachments.concat(upload_attachments);
         this.set('attachment_ids', attachments);
+    },
+    on_attachment_change: function(event) {
+        this._processAttachmentChange(event.target.files, true);
     },
     on_attachment_loaded: function(event) {
         var self = this,
