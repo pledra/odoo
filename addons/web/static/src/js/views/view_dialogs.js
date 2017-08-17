@@ -112,7 +112,7 @@ var FormViewDialog = ViewDialog.extend({
         var readonly = _.isNumber(options.res_id) && options.readonly;
 
         if (!options || !options.buttons) {
-            options.buttons = [{
+            options.buttons = options.isMobile ? [] : [{
                 text: (readonly ? _t("Close") : _t("Discard")),
                 classes: "btn-default o_form_button_cancel",
                 close: true,

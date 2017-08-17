@@ -167,9 +167,13 @@ var Dialog = Widget.extend({
             self.$modal.find(".modal-body").replaceWith(self.$el);
             self.$modal.modal('show');
             self._opened.resolve().then(function () {
-                // set top and bottom of modal content to make sure no content
-                // is hidden under header / footer in full-screen mode
+                // set top and bottom of modal content to make sure no content is
+                // hidden under header / footer and remove footer padding in case
+                // of empty footer (no footer buttons) in full-screen mode.
                 if (self.isMobile) {
+                    if (!self.$footer.find('.btn:not(.o_btn_ghost)').length) {
+                        self.$footer.css('padding', 0);
+                    }
                     self.$modal.find('.modal-body').css({
                         top: self.$header.outerHeight(),
                         bottom: self.$footer.outerHeight(),
