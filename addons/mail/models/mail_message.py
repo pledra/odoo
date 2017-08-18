@@ -808,7 +808,7 @@ class Message(models.Model):
 
         # all followers of the mail.message document have to be added as partners and notified
         # and filter to employees only if the subtype is internal
-        if self_sudo.subtype_id and self.model and self.res_id:
+        if not self._context.get('mail_ignore_subtype') and self_sudo.subtype_id and self.model and self.res_id:
             followers = self_sudo.env['mail.followers'].search([
                 ('res_model', '=', self.model),
                 ('res_id', '=', self.res_id),
