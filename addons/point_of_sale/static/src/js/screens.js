@@ -966,29 +966,21 @@ var ProductScreenWidget = ScreenWidget.extend({
         this._onKeyDown = function (event) {
             //prevent input and textarea keydown event
             if(!_.contains(["INPUT", "TEXTAREA"], $(event.target).prop('tagName'))){
-                switch(event.keyCode) {
-                    case $.ui.keyCode.BACKSPACE:
-                        self.numpad.clickDeleteLastChar();
-                        break;
-                    case 110:
-                        self.numpad.state.appendNewChar('.');
-                        break;
-                    case 107:
-                    case 109:
-                        self.numpad.clickSwitchSign();
-                        break;
-                    case $.ui.keyCode.DELETE:
-                        self.numpad.state.resetValue();
-                        self.numpad.state.trigger('set_value',0);
-                        break;
+                if ((event.key >= "0" && event.key <= "9") || event.key === "."){
+                    self.numpad.state.appendNewChar(event.key)
                 }
-            }
-        };
-        //we have to use keypress event along with keydown because in keypress numkey(numeric keys,numeric keypad) have same key code
-        this._onKeyPress = function(event) {
-            if(!_.contains(["INPUT", "TEXTAREA"], $(event.target).prop('tagName'))){
-                if (event.keyCode >= 48 && event.keyCode <= 57) { // Numkey 0-9
-                    self.numpad.state.appendNewChar((event.keyCode - 48).toString());
+                else {
+                    switch (event.key){
+                        case "Backspace":
+                            self.numpad.clickDeleteLastChar();
+                            break;
+                        case "Delete":
+                            self.numpad.state.resetValue();
+                            break;
+                        case ",":
+                            self.numpad.state.appendNewChar(".");
+                            break;
+                    }
                 }
             }
         };
@@ -1009,13 +1001,11 @@ var ProductScreenWidget = ScreenWidget.extend({
             this.numpad.state.reset();
         }
         $(document).on('keydown.productscreen',this._onKeyDown);
-        $(document).on('keypress.productscreen',this._onKeyPress);
     },
 
     hide: function() {
         this._super();
         $(document).off('keydown.productscreen',this._onKeyDown);
-        $(document).off('keypress.productscreen',this._onKeyPress);
     },
 
     close: function(){

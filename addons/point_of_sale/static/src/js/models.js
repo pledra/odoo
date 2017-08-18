@@ -2482,8 +2482,16 @@ exports.NumpadState = Backbone.Model.extend({
             mode: "quantity"
         });
     },
-    resetValue: function(){
-        this.set({buffer:'0'});
+    resetValue: function() {
+        if(this.get('buffer') === "") {
+            this.trigger('set_value','remove');
+        }
+        else {
+            this.set({buffer:""});
+            this.trigger('set_value',this.get('buffer'));
+
+        }
+
     },
 });
 
