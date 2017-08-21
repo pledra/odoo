@@ -601,7 +601,7 @@ class Picking(models.Model):
                     if pack.product_id and pack.product_id.tracking != 'none':
                         raise UserError(_('Some products require lots/serial numbers, so you need to specify those first!'))
             view = self.env.ref('stock.view_immediate_transfer')
-            wiz = self.env['stock.immediate.transfer'].create({'pick_id': self.id})
+            wiz = self.env['stock.immediate.transfer'].create({'pick_ids': [(4, p.id) for p in self]})
             return {
                 'name': _('Immediate Transfer?'),
                 'type': 'ir.actions.act_window',
@@ -625,7 +625,7 @@ class Picking(models.Model):
 
     def action_generate_backorder_wizard(self):
         view = self.env.ref('stock.view_backorder_confirmation')
-        wiz = self.env['stock.backorder.confirmation'].create({'pick_id': self.id})
+        wiz = self.env['stock.backorder.confirmation'].create({'pick_ids': [(4, p.id) for p in self]})
         return {
             'name': _('Create Backorder?'),
             'type': 'ir.actions.act_window',
@@ -640,19 +640,18 @@ class Picking(models.Model):
         }
 
     def check_backorder(self):
-        self.ensure_one()
         quantity_todo = {}
         quantity_done = {}
-        for move in self.move_lines:
+        for move in self.mapped('move_lines'):
             quantity_todo.setdefault(move.product_id.id, 0)
             quantity_done.setdefault(move.product_id.id, 0)
             quantity_todo[move.product_id.id] += move.product_qty
             quantity_done[move.product_id.id] += move.quantity_done #TODO: convert to base units
-        for ops in self.move_line_ids.filtered(lambda x: x.package_id and not x.product_id and not x.move_id):
+        for ops in self.mapped('move_lines').mapped('move_line_ids').filtered(lambda x: x.package_id and not x.product_id and not x.move_id):
             for quant in ops.package_id.quant_ids:
                 quantity_done.setdefault(quant.product_id.id, 0)
                 quantity_done[quant.product_id.id] += quant.qty
-        for pack in self.move_line_ids.filtered(lambda x: x.product_id and not x.move_id):
+        for pack in self.mapped('move_lines').mapped('move_line_ids').filtered(lambda x: x.product_id and not x.move_id):
             quantity_done.setdefault(pack.product_id.id, 0)
             quantity_done[pack.product_id.id] += pack.qty_done
         return any(quantity_done[x] < quantity_todo.get(x, 0) for x in quantity_done)
