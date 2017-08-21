@@ -972,13 +972,19 @@ var ProductScreenWidget = ScreenWidget.extend({
                 else {
                     switch (event.key){
                         case "Backspace":
-                            self.numpad.clickDeleteLastChar();
+                            self.numpad.state.deleteLastChar();
                             break;
                         case "Delete":
                             self.numpad.state.resetValue();
                             break;
                         case ",":
                             self.numpad.state.appendNewChar(".");
+                            break;
+                        case "+":
+                            self.numpad.state.positiveSign();
+                            break;
+                        case "-":
+                            self.numpad.state.negativeSign();
                             break;
                     }
                 }
