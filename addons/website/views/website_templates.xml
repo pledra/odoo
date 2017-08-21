@@ -68,15 +68,15 @@
 <!-- Layout -->
 <template id="submenu" name="Submenu">
     <li t-if="not submenu.child_id" t-att-class="
-        'active' if submenu.url and submenu.url != '/' and unslug_url(request.httprequest.path) == unslug_url(submenu.url.replace('/website.', '/')) else None
+        'active' if submenu.path and unslug_url(request.httprequest.path) == unslug_url(submenu.path.replace('/website.', '/')) else None
         ">
-        <a t-att-href="(website.menu_id.child_id[0] == submenu) and '/' or submenu.url" t-ignore="true" t-att-target="'_blank' if submenu.new_window else None">
+        <a t-att-href="submenu.path" t-ignore="true" t-att-target="'_blank' if submenu.new_window else None">
             <span t-field="submenu.name"/>
         </a>
     </li>
     <li t-if="submenu.child_id" t-attf-class="dropdown #{
-        (submenu.url and submenu.url != '/' and any([request.httprequest.path == child.url.replace('/website.', '/') for child in submenu.child_id if child.url]) or
-         (submenu.url and request.httprequest.path == submenu.url.replace('/website.', '/'))) and 'active'
+        (submenu.path and submenu.path != '/' and any([request.httprequest.path == child.path.replace('/website.', '/') for child in submenu.child_id if child.path]) or
+         (submenu.path and request.httprequest.path == submenu.path.replace('/website.', '/'))) and 'active'
         }">
         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
             <span t-field="submenu.name"/> <span class="caret" t-ignore="true"></span>
@@ -185,7 +185,7 @@
         <attribute name="t-if">website.user_id != user_id</attribute>
     </xpath>
     <xpath expr="//header//ul[@id='top_menu']/li[hasclass('divider')]" position="before">
-        <t t-foreach="website.menu_id.child_id" t-as="submenu">
+        <t t-foreach="website.menu_ids" t-as="submenu">
             <t t-call="website.submenu"/>
         </t>
     </xpath>
@@ -299,7 +299,7 @@
                 <div class="col-md-4  col-lg-3" id="info">
                     <h4>Connect with us</h4>
                     <ul class="list-unstyled">
-                        <li><a href="/website.contactus">Contact us</a></li>
+                        <li><a href="/page/website.contactus">Contact us</a></li>
                     </ul>
                     <ul class="list-unstyled">
                         <li t-ignore="true"><i class="fa fa-phone"></i> <span t-field="res_company.phone"></span></li>
@@ -317,7 +317,7 @@
                 <div class="col-md-4 col-lg-5 col-lg-offset-1">
                     <h4>
                         <span t-field="res_company.name" />
-                        <small> - <a href="/website.aboutus">About us</a></small>
+                        <small> - <a href="/page/website.aboutus">About us</a></small>
                     </h4>
                     <div>
                         <p>
@@ -528,12 +528,6 @@
 
 <template id="default_page">
     <t t-call="website.layout">
-        <div class="container" style="position: relative;">
-            <t t-call="website.publish_management">
-                <t t-set="object" t-value="main_object"/>
-                <t t-set="publish_edit" t-value="False"/>
-            </t>
-        </div>
         <div id="wrap" class="oe_structure oe_empty"/>
     </t>
 </template>
@@ -634,7 +628,7 @@
                 <p>Maybe you were looking for one of these popular pages ?</p>
                 <ul>
                     <li><a href="/">Homepage</a></li>
-                    <li><a href="/website.contactus/">Contact Us</a></li>
+                    <li><a href="/page/website.contactus/">Contact Us</a></li>
                 </ul>
             </div>
             <t t-if="editable or request.debug">
@@ -659,7 +653,7 @@
                     <p>Maybe you were looking for one of these popular pages ?</p>
                     <ul>
                         <li><a href="/">Homepage</a></li>
-                        <li><a href="/website.contactus/">Contact Us</a></li>
+                        <li><a href="/page/website.contactus/">Contact Us</a></li>
                     </ul>
                 </div>
             </div>
@@ -807,8 +801,8 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
 </sitemapindex>
 </template>
 
-<!-- Actual pages -->
-<!--<template id="homepage" name="Homepage" page="True" priority="29">
+<!-- TODO:RDE - QSM rebase conflict-> Check if content is updated & if so update it in ir_ui_view record
+<template id="homepage" name="Homepage" page="True" priority="29">
     <t t-call="website.layout">
         <t t-set="pageName" t-value="'homepage'"/>
         <div id="wrap" class="oe_structure oe_empty"/>
@@ -832,7 +826,8 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
     </t>
 </template>
 
-<!--<template id="contactus" name="Contact us" page="True">
+<!-- TODO:RDE - QSM rebase conflict-> Check if content is updated & if so update it in ir_ui_view record
+<template id="contactus" name="Contact us" page="True">
     <t t-call="website.layout">
       <div id="wrap">
         <div class="oe_structure"/>
@@ -902,7 +897,6 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
         </div>
     </t>
 </template>-->
-
 <template id="website_search_box" name="Website Searchbox">
     <div class="input-group">
         <div class="oe_search">
@@ -913,4 +907,68 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
         </span>
     </div>
 </template>
+
+
+<template id="index_management">
+    <t groups="website.group_website_publisher" t-ignore="true">
+        <div t-attf-class="pull-right js_index_management #{object.website_indexed and 'css_published' or 'css_unpublished'}" t-att-data-id="object.id" t-att-data-object="object._name">
+            <button class="btn btn-danger js_index_btn">Unindexed</button>
+            <button class="btn btn-success js_index_btn">Indexed</button>
+        </div>
+    </t>
+</template>
+
+<!--<template id="edit_website_pages" name="Website Pages Management">
+  <t t-call="website.layout">
+    <div id="wrap">
+      <div class="container js_pages_management">
+          <h3>Pages Management
+              <t t-call="website.website_search_box"/>
+          </h3>
+          <t t-if="not pages">
+              <p>There are currently no pages for your website.</p>
+          </t>
+          <div t-if="pages" class="panel panel-default">
+              <div class="table-responsive"><table class="table table-hover o_my_status_table">
+                  <thead>
+                    <tr class="active">
+                      <th>
+                        <span>Name</span>
+                      </th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <t t-foreach="pages" t-as="page">
+                      <tr class="pages_management_main_object" t-att-data-main-object="page">
+                          <td>
+                              <t t-call="website.publish_management">
+                                  <t t-set="object" t-value="page"/>
+                                  <t t-set="publish_edit" t-value="page.website_published"/>
+                              </t>
+                              <a t-attf-href="{{page.path}}"><t t-esc="page.name"/></a>
+                          </td>
+                          <td>
+                              <span class="dropdown">
+                                  <a class="dropdown-toggle fa fa-lg fa-cog" data-toggle="dropdown" href="#" title="Manage this page"></a>
+                                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
+                                      <li><a href="#" class="js_rename_page">Rename</a></li>
+                                      <li><a t-attf-href="{{page.path}}?enable_editor=1">Edit</a></li>
+                                      <li><a href="#" data-action="duplicate_page">Duplicate</a></li>
+                                      <li><a href="#" class="js_delete_page">Delete</a></li>
+                                  </ul>
+                            </span>
+                          </td>
+                      </tr>
+                  </t>
+              </table></div>
+              <div t-if="pager" class="o_portal_pager text-center">
+                <t t-call="website.pager"/>
+              </div>
+          </div>
+      </div>
+    </div>
+  </t>
+</template>-->
+
+
 </odoo>

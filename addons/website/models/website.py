@@ -65,14 +65,13 @@ class Website(models.Model):
     cdn_url = fields.Char('CDN Base URL', default='')
     cdn_filters = fields.Text('CDN Filters', default=lambda s: '\n'.join(DEFAULT_CDN_FILTERS), help="URL matching those filters will be rewritten using the CDN Base URL")
     partner_id = fields.Many2one(related='user_id.partner_id', relation='res.partner', string='Public Partner')
-    menu_id = fields.Many2one('website.menu', compute='_compute_menu', string='Main Menu')
+    menu_ids = fields.Many2many('website.page', compute='_compute_menu', string='Main Menu')
     favicon = fields.Binary(string="Website Favicon", help="This field holds the image used to display a favicon on the website.")
 
     @api.multi
     def _compute_menu(self):
-        Menu = self.env['website.menu']
         for website in self:
-            website.menu_id = Menu.search([('parent_id', '=', False), ('website_id', '=', website.id)], order='id', limit=1).id
+            website.menu_ids = self.env['website.page'].with_context(active_test=False).sudo().search([('parent_id', '=', False), ('is_menu', '=', True), '|', ('website_ids', '=', False), ('website_ids', 'in', website.id)], order='sequence')
 
     # cf. Wizard hack in website_views.xml
     def noop(self, *args, **kwargs):
@@ -86,9 +85,20 @@ class Website(models.Model):
     #----------------------------------------------------------
     # Page Management
     #----------------------------------------------------------
-
     @api.model
-    def new_page(self, name, template='website.default_page', ispage=True, namespace=None):
+    def new_link(self, name, redirect_to):
+        self.env['website.page'].create({
+            'name': name,
+            'path': redirect_to,
+            'website_ids': [(6, None, [self.get_current_website().id])],
+            'type': 'qweb',
+            'page': False,
+            'is_menu': True
+        })
+        return True
+    
+    @api.model
+    def new_page(self, name, add_menu=False, template='website.default_page', ispage=True, namespace=None, redirect_to=None):
         """ Create a new website page, and assign it a xmlid based on the given one
             :param name : the name of the page
             :param template : potential xml_id of the page to create
@@ -96,10 +106,8 @@ class Website(models.Model):
         """
         # completely arbitrary max_length
         page_name = slugify(name, max_length=50)
-
-        page_name = self.get_unique_path(page_name)
-
-        # new page
+        page_name = self.get_unique_path(page_name)    
+        
         template_record = self.env.ref(template)
 
         self.env['website.page'].create({
@@ -108,11 +116,14 @@ class Website(models.Model):
             'arch': template_record.arch.replace(template, page_name),
             'website_ids': [(6, None, [self.get_current_website().id])],
             'type': 'qweb',
-            'page': True
+            'page': ispage,
+            'is_menu': add_menu
         })
-        return page_name
+        return '/' + page_name
         
     def get_unique_path(self, page_name):
+        if page_name.startswith('/'):
+            page_name = page_name[1:]
         website_id = self.get_current_website().id
         inc = 0
         domain_static = [('website_ids', '=', False), ('website_ids', 'in', website_id)]
@@ -138,6 +149,8 @@ class Website(models.Model):
         page = self.env['website.page'].browse(view_id)
         if page:
             page.unlink()
+            
+    
 
     @api.model
     def rename_page(self, view_id, new_name):
@@ -210,14 +223,15 @@ class Website(models.Model):
             # search for menu with link
             menu_search_dom = [
                 '|', ('website_id', '=', website_id), ('website_id', '=', False),
-                '|', ('url', 'ilike', path), ('url', 'ilike', fullpath)
+                '|', ('path', '=', path), ('path', '=', fullpath),
+                ('is_menu', '=', True)
             ]
 
             menu_key = _('Menu')
-            menus = self.env['website.menu'].search(menu_search_dom)
-            for menu in menus:
+            pages_menu = self.env['website.page'].search(menu_search_dom)
+            for page in pages_menu:
                 dependencies.setdefault(menu_key, []).append({
-                    'text': _('This page is in the menu <b>%s</b>') % menu.name,
+                    'text': _('This page is in the menu <b>%s</b>') % page.name,
                     'link': False
                 })
                 
@@ -354,7 +368,7 @@ class Website(models.Model):
         return all((arg in rule._converters) for arg in args)
 
     @api.multi
-    def enumerate_pages(self, query_string=None):
+    def enumerate_pages(self, query_string=None, hide_unindexed_pages=False):
         """ Available pages in the website/CMS. This is mostly used for links
             generation and can be overridden by modules setting up new HTML
             controllers for dynamic pages (e.g. blog).
@@ -405,13 +419,12 @@ class Website(models.Model):
 
                 yield page
 
-        Page = request.env['website.page']
         # '/' already has a http.route & is in the routing_map so it will already have an entry in the xml
-        domain = [('page', '=', True), ('path', '!=', '/'), ('website_published', '=', True)]
-        website = request.env['website'].get_current_website()
-        domain += ['|', ('website_ids', 'in', website.id), ('website_ids', '=', False)]
+        domain = [('path', '!=', '/'), ('website_published', '=', True)]
+        if hide_unindexed_pages:
+            domain += [('website_indexed', '=', True)]
 
-        pages = Page.search_read(domain, fields=['path', 'priority', 'write_date'], order='name')
+        pages = self.get_website_pages(domain)
         for page in pages:
             record = {'loc': page['path']}
             if page['priority'] != 16:
@@ -419,6 +432,14 @@ class Website(models.Model):
             if page['write_date']:
                 record['lastmod'] = page['write_date'][:10]
             yield record
+
+    @api.multi
+    def get_website_pages(self, domain=[], order='name', limit=None):
+        Page = request.env['website.page']
+        website = request.env['website'].get_current_website()
+        domain += [('page', '=', True), '|', ('website_ids', 'in', website.id), ('website_ids', '=', False)]
+        pages = Page.search(domain, order='name', limit=limit)
+        return pages
 
     @api.multi
     def search_pages(self, needle=None, limit=None):
@@ -457,7 +478,7 @@ class Website(models.Model):
         return self.env.ref('website.action_website').read()[0]
 
 
-class Menu(models.Model):
+"""class Menu(models.Model):
 
     _name = "website.menu"
     _description = "Website Menu"
@@ -521,6 +542,7 @@ class Menu(models.Model):
         for menu in data['data']:
             self.browse(menu['id']).write(menu)
         return True
+"""
 
 
 class SeoMetadata(models.AbstractModel):
@@ -568,10 +590,9 @@ class Page(models.Model):
     _description = "Page"
 
     ir_ui_view_id = fields.Many2one('ir.ui.view', string='View', required=True, ondelete="cascade")
-    path = fields.Char('Page Path')
-
-    #website_id = fields.Many2one('website', 'Website')
     website_ids = fields.Many2many('website', string='Websites')
+    path = fields.Char('Page Path')
+    website_indexed = fields.Boolean('Page indexed', default=True)
 
     @api.multi
     def unlink(self):
@@ -587,6 +608,127 @@ class Page(models.Model):
 
     @api.model
     def get_pages(self, website_id):
-        domain = ['|', ('website_ids', 'in', website_id), ('website_ids', '=', False)]
-        pages = self.search_read(domain, fields=['path', 'website_published', 'name'], order='path')
-        return pages
+        pages_domain = ['|', ('website_ids', 'in', website_id), ('website_ids', '=', False)]
+        pages_domain += [('parent_id', '=', None), ('is_menu', '=', False)]
+        pages = self.search_read(pages_domain, fields=['path', 'website_published', 'name', 'page', 'parent_id', 'is_homepage', 'is_menu', 'website_meta_title', 'website_meta_keywords', 'website_meta_description'], order='path')
+        return {
+            'pages': pages,
+        }
+        
+    @api.model
+    def get_homepage(self, website_id):
+        pages_domain = ['|', ('website_ids', 'in', website_id), ('website_ids', '=', False)]
+        pages_domain += [('is_homepage', '=', True)]
+        page = self.search(pages_domain, order='sequence', limit=1)
+        return page
+
+    @api.model
+    def get_page_from_path(self, path, website_id):
+        #menu_domain = ['|', ('website_id', '=', website_id), ('website_id', '=', False), ('url', '=', path)]
+        #menu = self.env['website.menu'].search(menu_domain, limit=1)
+
+        pages_domain = ['|', ('website_ids', 'in', website_id), ('website_ids', '=', False), ('path', '=', path)]
+        page = self.search_read(pages_domain, fields=['name', 'website_indexed', 'path', 'page', 'is_menu', 'is_homepage', 'website_meta_title', 'website_meta_keywords', 'website_meta_description'], limit=1)
+        return page
+
+    @api.model
+    def save_page_info(self, website_id, data):
+        if data['is_homepage']:
+            self.search(['|', ('website_ids', 'in', website_id), ('website_ids', '=', False), ('is_homepage', '=', True)]).write({'is_homepage': False})
+        self.browse(data['id']).write(data)
+        return True
+        
+    @api.model
+    def clone_page(self, page_id):
+        """ Clone a page, given its identifier
+            :param page_id : website.page identifier
+        """
+        page = self.env['website.page'].browse(page_id)
+        new_page = page.copy()
+        #rec = super(Page, page).copy()
+        new_path = self.env['website'].get_unique_path(page.path)
+        new_name = page.name + ' (clone)'
+        new_page.write({
+            'path': '/' + new_path,
+            'name': new_name,
+        })
+        return new_path
+            
+    # ------- MENU ------- #
+    _parent_store = True
+    _parent_order = 'sequence'
+    _order = "sequence"
+
+    def _default_sequence(self):
+        menu = self.search([], limit=1, order="sequence DESC")
+        return menu.sequence or 0
+
+    is_menu = fields.Boolean('Show in menu', default=True)
+    is_homepage = fields.Boolean('Website home page', default=False)
+    #menu_name = fields.Char('Menu Entry')
+    new_window = fields.Boolean('New Window', default=False)
+    sequence = fields.Integer(default=_default_sequence)
+    parent_id = fields.Many2one('website.page', 'Parent Menu', index=True, ondelete="set null")
+    child_id = fields.One2many('website.page', 'parent_id', string='Child Menus')
+    parent_left = fields.Integer('Parent Left', index=True)
+    parent_right = fields.Integer('Parent Rigth', index=True)
+
+    # would be better to take a menu_id as argument
+    @api.model
+    def get_tree(self, website_id, menu_id=None):
+        #import pudb;pu.db
+        def make_tree(node):
+            menu_node = dict(
+                id=node.id,
+                name=node.name,
+                path=node.path,
+                page=node.page,
+                new_window=node.new_window,
+                sequence=node.sequence,
+                is_menu=node.is_menu,
+                is_homepage=node.is_homepage,
+                parent_id=node.parent_id.id,
+                children=[],
+                model='website.page'
+            )
+            for child in node.child_id:
+                menu_node['children'].append(make_tree(child))
+            return menu_node
+        return_node = []
+        menus = self.env['website'].browse(website_id).menu_ids
+        for menu in menus:
+            return_node.append(make_tree(menu))
+        return return_node
+
+    @api.model
+    def save_tree_menu(self, website_id, data):
+        def replace_id(old_id, new_id):
+            for menu in data['data']:
+                if menu['id'] == old_id:
+                    menu['id'] = new_id
+                if menu['parent_id'] == old_id:
+                    menu['parent_id'] = new_id
+        
+        #import pudb;pu.db
+        #TODO: somehow send to_delete array so we can browse on just ID to remove not all
+        #I can think of 2 ways in JS: compare menu array before (load_page_management_menu) 
+        #and when click on save and ID in first but not in second array are to delete
+        to_delete = data['to_delete']
+        if to_delete:
+            self.browse(to_delete).write({'is_menu': False, 'parent_id': None})
+        #self.search([]).write({'is_menu': False, 'parent_id': None})
+        
+        for menu in data['data']:
+            if 'parent_id' not in menu:
+                menu['parent_id'] = None
+            mid = menu['id']
+            if isinstance(mid, basestring):
+                new_menu = self.create({'name': menu['name']})
+                replace_id(mid, new_menu.id)
+        for menu in data['data']:
+            if 'parent_id' not in menu:
+                menu['parent_id'] = None
+            menu['is_menu'] = True
+            self.browse(menu['id']).write(menu)
+        return True
+        

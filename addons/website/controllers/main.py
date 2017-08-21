@@ -13,7 +13,7 @@ import werkzeug.utils
 import werkzeug.wrappers
 
 import odoo
-from odoo import http, models
+from odoo import http, models, _
 from odoo import fields
 from odoo.http import request
 
@@ -83,6 +83,7 @@ class Website(Home):
         # First menu is not '/' & not admin & '/' exist in db               => return /
         # First menu is not '/' & not admin & '/' does not exist in db      => return first_menu url (not /)
         """
+        """
         # try will return page or editable 404 if user has right
         # except will return 404 or first_menu url if not "/"
         try:
@@ -101,6 +102,31 @@ class Website(Home):
                         return request.env['ir.http']._serve_page()
                     else:
                         return request.env['ir.http'].reroute(first_menu.url)
+                else:
+                    # if no menu & "/" does not exists (we are in except) -> trigger 404 by rendering not existing page
+                    return request.env['ir.http']._serve_page()"""
+        # check if homepage exist, if so, serve it (even if 404)
+        homepage = request.env['website.page'].sudo().get_homepage(request.website.id)
+        if homepage:
+            if homepage.path == '/':
+                # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page
+                return request.env['ir.http']._serve_page()
+            return request.env['ir.http'].reroute(homepage.path)
+        else:
+            try:
+                website_page = request.env['ir.http']._serve_page()
+                if website_page:
+                    return website_page
+            except:
+                first_menu = request.website.sudo().menu_ids[0]
+                if first_menu:
+                    if first_menu.path and (not (first_menu.path.startswith(('/', '/?', '/#')))):
+                        return request.redirect(first_menu.path)
+                    elif first_menu.path == '/':
+                        # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page
+                        return request.env['ir.http']._serve_page()
+                    else:
+                        return request.redirect(first_menu.path)
                 else:
                     # if no menu & "/" does not exists (we are in except) -> trigger 404 by rendering not existing page
                     return request.env['ir.http']._serve_page()
@@ -176,7 +202,7 @@ class Website(Home):
             sitemaps.unlink()
 
             pages = 0
-            locs = request.website.sudo(user=request.website.user_id.id).enumerate_pages()
+            locs = request.website.sudo(user=request.website.user_id.id).enumerate_pages(hide_unindexed_pages=True)
             while True:
                 values = {
                     'locs': islice(locs, 0, LOC_PER_SITEMAP),
@@ -230,22 +256,56 @@ class Website(Home):
     #------------------------------------------------------
     # Edit
     #------------------------------------------------------
+    
+    """@http.route(['/website/pages_management', '/website/pages_management/<int:page_number>'], type='http', auth="user", website=True)
+    def edit_website_pages(self, page_number=1, sortby=None, **kw):
+        Page = request.env['website.page']
+
+        searchbar_sortings = {
+            #'date': {'label': _('Order Date'), 'order': 'date_order desc'},
+            'name': {'label': _('Name'), 'order': 'name'},
+        }
+        # default sortby order
+        if not sortby:
+            sortby = 'name'
+        # proper way to do that ?
+        try:
+            sort_order = searchbar_sortings[sortby]['order']
+        except:
+            sort_order = 'name'
+
+        domain = ['|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
+        order_count = Page.search_count(domain)
+        # pager
+        pager = request.website.pager(
+            url="/website/pages_management",
+            url_args={'sortby': sortby},
+            total=order_count,
+            page=page_number,
+            step=10
+        )
+        # content according to pager and archive selected
+        pages = Page.search(domain, order=sort_order, limit=10, offset=pager['offset'])
+        request.session['edit_website_pages_history'] = pages.ids[:100]
+
+        values = {
+            #'date': date_begin,
+            'pages': pages.sudo(),
+            #'page_name': 'order',
+            'pager': pager,
+            #'archive_groups': archive_groups,
+            #'default_url': '/my/orders',
+            #'searchbar_sortings': searchbar_sortings,
+            'sortby': sortby,
+        }
+        return request.render("website.edit_website_pages", values)"""
 
     @http.route('/website/add/<path:path>', type='http', auth="user", website=True)
-    def pagenew(self, path, noredirect=False, add_menu=None, template=False):
+    def pagenew(self, path, noredirect=False, add_menu=False, template=False):
         if template:
-            xml_id = request.env['website'].new_page(path, template=template)
+            url = request.env['website'].new_page(path, add_menu=add_menu, template=template)
         else:
-            xml_id = request.env['website'].new_page(path)
-        
-        url = "/" + xml_id # "/" + xml_id[8:]
-        if add_menu:
-            request.env['website.menu'].create({
-                'name': path,
-                'url': url,
-                'parent_id': request.website.menu_id.id,
-                'website_id': request.website.id,
-            })
+            url = request.env['website'].new_page(path, add_menu=add_menu)
         
         if noredirect:
             return werkzeug.wrappers.Response(url, mimetype='text/plain')
@@ -300,7 +360,6 @@ class Website(Home):
         if 'website_published' in Model._fields:
             values['website_published'] = not record.website_published
         record.write(values)
-        raise
         return bool(record.website_published)
 
     @http.route(['/website/seo_suggest'], type='json', auth="user", website=True)

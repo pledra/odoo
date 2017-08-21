@@ -22,7 +22,19 @@ body.o_connected_user {
         font-size: inherit;
         border-radius: 0;
     }
+    
+    .o_menu_sections {
+        a {
+            > .fa-plus, > .fa-pencil {
+                margin-right: @grid-gutter-width/4;
+            }
+        }
 
+        .o_mobile_preview a {
+            text-align: center;
+            font-size: 20px;
+        }
+    }
     .o_menu_systray {
         a {
             padding: 0 @grid-gutter-width/2;

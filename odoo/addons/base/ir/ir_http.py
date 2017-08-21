@@ -175,7 +175,6 @@ class IrHttp(models.AbstractModel):
             'deletable': True,  # used to add 'delete this page' in content menu
             'main_object': mypage,
         }
-        
         if mypage:
             return mypage.ir_ui_view_id.render(values)
         else:
@@ -183,7 +182,8 @@ class IrHttp(models.AbstractModel):
                 values.pop('deletable')
                 return request.render('website.page_404', values)
             else:
-                raise werkzeug.exceptions.NotFound
+                #should be raise
+                return werkzeug.exceptions.NotFound()
 
     @classmethod
     def _handle_exception(cls, exception):

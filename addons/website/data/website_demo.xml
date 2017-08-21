@@ -147,13 +147,15 @@ response = request.render("website.template_partner_comment", {
           (Put in another way, external_id 'website.contactus' can't be the external_id of the website_page record or the inherit will ofc fail)
           (Or change inherit_id in related files but possibly alot. Safer this way)
         -->
+
+        
         <record id="homepage" model="ir.ui.view">  
-            <field name="name">Homepage</field>
+            <field name="name">Home</field>
             <field name="type">qweb</field>
             <field name="key">website.homepage</field>
             <field name="page">True</field>            
             <field name="arch" type="xml">
-                <t name="Homepage" priority="29" t-name="website.homepage">
+                <t name="Home" priority="29" t-name="website.homepage">
                     <t t-call="website.layout">
                         <t t-set="pageName" t-value="'homepage'"/>
                         <div id="wrap" class="oe_structure oe_empty"/>
@@ -165,6 +167,8 @@ response = request.render("website.template_partner_comment", {
             <field name="website_published">True</field>
             <field name="path">/</field>
             <field name="ir_ui_view_id" ref="homepage" />
+            <field name="sequence" type="int">10</field>
+            <field name="is_homepage">True</field>
         </record>
         
         <record id="contactus" model="ir.ui.view">
@@ -206,6 +210,7 @@ response = request.render("website.template_partner_comment", {
             <field name="path">/contactus</field>
             <field name="website_published">True</field>
             <field name="ir_ui_view_id" ref="contactus" />
+            <field name="sequence" type="int">60</field>
         </record>
         
         <record id="aboutus" model="ir.ui.view">  
@@ -262,20 +267,18 @@ response = request.render("website.template_partner_comment", {
             <field name="website_published">True</field>
             <field name="path">/aboutus</field>
             <field name="ir_ui_view_id" ref="aboutus" />
+            <field name="is_menu">False</field>
         </record>
         
 
 
-
-
-
         <record id="website2_homepage" model="ir.ui.view">  
-            <field name="name">Homepage</field>
+            <field name="name">Home</field>
             <field name="type">qweb</field>
             <field name="key">website.homepage</field>
             <field name="page">True</field>            
             <field name="arch" type="xml">
-                <t name="Homepage" priority="29" t-name="website.homepage">
+                <t name="Home" priority="29" t-name="website.homepage">
                   <t t-call="website.layout">
                     <div id="wrap" class="oe_structure oe_empty">
                       <div class="carousel slide mb32" id="myCarousel0" style="height: 320px;">
@@ -315,29 +318,8 @@ response = request.render("website.template_partner_comment", {
             <field name="path">/</field>
             <field name="ir_ui_view_id" ref="website2_homepage" />
             <field name="website_ids" eval="[(4, ref('website2'))]" />
-        </record>
-
-
-
-        <record id="website2_main_menu" model="website.menu">
-            <field name="name">Top Menu</field>
-            <field name="website_id" ref="website2"/>
-        </record>
-
-        <record id="website2_menu_homepage" model="website.menu">
-            <field name="name">Home</field>
-            <field name="url">/homepage</field>
-            <field name="parent_id" ref="website.website2_main_menu"/>
             <field name="sequence" type="int">10</field>
-            <field name="website_id" ref="website2"/>
-        </record>
-
-        <record id="website2_menu_contactus" model="website.menu">
-            <field name="name">Contact us</field>
-            <field name="url">/website.contactus</field>
-            <field name="parent_id" ref="website.website2_main_menu"/>
-            <field name="sequence" type="int">60</field>
-            <field name="website_id" ref="website2"/>
+            <field name="is_homepage">True</field>
         </record>
 
     </data>

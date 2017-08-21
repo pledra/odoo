@@ -8,6 +8,7 @@ var base = require('web_editor.base');
 var editor = require('web_editor.editor');
 var widget = require('web_editor.widget');
 var website = require('website.website');
+var websiteSeo = require('website.seo');
 
 var _t = core._t;
 var qweb = core.qweb;
@@ -15,54 +16,69 @@ var qweb = core.qweb;
 ajax.loadXML('/website/static/src/xml/website.contentMenu.xml', qweb);
 
 var TopBarContent = Widget.extend({
+    events: {
+        "click .js_delete_page": "delete_page",
+        "click .js_clone_page": "clone_page",
+        "click .js_save_page_info": "save_page_info",
+        "click .js_load_page_info": "load_page_info",
+        "click .js_close_page_info": "close_page_info",
+        "click a.js_add_menu": "add_menu"
+    },
     start: function () {
         var self = this;
-
+        self.to_delete = [];
+        self.websiteSeoConfig = null;
         // Add page modal + menu content event
-        this.$el.add($('#o_website_add_page_modal')).on('click', 'a[data-action]', function (e) {
+        this.$el.add($('#o_website_add_page_modal')).on('click', 'a[data-action], button[data-action]', function (e) {
             e.preventDefault();
             self[$(this).data('action')]();
         });
-
-        return this._super();
-    },
-    edit_menu: function (action_before_reload) {
-        var context = base.get_context();
-        var def = $.Deferred();
-        if ($("[data-content_menu_id]").length) {
-            var select = new SelectEditMenuDialog();
-            select.on('save', this, function (root) {
-                def.resolve(root);
-            });
-            select.open();
-        } else {
-            def.resolve(null);
-        }
-
-        return def.then(function (root_id) {
-            return ajax.jsonRpc('/web/dataset/call_kw', 'call', {
-                model: 'website.menu',
-                method: 'get_tree',
-                args: [context.website_id, root_id],
-                kwargs: {
-                    context: context
+        self.load_page_management_menu().then(function(e){
+            $('#pages_management_menu_pages').nestedSortable({
+                listType: 'ul',
+                handle: 'div',
+                items: 'li',
+                maxLevels: 2,
+                toleranceElement: '> div',
+                forcePlaceholderSize: true,
+                opacity: 0.6,
+                placeholder: 'oe_menu_placeholder',
+                tolerance: 'pointer',
+                attribute: 'data-menu-id',
+                expression: '()(.+)', // nestedSortable takes the second match of an expression (*sigh*)
+                connectWith: '#pages_management_other_pages',
+                receive: function(event, ui) { 
+                    var id = $(ui.item).data('menu-id');
+                    var index = self.to_delete.indexOf(+id);
+                    if(index)
+                        self.to_delete.splice(index, 1);
                 },
-            }).then(function (menu) {
-                var dialog = new EditMenuDialog(this, {}, menu).open();
-                dialog.on("save", null, function () {
-                    $.when(action_before_reload && action_before_reload()).then(function () {
-                        editor.reload();
-                    });
-                });
-                return dialog;
             });
+            $('#pages_management_other_pages').nestedSortable({
+                listType: 'ul',
+                handle: 'div',
+                items: 'li',
+                maxLevels: 1,
+                toleranceElement: '> div',
+                forcePlaceholderSize: true,
+                opacity: 0.6,
+                placeholder: 'oe_menu_placeholder',
+                tolerance: 'pointer',
+                attribute: 'data-menu-id',
+                expression: '()(.+)', // nestedSortable takes the second match of an expression (*sigh*)
+                connectWith: '#pages_management_menu_pages',
+                receive: function(event, ui) { self.to_delete.push($(ui.item).data('menu-id'));},
+            });
+            
+            if (location.search.indexOf("spm") > -1)
+                self.open_management_page_menu();
         });
     },
-    manage_pages: function (action_before_reload) {
+    load_page_management_menu: function () {
         var context = base.get_context();
         var def = $.Deferred();
         def.resolve(null);
-        
+        var self = this;
         return def.then(function (root_id) {
             return ajax.jsonRpc('/web/dataset/call_kw', 'call', {
                 model: 'website.page',
@@ -71,17 +87,133 @@ var TopBarContent = Widget.extend({
                 kwargs: {
                     context: context
                 },
-            }).then(function (pages) {
-                var dialog = new EditMenuPagesDialog(this, {}, pages).open();
-                //TODO: not sure ?
-                /*dialog.on("save", null, function () {
-                    $.when(action_before_reload && action_before_reload()).then(function () {
-                        editor.reload();
-                    });
-                });*/
-                return dialog;
+            }).then(function (result) {
+                return ajax.jsonRpc('/web/dataset/call_kw', 'call', {
+                    model: 'website.page',
+                    method: 'get_tree',
+                    args: [context.website_id],
+                    kwargs: {
+                        context: context
+                    },
+                }).then(function (menu) {
+                    self.menus = menu;
+                    self.root_menu_id = menu.id;
+                    self.flat = self.flatenize(menu);
+                    self.flat = self.flatenize(result.pages, self.flat);
+                    $(qweb.render('website.pagesMenu', {pages: result.pages, tree_menu:menu, page_url: window.location.pathname})).appendTo(".oe_page_management_menu");
+                });
             });
         });
+    },
+    open_management_page_menu: function(){
+        this.$el.toggleClass('open');
+    },
+    save_management_page_menu: function(){
+        var self = this;
+        var new_menu = this.$('#pages_management_menu_pages').nestedSortable('toArray', {startDepthCount: 0});
+        var levels = [];
+        var data = [];
+        var context = base.get_context();
+        // Resequence, re-tree and remove useless data
+        new_menu.forEach(function (menu) {
+            if (menu.id) {
+                levels[menu.depth] = (levels[menu.depth] || 0) + 1;
+                var mobj = self.flat[menu.id];
+                mobj.sequence = levels[menu.depth];
+                mobj.parent_id = (menu.parent_id|0) || menu.parent_id || self.root_menu_id;
+                delete(mobj.children);
+                data.push(mobj);
+            }
+        });       
+        
+        ajax.jsonRpc('/web/dataset/call_kw', 'call', {
+            model: 'website.page',
+            method: 'save_tree_menu',
+            args: [[context.website_id], { data: data, to_delete: self.to_delete }],
+            kwargs: {
+                context: context
+            },
+        }).then(function () {
+            //Redraw menu
+            editor.reload();
+        });
+        
+    },
+    load_page_info: function(ev){
+        var self = this;
+        var context = base.get_context();
+        var def = $.Deferred();
+        def.resolve(null);
+        return def.then(function (root_id) {
+            return ajax.jsonRpc('/web/dataset/call_kw', 'call', {
+                model: 'website.page',
+                method: 'get_page_from_path',
+                args: [$(ev.currentTarget).data('page-path'),context.website_id],
+                kwargs: {
+                    context: context
+                },
+            }).then(function (page) {
+                $(".oe_page_management_page_info").html($(qweb.render('website.pagesMenu.page_info', {page: page[0], server_url:window.location.origin})));
+                self.websiteSeoConfig = new websiteSeo.Configurator(self, {page: page[0],model: $(ev.currentTarget).data('model')});
+                self.websiteSeoConfig.appendTo($('#seo_promote'));
+                $(".oe_page_management_page_info").show();
+                $("button[data-action='save_management_page_menu']").prop('disabled', true);
+            });
+        });
+    },
+    close_page_info: function(ev){
+        $(".oe_page_management_page_info").hide();
+        $("button[data-action='save_management_page_menu']").prop('disabled', false);
+    },
+    save_page_info: function(ev){
+        var self = this;
+        var context = base.get_context();
+        var page_name = $(".oe_page_management_page_info #page_name").val();
+        var page_path = $(".oe_page_management_page_info #page_path").val();
+        var is_menu = $(".oe_page_management_page_info #is_menu").prop('checked');
+        var is_homepage = $(".oe_page_management_page_info #is_homepage").prop('checked');
+        var website_meta_title = $(".oe_page_management_page_info input[name=seo_page_title]").val();
+        var website_meta_description = $('.oe_page_management_page_info textarea[name=seo_page_description]').val();
+        var data = {
+            name: page_name, 
+            path: page_path,
+            is_menu: is_menu,
+            is_homepage: is_homepage,
+            id: $(ev.currentTarget).data('id'),
+            website_meta_title: website_meta_title,
+            website_meta_description: website_meta_description,
+        }
+        //ES6: Object.assign(seo_fields, this.websiteSeoConfig.get_fields());
+        var seo_fields = this.websiteSeoConfig.get_fields();
+        for (var attrname in seo_fields) { data[attrname] = seo_fields[attrname]; }
+        ajax.jsonRpc('/web/dataset/call_kw', 'call', {
+            model: 'website.page',
+            method: 'save_page_info',
+            args: [[context.website_id], data],
+            kwargs: {
+                context: context
+            },
+        }).then(function () {
+            //Redirect to the modified page
+            window.location = page_path + '?spm=1'
+            //Just some not very usefull ui but help user to see it is working
+            $(".oe_page_management_page_info").hide();
+            $("button[data-action='save_management_page_menu']").prop('disabled', false);
+        });
+    },
+    flatenize: function (nodes, dict) {
+        dict = dict || {};
+        var self = this;
+        nodes.forEach(function(node){
+            dict[node.id] = node;
+            if(typeof node.children === 'undefined')
+                node.children = [];
+            node.children.forEach(function (child) {
+                self.flatenize([child], dict);
+            });
+        });
+        
+        return dict;
     },
     new_page: function () {
         website.prompt({
@@ -106,44 +238,25 @@ var TopBarContent = Widget.extend({
             }
         });
     },
-    rename_page: function () {
+    clone_page: function(ev){
         var self = this;
         var context = base.get_context();
-        self.mo_id = self.getMainObject().id;
-
+        self.mo_id = $(ev.currentTarget).data('id');
         ajax.jsonRpc('/web/dataset/call_kw', 'call', {
-            model: 'website',
-            method: 'page_search_dependencies',
+            model: 'website.page',
+            method: 'clone_page',
             args: [self.mo_id],
             kwargs: {
-                context: context
+                context: context,
             },
-        }).then(function (deps) {
-            website.prompt({
-                id: "editor_rename_page",
-                window_title: _t("Rename This Page"),
-                dependencies: deps,
-            }, 'website.rename_page').then(function (val, field, $dialog) {
-                ajax.jsonRpc('/web/dataset/call_kw', 'call', {
-                    model: 'website',
-                    method: 'rename_page',
-                    args: [
-                        self.mo_id,
-                        val,
-                    ],
-                    kwargs: {
-                        context: context
-                    },
-                }).then(function (new_name) {
-                    window.location = "/" + encodeURIComponent(new_name);
-                });
-            });
+        }).then(function (path) {
+            window.location = path + '?spm=1';
         });
     },
-    delete_page: function () {
+    delete_page: function (ev) {
         var self = this;
         var context = base.get_context();
-        self.mo_id = self.getMainObject().id;
+        self.mo_id = $(ev.currentTarget).data('id');
 
         ajax.jsonRpc('/web/dataset/call_kw', 'call', {
             model: 'website',
@@ -169,24 +282,34 @@ var TopBarContent = Widget.extend({
                             context: context
                         },
                     }).then(function () {
-                        window.location = "/";
+                        if(typeof callback === 'function')
+                            callback();
+                        else
+                            window.location = "/?spm=1";
                     });
                 }
             });
         });
     },
-    getMainObject: function () {
-        var repr = $('html').data('main-object');
-        var m = repr.match(/(.+)\((\d+),(.*)\)/);
-        if (!m) {
-            return null;
-        } else {
-            return {
-                model: m[1],
-                id: m[2]|0
+    add_menu: function () {
+        var self = this;
+        var dialog = new MenuEntryDialog(this, {menu_link_options: false}, undefined, {});
+        dialog.on('save', this, function (link) {
+            var new_menu = {
+                id: _.uniqueId('new-'),
+                name: link.text,
+                url: link.url,
+                new_window: link.isNewWindow,
+                parent_id: false,
+                sequence: 0,
+                children: [],
             };
-        }
-    }
+            self.flat[new_menu.id] = new_menu;
+            self.$('.oe_menu_editor').append(
+                qweb.render('website.pagesMenu.submenu', { submenu: new_menu }));
+        });
+        dialog.open();
+    },
 });
 
 website.TopBar.include({
@@ -197,7 +320,7 @@ website.TopBar.include({
     }
 });
 
-var SelectEditMenuDialog = widget.Dialog.extend({
+/*var SelectEditMenuDialog = widget.Dialog.extend({
     template: 'website.contentMenu.dialog.select',
     init: function (parent, options) {
         var self = this;
@@ -216,56 +339,8 @@ var SelectEditMenuDialog = widget.Dialog.extend({
     }
 });
 
-var EditMenuPagesDialog = widget.Dialog.extend({
-    template: 'website.contentMenu.pagesManagement.dialog.edit',
-    events: _.extend({}, widget.Dialog.prototype.events, {
-        'click a.js_goto_page': 'goto_page',
-        'click button.js_publish_page': 'publish_page',
-        'click button.js_edit_page': 'edit_page',
-        'click button.js_delete_page': 'delete_page',
-        'click button.js_rename_page': 'rename_page',
-        'click a.js_create_page': 'create_page',
-    }),
-    init: function (parent, options, pages) {
-        this.pages = pages;
-        this._super(parent, _.extend({}, {
-            title: _t("Pages Management"),
-            size: 'medium',
-        }, options || {}));
-    },
-    delete_page: function(ev){
-        var topBarContent = new TopBarContent();
-        topBarContent.delete_page();
-    },
-    rename_page: function(ev){
-        var topBarContent = new TopBarContent();
-        topBarContent.rename_page();
-    },
-    publish_page: function (ev){
-        var page_id = $(ev.currentTarget).closest('[data-page-id]').data('page-id');
-        ajax.jsonRpc('/website/publish', 'call', {'id': +page_id, 'object': 'website.page'})
-            .then(function (result) {
-                $(ev.currentTarget).closest('.js_publish_page').toggleClass("fa-eye-slash fa-eye").toggleClass("btn-primary btn-danger");
-            }).fail(function (err, data) {
-                website.error(data.data ? data.data.arguments[0] : "", data.data ? data.data.arguments[1] : data.statusText, '/web#return_label=Website&model=website.page&id='+page_id);
-            });
-    },
-    edit_page: function (ev) {
-        var page_path = $(ev.currentTarget).closest('[data-page-path]').data('page-path');
-        document.location = page_path + '?enable_editor=1';
-    },
-    goto_page: function (ev) {
-        var self = this;
-        var page_path = $(ev.currentTarget).closest('[data-page-path]').data('page-path');
-        document.location = page_path;
-    },
-    create_page: function (ev) {
-        var topBarContent = new TopBarContent();
-        topBarContent.new_page();
-    }
-});
 
-var EditMenuDialog = widget.Dialog.extend({
+/*var EditMenuDialog = widget.Dialog.extend({
     template: 'website.contentMenu.dialog.edit',
     events: _.extend({}, widget.Dialog.prototype.events, {
         'click a.js_add_menu': 'add_menu',
@@ -323,7 +398,7 @@ var EditMenuDialog = widget.Dialog.extend({
             };
             self.flat[new_menu.id] = new_menu;
             self.$('.oe_menu_editor').append(
-                qweb.render('website.contentMenu.dialog.submenu', { submenu: new_menu }));
+                qweb.render('website.pagesMenu.submenu', { submenu: new_menu }));
         });
         dialog.open();
     },
@@ -386,7 +461,7 @@ var EditMenuDialog = widget.Dialog.extend({
             return _super();
         });
     },
-});
+});*/
 
 var MenuEntryDialog = widget.LinkDialog.extend({
     init: function (parent, options, editor, data) {
@@ -401,35 +476,54 @@ var MenuEntryDialog = widget.LinkDialog.extend({
         this.$(".o_link_dialog_preview").remove();
         this.$(".window-new, .link-style").closest(".form-group").remove();
         this.$("label[for='o_link_dialog_label_input']").text(_t("Menu Label"));
-        if (this.menu_link_options) { // add menu link option only when adding new menu
-            this.$('#o_link_dialog_label_input').closest('.form-group').after(qweb.render('website.contentMenu.dialog.edit.link_menu_options'));
+        /*if (this.menu_link_options) { // add menu link option only when adding new menu
+            //this.$('#o_link_dialog_label_input').closest('.form-group').after(qweb.render('website.contentMenu.dialog.edit.link_menu_options'));
             this.$('input[name=link_menu_options]').on('change', function() {
                 self.$('#o_link_dialog_url_input').closest('.form-group').toggle();
             });
-        }
+        }*/
         this.$modal.find('.modal-lg').removeClass('modal-lg')
                    .find('.col-md-8').removeClass('col-md-8').addClass('col-xs-12');
 
         return this._super.apply(this, arguments);
     },
     save: function () {
-        var $e = this.$('#o_link_dialog_label_input');
-        if (!$e.val() || !$e[0].checkValidity()) {
-            $e.closest('.form-group').addClass('has-error');
-            $e.focus();
+        var context = base.get_context();
+        var label = this.$('#o_link_dialog_label_input');
+        if (!label.val() || !label[0].checkValidity()) {
+            label.closest('.form-group').addClass('has-error');
+            label.focus();
             return;
         }
-        if (this.$('input[name=link_menu_options]:checked').val() === 'new_page') {
+        var url = this.$('#o_link_dialog_url_input');
+        if (!url.val() || !url[0].checkValidity()) {
+            url.closest('.form-group').addClass('has-error');
+            url.focus();
+            return;
+        }
+        ajax.jsonRpc('/web/dataset/call_kw', 'call', {
+            model: 'website',
+            method: 'new_link',
+            args: [label.val(),url.val() ],
+            kwargs: {
+                context: context
+            },
+        }).then(function () {
+            //Redraw menu
+            editor.reload();
+        });
+        
+        
+        /*if (this.$('input[name=link_menu_options]:checked').val() === 'new_page') {
             window.location = '/website/add/' + encodeURIComponent($e.val()) + '?add_menu=1';
             return;
-        }
+        }*/
         return this._super.apply(this, arguments);
     }
 });
 
 return {
     'TopBar': TopBarContent,
-    'EditMenuDialog': EditMenuDialog,
 };
 
 });
