@@ -30,15 +30,15 @@
 
                 <ul class="o_menu_sections" groups="website.group_website_designer">
                     <!-- Content -->
-                    <li t-if="editable" class="dropdown" id="content-menu">
+                    <!--<li t-if="editable" class="dropdown" id="content-menu">
                         <a id="content-menu-button" class="dropdown-toggle waves" data-toggle="dropdown" href="#">Content</a>
                         <ul class="dropdown-menu" role="menu">
                             <li>
                                 <a data-action="edit_menu" href="#" title="Edit Top Menu">Edit Menu</a>
                             </li>
                             <li t-if="deletable" role="separator" class="divider"></li>
-						</ul>
-					</li>
+  						          </ul>
+          					</li>-->
                     <!--<li class="dropdown content" t-if="editable">
                         <a id="content-menu-button" class="dropdown-toggle waves" data-toggle="dropdown" href="#">Content</a>
                         <ul class="dropdown-menu oe_content_menu" role="menu">
@@ -51,7 +51,7 @@
                             <li><a data-action="edit_pages" href="#" title="Manage your website's page">See All Pages</a></li>
                         </ul>
                     </li>-->
-                    <li class="dropdown content active o_menu_sections oe_content_menu" t-if="editable">
+                    <li id="manage-pages-menu" class="dropdown content active o_menu_sections oe_content_menu" t-if="editable">
                       
                         <!--<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false" href="#">-->
                         <a class="dropdown-toggle" data-action="open_management_page_menu" aria-expanded="false" href="#">
@@ -66,8 +66,13 @@
                             
                         </div>
                     </li>
-                    <li groups="website.group_website_publisher">
-                        <a data-action="new_page" href="#" data-toggle="modal" data-target="#o_website_add_page_modal"><span class="fa fa-plus"/>New</a>
+                    <li class="o_new_content_menu" id="new-content-menu" groups="website.group_website_publisher">
+                        <a href="#"><span class="fa fa-plus"/>New</a>
+                        <div id="o_new_content_menu_choices" class="o_hidden">
+                            <ul>
+                                <li groups="website.group_website_designer"><a href="#" data-action="new_page"><i class="fa fa-file-o"/><p>New Page</p></a></li>
+                            </ul>
+                        </div>
                     </li>
                     <!-- Customize -->
                     <li class="dropdown" id="customize-menu">
@@ -80,12 +85,12 @@
                         </ul>
                     </li>
                     <!-- Promote -->
-                    <!--<li class="dropdown" id="promote-menu">
+                    <li class="dropdown" id="promote-menu">
                         <a class="dropdown-toggle waves" data-toggle="dropdown" href="#">Promote</a>
                         <ul class="dropdown-menu oe_promote_menu" role="menu">
                             <li><a data-action="promote-current-page" href="#" title="Promote page on the web">Optimize SEO</a></li>
                         </ul>
-                    </li>-->
+                    </li>
                 </ul>
 
                 <ul class="o_menu_systray hidden-xs" groups="website.group_website_publisher">
@@ -108,14 +113,14 @@
                         <a data-action="show-mobile-preview" href="#"><span title="Mobile preview" class="fa fa-mobile"/></a>
                     </li>
                     <!-- Page Edition -->
-                    <li class="o_new_content_menu" id="new-content-menu">
+                    <!--<li class="o_new_content_menu" id="new-content-menu">
                         <a href="#"><span class="fa fa-plus"/>New</a>
                         <div id="o_new_content_menu_choices" class="o_hidden">
                             <ul>
                                 <li groups="website.group_website_designer"><a href="#" data-action="new_page"><i class="fa fa-file-o"/><p>New Page</p></a></li>
                             </ul>
                         </div>
-                    </li>
+                    </li>-->
                     <li t-if="not translatable" id="edit-page-menu">
 
                         <a data-action="edit" href="#"><span class="fa fa-pencil"/>Edit</a>

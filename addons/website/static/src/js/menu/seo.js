@@ -23,10 +23,10 @@ function analyzeKeyword(htmlPage, keyword) {
             } : htmlPage.isInDescription(keyword) ? {
                 title: 'label label-primary',
                 description: "This keyword is used in the page description",
-            }/* : htmlPage.isInBody(keyword) ? {
+            } : htmlPage.isInBody(keyword) ? {
                 title: 'label label-info',
                 description: "This keyword is used in the page content."
-            }*/ : {
+            } : {
                 title: 'label label-default',
                 description: "This keyword is not used anywhere on the page."
             };
@@ -49,7 +49,6 @@ var Suggestion = Widget.extend({
     start: function () {
         this.htmlPage.on('title-changed', this, this.renderElement);
         this.htmlPage.on('description-changed', this, this.renderElement);
-        this.htmlPage.on('url-changed', this, this.renderElement);
     },
     analyze: function () {
         return analyzeKeyword(this.htmlPage, this.keyword);
@@ -133,7 +132,6 @@ var Keyword = Widget.extend({
         this._super(parent);
     },
     start: function () {
-        this.htmlPage.on('url-changed', this, this.updateLabel);
         this.htmlPage.on('title-changed', this, this.updateLabel);
         this.htmlPage.on('description-changed', this, this.updateLabel);
         this.suggestionList = new SuggestionList(this, {
@@ -237,68 +235,39 @@ var Preview = Widget.extend({
 });
 
 var HtmlPage = Class.extend(mixins.PropertiesMixin, {
-    keywordsList: [],
-    init: function (page) {
-        mixins.PropertiesMixin.init.call(this);
-        $('input[name=seo_page_title]').val(page.website_meta_title === false ? '':page.website_meta_title);
-        
-        /*TODO how to convert that in js now that we dont access <title> tag when creating the seo window
-        <t t-if="not additional_title and main_object and 'name' in main_object">
-            <t t-set="additional_title" t-value="main_object.name"/>
-        </t>
-        <t t-if="main_object and 'website_meta_title' in main_object and main_object.website_meta_title">
-            <t t-set="title" t-value="main_object.website_meta_title"/>
-        </t>
-        <t t-else="">
-            <t t-set="title"><t t-if="additional_title"><t t-raw="additional_title"/> | </t><t t-raw="(website or res_company).name"/></t>
-        </t>
-        */
-        
-        
-        $("textarea[name=seo_page_description]").val(page.website_meta_description === false ? '':page.website_meta_description);
-        page.website_meta_keywords = page.website_meta_keywords === false ? '':page.website_meta_keywords;
-        this.keywordsList = page.website_meta_keywords.split(',');
-    },
     url: function () {
-        /*var url = window.location.href;
+        var url = window.location.href;
         var hashIndex = url.indexOf('#');
-        return hashIndex >= 0 ? url.substring(0, hashIndex) : url;*/
-        return $("#page_path").val();
-    },
-    changeUrl: function (url) {
-        this.trigger('url-changed', url);
+        return hashIndex >= 0 ? url.substring(0, hashIndex) : url;
     },
     title: function () {
-        /*var $title = $('title');
-        return ($title.length > 0) && $title.text() && $title.text().trim();*/
-        return $('input[name=seo_page_title]').val();
+        var $title = $('title');
+        return ($title.length > 0) && $title.text() && $title.text().trim();
     },
     changeTitle: function (title) {
         // TODO create tag if missing
-        //$('title').text(title);
+        $('title').text(title);
         this.trigger('title-changed', title);
     },
     description: function () {
-        /*var $description = $('meta[name=description]');
-        return ($description.length > 0) && ($description.attr('content') && $description.attr('content').trim());*/
-        return $("textarea[name=seo_page_description]").val();
+        var $description = $('meta[name=description]');
+        return ($description.length > 0) && ($description.attr('content') && $description.attr('content').trim());
     },
     changeDescription: function (description) {
         // TODO create tag if missing
-        //$('meta[name=description]').attr('content', description);
+        $('meta[name=description]').attr('content', description);
         this.trigger('description-changed', description);
     },
     keywords: function () {
-        return this.keywordsList;
-        /*var $keywords = $('meta[name=keywords]');
-        var parsed = ($keywords.length > 0) && $keywords.attr('content') && $keywords.attr('content').split(",");
-        return (parsed && parsed[0]) ? parsed: [];*/
+        var $keywords = $('meta[name=keywords]');
+        var parsed = ($keywords.length > 0) && $keywords.attr('content') && $keywords.attr('content').split(',');
+        return (parsed && parsed[0]) ? parsed: [];
     },
-    /*changeKeywords: function (keywords) {
+    changeKeywords: function (keywords) {
         // TODO create tag if missing
         $('meta[name=keywords]').attr('content', keywords.join(','));
         this.trigger('keywords-changed', keywords);
-    },*/
+    },
     headers: function (tag) {
         return $('#wrap '+tag).map(function () {
             return $(this).text();
@@ -316,15 +285,12 @@ var HtmlPage = Class.extend(mixins.PropertiesMixin, {
     company: function () {
         return $('html').attr('data-oe-company-name');
     },
-    /*TODO: I cannot get page informations from the current page html tag given the fact I may not be on the page I am editing in the menu,
-    solution would be to drop the keywords because they are not used by search engine or to fetch the page content when opening the tab like for 
-    the other fields (seo_title, page name, page url..)
     bodyText: function () {
         return $('body').children().not('.js_seo_configuration').text();
     },
     isInBody: function (text) {
-        return new RegExp(WORD_SEPARATORS_REGEX+text+WORD_SEPARATORS_REGEX, "gi").test(this.bodyText());
-    },*/
+        return new RegExp(WORD_SEPARATORS_REGEX+text+WORD_SEPARATORS_REGEX, 'gi').test(this.bodyText());
+    },
     isInTitle: function (text) {
         return new RegExp(WORD_SEPARATORS_REGEX+text+WORD_SEPARATORS_REGEX, 'gi').test(this.title());
     },
@@ -359,7 +325,6 @@ var SeoConfigurator = Dialog.extend({
         'blur input[name=seo_page_title]': 'titleChanged',
         'blur textarea[name=seo_page_description]': 'descriptionChanged',
         'click button[data-action=add]': 'addKeyword',
-        'blur page_path': 'urlChanged',
     },
     canEditTitle: false,
     canEditDescription: false,
@@ -368,36 +333,29 @@ var SeoConfigurator = Dialog.extend({
     canEditIndexed: false,
     maxTitleSize: 65,
     maxDescriptionSize: 160,  // TODO master: remove me and add warning
-    page: null,
-    model: null,
-    init: function (parent, options) { 
-        this.model = options.model;       
-        this.page = options.page;       
+
+    init: function (parent, options) {
         options = options || {};
-        /*_.defaults(options, {
-            title: _t('Promote Page'),
-            subtitle: _t('Get this page efficiently referenced in search engines to attract more visitors.'),
+        _.defaults(options, {
+            title: _t('Promote This Page'),
+            subtitle: _t('Get this page efficiently referenced in Google to attract more visitors.'),
             buttons: [
                 {text: _t('Save'), classes: 'btn-primary', click: this.update},
                 {text: _t('Discard'), close: true},
             ],
-        });*/
+        });
 
         this._super(parent, options);
     },
     start: function () {
         var self = this;
-        
-        this.$el.add($('#page_path')).on('blur', function (e) {
-            self.urlChanged();
-        });
 
-        //this.$modal.addClass('oe_seo_configuration js_seo_configuration');
+        this.$modal.addClass('oe_seo_configuration js_seo_configuration');
 
-        this.htmlPage = new HtmlPage(this.page);
-        //this.$('.js_seo_page_url').text(window.location.origin + self.htmlPage.url());
-        this.$('input[name=seo_page_title]').val(self.htmlPage.title());
-        this.$('textarea[name=seo_page_description]').val(self.htmlPage.description());
+        this.htmlPage = new HtmlPage();
+        this.$('.js_seo_page_url').text(this.htmlPage.url());
+        this.$('input[name=seo_page_title]').val(this.htmlPage.title());
+        this.$('textarea[name=seo_page_description]').val(this.htmlPage.description());
 
         this.keywordList = new KeywordList(self, { page: this.htmlPage });
         this.keywordList.on('list-full', self, function () {
@@ -450,9 +408,9 @@ var SeoConfigurator = Dialog.extend({
             if (!self.canEditDescription) {
                 self.$('textarea[name=seo_page_description]').attr('disabled', true);
             }
-            //if (!self.canEditTitle && !self.canEditDescription && !self.canEditKeywords) {
-                //self.$footer.find('button[data-action=update]').attr('disabled', true);
-            //}
+            if (!self.canEditTitle && !self.canEditDescription && !self.canEditKeywords) {
+                self.$footer.find('button[data-action=update]').attr('disabled', true);
+            }
             if (!self.canEditIndexed) {
                 self.$('input[name=seo_page_index]').attr('disabled', true);
             }
@@ -461,7 +419,7 @@ var SeoConfigurator = Dialog.extend({
             }
         });
     },
-    /*suggestImprovements: function () {
+    suggestImprovements: function () {
         var self = this;
         var tips = [];
         _.each(tips, function (tip) {
@@ -474,7 +432,7 @@ var SeoConfigurator = Dialog.extend({
                type: type,
             }).appendTo(self.$('.js_seo_tips'));
         }
-    },*/
+    },
     confirmKeyword: function (e) {
         if (e.keyCode === 13) {
             this.addKeyword();
@@ -488,7 +446,7 @@ var SeoConfigurator = Dialog.extend({
         this.keywordList.add(keyword, language);
         $input.val('').focus();
     },
-    /*update: function () {
+    update: function () {
         var self = this;
         var data = {};
         if (this.canEditTitle) {
@@ -506,25 +464,8 @@ var SeoConfigurator = Dialog.extend({
         this.saveMetaData(data).then(function () {
            self.close();
         });
-    },*/
-    get_fields: function () {
-        var self = this;
-        var data = {};
-        if (this.canEditTitle) {
-            data.website_meta_title = this.htmlPage.title();
-        }
-        if (this.canEditDescription) {
-            data.website_meta_description = this.htmlPage.description();
-        }
-        if (this.canEditKeywords) {
-            data.website_meta_keywords = this.keywordList.keywords().join(", ");
-        }
-        if (this.canEditIndexed){
-            data.website_indexed = !self.$('input[name=seo_page_index]').prop('checked');
-        }
-        return data;
     },
-    /*getMainObject: function () {
+    getMainObject: function () {
         var repr = $('html').data('main-object');
         var m = repr.match(/(.+)\((\d+),(.*)\)/);
         if (!m) {
@@ -535,23 +476,23 @@ var SeoConfigurator = Dialog.extend({
                 id: m[2]|0
             };
         }
-    },*/
+    },
     loadMetaData: function () {
-        //var obj = this.getMainObject();
+        var obj = this.getMainObject();
         var def = $.Deferred();
-        /*if (!obj) {
+        if (!obj) {
             // return $.Deferred().reject(new Error("No main_object was found."));
             def.resolve(null);
-        } else {*/
+        } else {
             var fields = ['website_meta_title', 'website_meta_description', 'website_meta_keywords', 'website_indexed'];
             rpc.query({
-                model: this.model,
+                model: obj.model,
                 method: 'read',
                 args: [[obj.id], fields, weContext.get()],
             }).then(function (data) {
                 if (data.length) {
                     var meta = data[0];
-                    meta.model = this.model;
+                    meta.model = obj.model;
                     def.resolve(meta);
                 } else {
                     def.resolve(null);
@@ -559,10 +500,10 @@ var SeoConfigurator = Dialog.extend({
             }).fail(function () {
                 def.reject();
             });
-        //}
+        }
         return def;
     },
-    /*saveMetaData: function (data) {
+    saveMetaData: function (data) {
         var obj = this.getMainObject();
         if (!obj) {
             return $.Deferred().reject();
@@ -573,14 +514,6 @@ var SeoConfigurator = Dialog.extend({
                 args: [[obj.id], data, weContext.get()],
             });
         }
-    },*/
-    urlChanged: function () {
-        var self = this;
-        _.defer(function () {
-            var url = $('input#page_path').val();
-            self.htmlPage.changeUrl(url);
-            self.renderPreview();
-        });
     },
     titleChanged: function () {
         var self = this;
@@ -602,14 +535,14 @@ var SeoConfigurator = Dialog.extend({
         var preview = new Preview(this, {
             title: this.htmlPage.title(),
             description: this.htmlPage.description(),
-            url: window.location.origin + this.htmlPage.url(),
+            url: this.htmlPage.url(),
         });
         var $preview = this.$('.js_seo_preview');
         $preview.empty();
         preview.appendTo($preview);
     },
     destroy: function () {
-        //this.htmlPage.changeKeywords(this.keywordList.keywords());
+        this.htmlPage.changeKeywords(this.keywordList.keywords());
         this._super.apply(this, arguments);
     },
     updateTable : function (removed) {

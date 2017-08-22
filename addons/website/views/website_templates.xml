@@ -57,6 +57,7 @@
     <script type="text/javascript" src="/website/static/src/js/menu/planner.js"/>
     <script type="text/javascript" src="/website/static/src/js/menu/seo.js"/>
     <script type="text/javascript" src="/website/static/src/js/menu/translate.js"/>
+    <script type="text/javascript" src="/website/static/src/js/menu/pages.js"/>
 
     <script type="text/javascript" src="/website/static/src/js/tours/banner.js"/>
     <script type="text/javascript" src="/website/static/src/js/tours/rte.js"/>
@@ -299,7 +300,7 @@
                 <div class="col-md-4  col-lg-3" id="info">
                     <h4>Connect with us</h4>
                     <ul class="list-unstyled">
-                        <li><a href="/page/website.contactus">Contact us</a></li>
+                        <li><a href="/website.contactus">Contact us</a></li>
                     </ul>
                     <ul class="list-unstyled">
                         <li t-ignore="true"><i class="fa fa-phone"></i> <span t-field="res_company.phone"></span></li>
@@ -317,7 +318,7 @@
                 <div class="col-md-4 col-lg-5 col-lg-offset-1">
                     <h4>
                         <span t-field="res_company.name" />
-                        <small> - <a href="/page/website.aboutus">About us</a></small>
+                        <small> - <a href="/website.aboutus">About us</a></small>
                     </h4>
                     <div>
                         <p>
@@ -628,7 +629,7 @@
                 <p>Maybe you were looking for one of these popular pages ?</p>
                 <ul>
                     <li><a href="/">Homepage</a></li>
-                    <li><a href="/page/website.contactus/">Contact Us</a></li>
+                    <li><a href="/website.contactus/">Contact Us</a></li>
                 </ul>
             </div>
             <t t-if="editable or request.debug">
@@ -653,7 +654,7 @@
                     <p>Maybe you were looking for one of these popular pages ?</p>
                     <ul>
                         <li><a href="/">Homepage</a></li>
-                        <li><a href="/page/website.contactus/">Contact Us</a></li>
+                        <li><a href="/website.contactus/">Contact Us</a></li>
                     </ul>
                 </div>
             </div>

@@ -105,7 +105,7 @@ class Website(Home):
                 else:
                     # if no menu & "/" does not exists (we are in except) -> trigger 404 by rendering not existing page
                     return request.env['ir.http']._serve_page()"""
-        # check if homepage exist, if so, serve it (even if 404)
+
         homepage = request.env['website.page'].sudo().get_homepage(request.website.id)
         if homepage:
             if homepage.path == '/':
@@ -118,7 +118,7 @@ class Website(Home):
                 if website_page:
                     return website_page
             except:
-                first_menu = request.website.sudo().menu_ids[0]
+                first_menu = request.website.sudo().menu_ids[0] if len(request.website.sudo().menu_ids) > 0 else None
                 if first_menu:
                     if first_menu.path and (not (first_menu.path.startswith(('/', '/?', '/#')))):
                         return request.redirect(first_menu.path)
@@ -300,6 +300,12 @@ class Website(Home):
         }
         return request.render("website.edit_website_pages", values)"""
 
+    # As we now autorize '/' as path, there is a particular case where user click on create page on 404 as admin on / page 
+    # then he is redirect to '/website/add/' without <path:path>
+    @http.route('/website/add/', type='http', auth="user", website=True)
+    def page(self):
+        self.pagenew("")
+        
     @http.route('/website/add/<path:path>', type='http', auth="user", website=True)
     def pagenew(self, path, noredirect=False, add_menu=False, template=False):
         if template:

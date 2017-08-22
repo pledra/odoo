@@ -156,7 +156,7 @@ class WebsiteEventController(http.Controller):
     @http.route(['/event/<model("event.event"):event>'], type='http', auth="public", website=True)
     def event(self, event, **post):
         if event.menu_id and event.menu_id.child_id:
-            target_url = event.menu_id.child_id[0].url
+            target_url = event.menu_id.child_id[0].path
         else:
             target_url = '/event/%s/register' % str(event.id)
         if post.get('enable_editor') == '1':

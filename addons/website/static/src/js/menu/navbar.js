@@ -83,7 +83,7 @@ var WebsiteNavbar = rootWidget.RootWidget.extend({
     _onActionMenuClick: function (ev) {
         var $button = $(ev.currentTarget);
         $button.prop('disabled', true);
-        this._handleAction($button.data('action')).always(function () {
+        this._handleAction($button.data('action'), [$button.data()]).always(function () {
             $button.prop('disabled', false);
         });
     },

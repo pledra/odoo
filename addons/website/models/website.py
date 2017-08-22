@@ -87,7 +87,7 @@ class Website(models.Model):
     #----------------------------------------------------------
     @api.model
     def new_link(self, name, redirect_to):
-        self.env['website.page'].create({
+        page = self.env['website.page'].create({
             'name': name,
             'path': redirect_to,
             'website_ids': [(6, None, [self.get_current_website().id])],
@@ -95,7 +95,7 @@ class Website(models.Model):
             'page': False,
             'is_menu': True
         })
-        return True
+        return page.id
     
     @api.model
     def new_page(self, name, add_menu=False, template='website.default_page', ispage=True, namespace=None, redirect_to=None):
@@ -106,14 +106,14 @@ class Website(models.Model):
         """
         # completely arbitrary max_length
         page_name = slugify(name, max_length=50)
-        page_name = self.get_unique_path(page_name)    
+        page_name = self.get_unique_path(page_name)
         
         template_record = self.env.ref(template)
-
+        
         self.env['website.page'].create({
-            'name': name,
+            'name': name if name else 'Home', # particular case where user click on create page on 404 as admin on / page
             'path': '/' + page_name,
-            'arch': template_record.arch.replace(template, page_name),
+            'arch': template_record.arch.replace(template, page_name if name else 'Home'), # particular case where user click on create page on 404 as admin on / page
             'website_ids': [(6, None, [self.get_current_website().id])],
             'type': 'qweb',
             'page': ispage,
@@ -478,73 +478,6 @@ class Website(models.Model):
         return self.env.ref('website.action_website').read()[0]
 
 
-"""class Menu(models.Model):
-
-    _name = "website.menu"
-    _description = "Website Menu"
-
-    _parent_store = True
-    _parent_order = 'sequence'
-    _order = "sequence"
-
-    def _default_sequence(self):
-        menu = self.search([], limit=1, order="sequence DESC")
-        return menu.sequence or 0
-
-    name = fields.Char('Menu', required=True, translate=True)
-    url = fields.Char('Url', default='')
-    new_window = fields.Boolean('New Window')
-    sequence = fields.Integer(default=_default_sequence)
-    website_id = fields.Many2one('website', 'Website')  # TODO: support multiwebsite once done for ir.ui.views
-    parent_id = fields.Many2one('website.menu', 'Parent Menu', index=True, ondelete="cascade")
-    child_id = fields.One2many('website.menu', 'parent_id', string='Child Menus')
-    parent_left = fields.Integer('Parent Left', index=True)
-    parent_right = fields.Integer('Parent Rigth', index=True)
-
-    # would be better to take a menu_id as argument
-    @api.model
-    def get_tree(self, website_id, menu_id=None):
-        def make_tree(node):
-            menu_node = dict(
-                id=node.id,
-                name=node.name,
-                url=node.url,
-                new_window=node.new_window,
-                sequence=node.sequence,
-                parent_id=node.parent_id.id,
-                children=[],
-            )
-            for child in node.child_id:
-                menu_node['children'].append(make_tree(child))
-            return menu_node
-        if menu_id:
-            menu = self.browse(menu_id)
-        else:
-            menu = self.env['website'].browse(website_id).menu_id
-        return make_tree(menu)
-
-    @api.model
-    def save(self, website_id, data):
-        def replace_id(old_id, new_id):
-            for menu in data['data']:
-                if menu['id'] == old_id:
-                    menu['id'] = new_id
-                if menu['parent_id'] == old_id:
-                    menu['parent_id'] = new_id
-        to_delete = data['to_delete']
-        if to_delete:
-            self.browse(to_delete).unlink()
-        for menu in data['data']:
-            mid = menu['id']
-            if isinstance(mid, pycompat.string_types):
-                new_menu = self.create({'name': menu['name']})
-                replace_id(mid, new_menu.id)
-        for menu in data['data']:
-            self.browse(menu['id']).write(menu)
-        return True
-"""
-
-
 class SeoMetadata(models.AbstractModel):
 
     _name = 'website.seo.metadata'
@@ -633,8 +566,16 @@ class Page(models.Model):
 
     @api.model
     def save_page_info(self, website_id, data):
-        if data['is_homepage']:
+        # if page is not in menu anymore, be sure that it has no children anymore (or they wont be display in the "other page" list)
+        # because "other page" list is a 1 level list only (menu page is a 2 nested level list)
+        if not data['is_menu']:
+            self.search(['|', ('website_ids', 'in', website_id), ('website_ids', '=', False), ('parent_id', '=', data['id'])]).write({'parent_id': None})
+            # As the page is not a menu anymore, unlink it from its parent that may still be a menu
+            data['parent_id'] = None
+        # if page is set as homepage, remove the previous homepage
+        if 'is_homepage' in data and data['is_homepage']:
             self.search(['|', ('website_ids', 'in', website_id), ('website_ids', '=', False), ('is_homepage', '=', True)]).write({'is_homepage': False})
+        
         self.browse(data['id']).write(data)
         return True
         
@@ -651,6 +592,7 @@ class Page(models.Model):
         new_page.write({
             'path': '/' + new_path,
             'name': new_name,
+            'is_homepage': False
         })
         return new_path
             

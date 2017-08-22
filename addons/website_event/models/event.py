@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import api, fields, models, _
-from odoo.addons.http_routing.models.ir_http import slug
+from odoo.addons.http_routing.models.ir_http import slug, slugify
 
 
 class EventType(models.Model):
@@ -24,7 +24,7 @@ class Event(models.Model):
         'Dedicated Menu', compute='_compute_website_menu', inverse='_set_website_menu',
         help="Creates menus Introduction, Location and Register on the page "
              " of the event on the website.", store=True)
-    menu_id = fields.Many2one('website.menu', 'Event Menu')
+    menu_id = fields.Many2one('website.page', 'Event Menu')
 
     def _compute_is_participating(self):
         # we don't allow public user to see participating label
@@ -70,7 +70,8 @@ class Event(models.Model):
                 event.menu_id.unlink()
             elif event.website_menu:
                 if not event.menu_id:
-                    root_menu = self.env['website.menu'].create({'name': event.name})
+                    #root_menu = self.env['website.page'].create({'name': event.name})
+                    root_menu = self.env['website'].new_link(event.name, slugify(event.name))
                     event.menu_id = root_menu
 
                 existing_page_names = event.menu_id.child_id.mapped('name')
@@ -84,7 +85,7 @@ class Event(models.Model):
                 # create missing entries
                 for sequence, (name, url, xml_id) in enumerate(self._get_menu_entries()):
                     if name not in existing_page_names:
-                        if not url:
+                        """if not url:
                             newpath = self.env['website'].new_page(name + ' ' + self.name, xml_id, ispage=False)
                             url = "/event/" + slug(self) + "/page/" + newpath
                         self.env['website.menu'].create({
@@ -92,7 +93,40 @@ class Event(models.Model):
                             'url': url,
                             'parent_id': event.menu_id.id,
                             'sequence': sequence,
-                        })
+                        })"""
+                        #TODO: rde: to clean, to be discussed
+                        if not url:
+                            page_name = slugify(name + ' ' + self.name)
+                            page_xmlid = xml_id.split('.')[0] + '.' + slugify(name + ' ' + self.name)
+                            # new page
+                            template_record = self.env.ref(xml_id)
+                            key = '%s.%s' % (xml_id.split('.')[0], page_name)
+                            page = template_record.copy({'website_id': self.env['website'].get_current_website().id, 'key': key})
+                                                        
+                            self.env['website.page'].create({
+                                'name': name,
+                                'path': "/event/" + slug(self) + "/page/" + slugify(name + ' ' + self.name),
+                                'key': xml_id.split('.')[0] + '.' + slugify(name + ' ' + self.name),
+                                'arch': page.arch.replace(xml_id, page_xmlid),
+                                
+                                'website_ids': [(6, None, [self.env['website'].get_current_website().id])],
+                                'type': 'qweb',
+                                'page': False,
+                                'is_menu': True,
+                                'parent_id': event.menu_id.id,
+                                'sequence': sequence,
+                            })
+                        else:
+                            self.env['website.page'].create({
+                                'name': name,
+                                'path': url,
+                                'website_ids': [(6, None, [self.env['website'].get_current_website().id])],
+                                'type': 'qweb',
+                                'page': False,
+                                'is_menu': True,
+                                'parent_id': event.menu_id.id,
+                                'sequence': sequence,
+                            })
 
     @api.multi
     def _compute_website_menu(self):

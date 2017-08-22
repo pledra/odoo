@@ -6,12 +6,26 @@
             <field name="key">website_slides.google_app_key</field>
             <field name="value">AIzaSyDOWlmDW-7DbLmOR9ZsT5AOEXf4n6TFwQA</field>
         </record>
-
-        <record id="website_menu_slides" model="website.menu">
+        
+        <record id="website_menu_slides_view" model="ir.ui.view">  
             <field name="name">Presentations</field>
-            <field name="url">/slides</field>
-            <field name="parent_id" ref="website.main_menu"/>
+            <field name="type">qweb</field>
+            <field name="page">False</field>
+            <field name="arch" type="xml">
+                <t name="website_menu_slides_view" priority="29" t-name="website.website_menu_slides_view">
+                    <t t-call="website.layout">
+                        <t t-set="pageName" t-value="'website_menu_slides_view'"/>
+                        <div id="wrap" class="oe_structure oe_empty"/>
+                    </t>
+                </t>
+            </field>
+        </record>
+        <record id="website_menu_slides" model="website.page">
+            <field name="path">/slides</field>
+            <field name="ir_ui_view_id" ref="website_menu_slides_view" />
             <field name="sequence" type="int">50</field>
+            <field name="is_menu">True</field>
+            <field name="website_ids" eval="[(4, ref('website.default_website'))]" />
         </record>
 
         <record id="slide_template_published" model="mail.template">

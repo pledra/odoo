@@ -160,7 +160,6 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _serve_page(cls):
         req_page = request.httprequest.path
-        #import pudb;pu.db
         if req_page.startswith('/website.'):
             return request.redirect('/%s?%s' % (req_page[9:], request.httprequest.query_string), code=301)
         

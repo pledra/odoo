@@ -4,7 +4,7 @@
     <li t-att-data-menu-id="page.id">
         <div class="input-group">
             <span class="input-group-addon fa fa-bars"/>
-            <a href="#" t-att-data-page-path="page.path" t-att-data-model="'website.page'" t-att-data-page_page="page.page" class="js_load_page_info">
+            <a href="#" t-att-data-page-path="page.path" t-att-data-model="'website.page'" t-att-data-page_page="page.page" data-action="load_page_info">
                 <span t-att-class="page.path == page_url ? 'bold black form-control' : 'form-control'">
                     <span class="js_menu_label">
                         <t t-esc="page.name"/>
@@ -62,7 +62,7 @@
 
 <!-- Pages Management -->
 <div t-name="website.pagesMenu.page_info" style="margin:10px;">
-    <span class="fa fa-lg fa-times js_close_page_info"></span>
+    <span class="fa fa-lg fa-times" data-action="close_page_info"></span>
     <ul class="nav nav-tabs">
         <li t-if="page.page" t-att-class="page.page ? 'active' : ''"><a data-toggle="tab" class="text-muted" href="#page_settings">Page Settings</a></li>
         <li t-if="page.page"><a data-toggle="tab" class="text-muted" href="#seo_promote">SEO (promote)</a></li>
@@ -138,21 +138,24 @@
             </form>
         </div>
         <div t-if="page.page" id="seo_promote" class="tab-pane fade">
+            <a href="#" t-att-data-path="page.path" data-action="go_to_seo" class="colorTODO btn btn-xs btn-success">SEO</a>
+            <br />
+            <a href="#" t-att-data-path="page.path" data-action="go_to_track" class="colorTODO btn btn-xs btn-success">TRACK</a>
         </div>
     </div>
     <div>
         <hr />
-        <a href="#" class="js_clone_page text-muted" t-att-data-id="page.id">
+        <a href="#" data-action="clone_page" class="text-muted" t-att-data-id="page.id">
             <i class="fa fa-clone"/> Clone Page
         </a>
-        <a href="#" class="js_delete_page text-muted" t-att-data-id="page.id">
+        <a href="#" data-action="delete_page" class="text-muted" t-att-data-id="page.id">
             <i class="fa fa-trash"/> Delete Page
         </a>  
         <a t-att-href="page.path + '?spm=1'" class="text-muted" t-att-data-id="page.id">
             <i class="fa fa-arrow-right"/> Goto Page
         </a>  
         <small class="pull-right text-muted">
-            <a href="#" t-att-data-id="page.id" class="js_save_page_info donebutton btn btn-xs btn-success">
+            <a href="#" t-att-data-id="page.id" data-action="save_page_info" class="colorTODO btn btn-xs btn-success">
                 Save
             </a>
         </small>
@@ -176,7 +179,7 @@
         <li t-foreach="pages" t-as="page" t-att-data-menu-id="page.id">
             <div class="input-group">
                 <span class="input-group-addon fa fa-bars"/>
-                <a href="#" t-att-data-page-path="page.path" t-att-data-model="'website.page'" t-att-data-page_page="page.page" class="js_load_page_info">
+                <a href="#" t-att-data-page-path="page.path" t-att-data-model="'website.page'" t-att-data-page_page="page.page" data-action="load_page_info">
                     <span t-att-class="page.path == page_url ? 'bold black form-control' : 'form-control'">
                         <span class="js_menu_label">
                             <t t-esc="page.name"/>
@@ -191,26 +194,26 @@
     </ul>
     <hr />
     <div>
-        <button data-action="save_management_page_menu" class="pull-right donebutton btn btn-xs btn-success">Save</button>
+        <button data-action="save_management_page_menu" class="colorTODO pull-right btn btn-xs btn-success">Save</button>
         
         <div class="btn-group dropup">
-            <button type="button" class="btn btn-success btn-xs dropdown-toggle option_choice" data-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="colorTODO btn btn-success btn-xs dropdown-toggle option_choice" data-toggle="dropdown" aria-expanded="false">
                 <span class="caret"></span>
                 <span class="sr-only">Toggle Dropdown</span>
             </button>
-            <a href="#" class="btn btn-success btn-xs" data-toggle="modal" data-target="#o_website_add_page_modal">
+            <a href="#" class="colorTODO btn btn-success btn-xs" data-toggle="modal" data-target="#o_website_add_page_modal">
                Add a new Page
             </a>
             
             
             <ul class="dropdown-menu" role="menu">
                 <li>
-                    <a href="#" data-toggle="modal" data-target="#o_website_add_page_modal">
+                    <a href="#" data-action="new_page">
                         <i class="fa fa-plus"/> Add a new Page
                     </a>
                 </li>
                 <li class="o_first_choice">
-                    <a href="#" class="js_add_menu">
+                    <a href="#" data-action="new_menu">
                         <i class="fa fa-plus"/> Add a new menu entry
                     </a>
                 </li>

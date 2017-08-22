@@ -20,7 +20,7 @@
 div.oe_page_management_page_info{
     position:absolute;
     left: 248px;
-    width:660px;
+    width:500px;
     padding:10px;
     color:#555555;
     
@@ -33,12 +33,21 @@ div.oe_page_management_page_info{
     overflow-y:scroll;*/
     min-height:10px; /*empty list has no height are become not draggable anymore*/
 }
-a.donebutton, button.donebutton{
+a.colorTODO, button.colorTODO{
     background-color: #21b799;
     border-color: #1da187;
     padding:0px 13px;
     color:white;
+    
+    &.active, &:hover, &[disabled]{
+        background-color: #198c75;
+        border-color: #18836e;
+    }
 }
+button.colorTODO.dropdown-toggle{
+    padding:0 4px;
+}
+
 .oe_page_management_menu a[data-action="new_page"], .oe_page_management_page_info a[data-action="delete_page"], .oe_page_management_page_info a[data-action="clone_page"]{
     color:#555555;
 }
@@ -50,7 +59,7 @@ a.donebutton, button.donebutton{
     font-weight: bold;
 }
 
-.js_close_page_info{
+[data-action="close_page_info"]{
     position:absolute;
     top:5px;
     right:5px;
