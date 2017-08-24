@@ -6,7 +6,6 @@
     product_id: product.product_product_3
     product_uom: product.product_uom_unit
     partner_invoice_id: base.res_partner_address_1
-    location_dest_id: stock.stock_location_14
     location_id: stock.stock_location_stock
     operations:
       - location_dest_id: stock.location_production
@@ -33,7 +32,6 @@
     guarantee_limit: !eval datetime.today().strftime("%Y-%m-%d")
     invoice_method: 'after_repair'
     partner_invoice_id: base.res_partner_address_1
-    location_dest_id: stock.stock_location_14
     location_id: stock.stock_location_stock
     operations:
       - location_dest_id: stock.location_production
@@ -60,7 +58,6 @@
     guarantee_limit: !eval datetime.today().strftime("%Y-%m-%d")
     invoice_method: 'b4repair'
     partner_invoice_id: base.res_partner_address_1
-    location_dest_id: stock.stock_location_stock
     location_id: stock.stock_location_14
     operations:
       - location_dest_id: stock.location_production
