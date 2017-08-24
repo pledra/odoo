@@ -2216,6 +2216,17 @@ var manualReconciliation = abstractReconciliation.extend({
                     self.accounts_data.items = _.each(data.accounts, function(item){self.prepareReconciliationData(item, 'account')});
                 }
 
+                self.$el.find('.js_automatic_reconciliation').click(function() {
+                    // Let odoo try to reconcile entries for the user
+                    self.model_account_move_line
+                        .call("reconciliation_widget_auto_reconcile", [data])
+                        .then(function(data){ self.serverPreprocessResultHandler(data); })
+                        .then(function(){  self.$('.js_automatic_reconciliation').hide();
+                            return self.display_reconciliation_propositions();
+                            });
+
+                });
+
                 // Instanciate reconciliations
                 self.$(".reconciliation_lines_container").css("opacity", 0);
                 return $.when(self.updateProgress(false)).then(function(){
