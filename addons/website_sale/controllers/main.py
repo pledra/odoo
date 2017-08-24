@@ -929,6 +929,9 @@ class WebsiteSale(http.Controller):
         sale_order_id = request.session.get('sale_last_order_id')
         if sale_order_id:
             order = request.env['sale.order'].sudo().browse(sale_order_id)
+            # must have a draft sales order with lines at this point, otherwise reset
+            if not order or order.state != 'draft':
+                request.website.sale_reset()
             return request.render("website_sale.confirmation", {'order': order})
         else:
             return request.redirect('/shop')
