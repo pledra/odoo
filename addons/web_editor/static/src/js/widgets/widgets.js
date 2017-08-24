@@ -184,7 +184,6 @@ var ImageDialog = Widget.extend({
         var media;
         if (!img.is_document) {
             if (this.media.tagName !== "IMG" || !this.old_media) {
-                this.add_class = "pull-left";
                 this.style = {"width": "100%"};
             }
             if (this.media.tagName !== "IMG") {
