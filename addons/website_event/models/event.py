@@ -70,9 +70,8 @@ class Event(models.Model):
                 event.menu_id.unlink()
             elif event.website_menu:
                 if not event.menu_id:
-                    #root_menu = self.env['website.page'].create({'name': event.name})
-                    root_menu = self.env['website'].new_link(event.name, slugify(event.name))
-                    event.menu_id = root_menu
+                    root_menu = self.env['website'].new_root_menu(event.name)
+                    event.menu_id = root_menu.id
 
                 existing_page_names = event.menu_id.child_id.mapped('name')
                 required_page_names = [entry[0] for entry in self._get_menu_entries()]
@@ -85,15 +84,6 @@ class Event(models.Model):
                 # create missing entries
                 for sequence, (name, url, xml_id) in enumerate(self._get_menu_entries()):
                     if name not in existing_page_names:
-                        """if not url:
-                            newpath = self.env['website'].new_page(name + ' ' + self.name, xml_id, ispage=False)
-                            url = "/event/" + slug(self) + "/page/" + newpath
-                        self.env['website.menu'].create({
-                            'name': name,
-                            'url': url,
-                            'parent_id': event.menu_id.id,
-                            'sequence': sequence,
-                        })"""
                         #TODO: rde: to clean, to be discussed
                         if not url:
                             page_name = slugify(name + ' ' + self.name)

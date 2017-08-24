@@ -146,26 +146,36 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         var self = this;
         var context = weContext.get();
         return self._rpc({
-            model: 'website.page',
-            method: 'get_pages',
+            //TODO: This call should be remove but I don't know how to get the website.homepage_id
+            model: 'website',
+            method: 'get_homepage',
             args: [context.website_id],
             kwargs: {
                 context: context
             },
-        }).then(function (result) {
+        }).then(function (homepage_path) {
             return self._rpc({
                 model: 'website.page',
-                method: 'get_tree',
+                method: 'get_pages',
                 args: [context.website_id],
                 kwargs: {
                     context: context
                 },
-            }).then(function (menu) {
-                self.menus = menu;
-                self.root_menu_id = menu.id;
-                self.flat = self._flatenize(menu);
-                self.flat = self._flatenize(result.pages, self.flat);
-                $(qweb.render('website.pagesMenu', {pages: result.pages, tree_menu:menu, page_url: window.location.pathname})).appendTo(".oe_page_management_menu");
+            }).then(function (result) {
+                return self._rpc({
+                    model: 'website.page',
+                    method: 'get_tree',
+                    args: [context.website_id],
+                    kwargs: {
+                        context: context
+                    },
+                }).then(function (menu) {
+                    self.menus = menu;
+                    self.root_menu_id = menu.id;
+                    self.flat = self._flatenize(menu);
+                    self.flat = self._flatenize(result.pages, self.flat);
+                    $(qweb.render('website.pagesMenu', {pages: result.pages, tree_menu:menu, homepage_path: homepage_path, current_page_url: window.location.pathname})).appendTo(".oe_page_management_menu");
+                });
             });
         });
     },
@@ -217,23 +227,30 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         });
         
     },
-    _loadPageInfo: function(data){        
+    _loadPageInfo: function(data){  
         var self = this;
         var context = weContext.get();
-        return this._rpc({
-            model: 'website.page',
-            method: 'get_page_from_path',
-            args: [data.pagePath,context.website_id],
+        return self._rpc({
+            //TODO: This call should be remove but I don't know how to get the website.homepage_id
+            model: 'website',
+            method: 'get_homepage',
+            args: [context.website_id],
             kwargs: {
                 context: context
             },
-        }).then(function (page) {
-            $(".oe_page_management_page_info").html($(qweb.render('website.pagesMenu.page_info', {page: page[0], server_url:window.location.origin})));
-            //TODO: SEO
-            //self.websiteSeoConfig = new websiteSeo.Configurator(self, {page: page[0],model: data.model});
-            //self.websiteSeoConfig.appendTo($('#seo_promote'));
-            $(".oe_page_management_page_info").show();
-            $("button[data-action='save_management_page_menu']").prop('disabled', true);
+        }).then(function (homepage_path) {
+            return self._rpc({
+                model: 'website.page',
+                method: 'get_page',
+                args: [data.pageId,context.website_id],
+                kwargs: {
+                    context: context
+                },
+            }).then(function (page) {
+                $(".oe_page_management_page_info").html($(qweb.render('website.pagesMenu.page_info', {page: page[0], homepage_path: homepage_path, server_url:window.location.origin})));
+                $(".oe_page_management_page_info").show();
+                $("button[data-action='save_management_page_menu']").prop('disabled', true);
+            });
         });
     },
     _closePageInfo: function(){
@@ -243,24 +260,26 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
     _savePageInfo: function(data){
         var self = this;
         var context = weContext.get();
-        var page_name = $(".oe_page_management_page_info #page_name").val();
-        var page_path = $(".oe_page_management_page_info #page_path").val();
+        
         var is_menu = $(".oe_page_management_page_info #is_menu").prop('checked');
-        var is_homepage = $(".oe_page_management_page_info #is_homepage").prop('checked');
-        //var website_meta_title = $(".oe_page_management_page_info input[name=seo_page_title]").val();
-        //var website_meta_description = $('.oe_page_management_page_info textarea[name=seo_page_description]').val();
+        var page_name = $(".oe_page_management_page_info #page_name").val();
         var params = {
             name: page_name, 
-            path: page_path,
             is_menu: is_menu,
-            is_homepage: is_homepage,
             id: data.id,
-            //website_meta_title: website_meta_title,
-            //website_meta_description: website_meta_description,
         };
-        //ES6: Object.assign(seo_fields, this.websiteSeoConfig.get_fields());
-        //var seo_fields = this.websiteSeoConfig.get_fields();
-        //for (var attrname in seo_fields) { params[attrname] = seo_fields[attrname]; }
+        var params_ext;
+        if(data.item_type == 'page'){
+            var page_path = $(".oe_page_management_page_info #page_path").val();
+            var is_homepage = $(".oe_page_management_page_info #is_homepage").prop('checked');
+            params_ext = {path: page_path, is_homepage: is_homepage};
+        }
+        else if(data.item_type == 'link'){
+            var page_link_url = $(".oe_page_management_page_info #page_link_url").val();
+            params_ext = {link_url: page_link_url};
+        }
+        //ES6: Object.assign(params, params_ext);
+        for (var attrname in params_ext) { params[attrname] = params_ext[attrname]; }
         self._rpc({
             model: 'website.page',
             method: 'save_page_info',
@@ -269,8 +288,8 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 context: context
             },
         }).then(function () {
-            //Redirect to the modified page
-            window.location = page_path + '?spm=1';
+            //Redirect to the modified page or link
+            window.location = data.item_type == 'page' ? page_path + '?spm=1' : page_link_url;
             //Just some not very usefull ui but help user to see it is working
             $(".oe_page_management_page_info").hide();
             $("button[data-action='save_management_page_menu']").prop('disabled', false);
@@ -310,7 +329,7 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 context: context,
             },
         }).then(function (path) {
-            window.location = path + '?spm=1';
+            window.location.href = path;
         });
     },
     _deletePage: function (data) {

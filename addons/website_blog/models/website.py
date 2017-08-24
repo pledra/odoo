@@ -12,20 +12,21 @@ class Website(models.Model):
         dep = super(Website, self).page_search_dependencies(view_id)
 
         page = self.env['website.page'].browse(view_id)
-        path = page.path.replace("website.", "")
-        fullpath = "/website.%s" % path[1:]
+        if page.item_type == 'page':
+            path = page.path.replace("website.", "")
+            fullpath = "/website.%s" % path[1:]
 
-        dom = [
-            '|', ('content', 'ilike', path), ('content', 'ilike', fullpath)
-        ]
-        posts = self.env['blog.post'].search(dom)
-        if posts:
-            page_key = _('Blog Post')
-            dep[page_key] = []
-        for p in posts:
-            dep[page_key].append({
-                'text': _('Blog Post <b>%s</b> seems to have a link to this page !') % p.name,
-                'link': p.website_url
-            })
+            dom = [
+                '|', ('content', 'ilike', path), ('content', 'ilike', fullpath)
+            ]
+            posts = self.env['blog.post'].search(dom)
+            if posts:
+                page_key = _('Blog Post')
+                dep[page_key] = []
+            for p in posts:
+                dep[page_key].append({
+                    'text': _('Blog Post <b>%s</b> seems to have a link to this page !') % p.name,
+                    'link': p.website_url
+                })
 
         return dep

@@ -1,26 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-
-        <record id="menu_shop_view" model="ir.ui.view">  
-            <field name="name">Shop</field>
-            <field name="type">qweb</field>
-            <field name="page">False</field>
-            <field name="arch" type="xml">
-                <t name="menu_shop_view" priority="29" t-name="website.menu_shop_view">
-                    <t t-call="website.layout">
-                        <t t-set="pageName" t-value="'menu_shop_view'"/>
-                        <div id="wrap" class="oe_structure oe_empty"/>
-                    </t>
-                </t>
-            </field>
-        </record>
         <record id="menu_shop" model="website.page">
-            <field name="path">/shop</field>
-            <field name="ir_ui_view_id" ref="menu_shop_view" />
+            <field name="item_type">link</field>
+            <field name="name">Shop</field>
+            <field name="link_url">/shop</field>
             <field name="sequence" type="int">20</field>
             <field name="is_menu">True</field>
             <field name="website_ids" eval="[(4, ref('website.default_website'))]" />
+            <field name="parent_id" ref="website.top_menu_container" />
         </record>
         
         <record id="action_open_website" model="ir.actions.act_url">

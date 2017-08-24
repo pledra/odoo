@@ -167,7 +167,7 @@ class IrHttp(models.AbstractModel):
         publish = request.env.user.has_group('website.group_website_publisher')
         if not publish:
             domain.append(('website_published', '=', True))
-        mypage = request.env['website.page'].with_context(active_test=False).sudo().search(domain, limit=1)
+        mypage = request.env['website.page'].search(domain, limit=1)
         
         values = {
             'path': req_page[1:],
@@ -175,6 +175,9 @@ class IrHttp(models.AbstractModel):
             'main_object': mypage,
         }
         if mypage:
+            # If this is a redirection, redirect it
+            if mypage.item_type == 'redirect':
+                return request.redirect(mypage.redirect_url, code=mypage.redirect_type)
             return mypage.ir_ui_view_id.render(values)
         else:
             if request.website.is_publisher():
@@ -211,14 +214,13 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _dispatch(cls):
         #print request.httprequest.path
-        #import pudb;pu.db
         # locate the controller method
         try:
             rule, arguments = cls._find_handler(return_rule=True)
             func = rule.endpoint
         except werkzeug.exceptions.NotFound as e:
             return cls._handle_exception(e)
-        
+
         # check authentication level
         try:
             auth_method = cls._authenticate(func.routing["auth"])

@@ -68,16 +68,17 @@
 
 <!-- Layout -->
 <template id="submenu" name="Submenu">
+    <t t-set="path" t-value="submenu.link_url if not submenu.path else submenu.path"/>
     <li t-if="not submenu.child_id" t-att-class="
-        'active' if submenu.path and unslug_url(request.httprequest.path) == unslug_url(submenu.path.replace('/website.', '/')) else None
+        'active' if path and unslug_url(request.httprequest.path) == unslug_url(path.replace('/website.', '/')) else None
         ">
-        <a t-att-href="submenu.path" t-ignore="true" t-att-target="'_blank' if submenu.new_window else None">
+        <a t-att-href="path if path.startswith('/') else '//' + path" t-ignore="true" t-att-target="'_blank' if submenu.new_window else None">
             <span t-field="submenu.name"/>
         </a>
     </li>
     <li t-if="submenu.child_id" t-attf-class="dropdown #{
-        (submenu.path and submenu.path != '/' and any([request.httprequest.path == child.path.replace('/website.', '/') for child in submenu.child_id if child.path]) or
-         (submenu.path and request.httprequest.path == submenu.path.replace('/website.', '/'))) and 'active'
+        (path and path != '/' and any([request.httprequest.path == child.path.replace('/website.', '/') for child in submenu.child_id if child.path]) or
+         (path and request.httprequest.path == path.replace('/website.', '/'))) and 'active'
         }">
         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
             <span t-field="submenu.name"/> <span class="caret" t-ignore="true"></span>
@@ -186,7 +187,7 @@
         <attribute name="t-if">website.user_id != user_id</attribute>
     </xpath>
     <xpath expr="//header//ul[@id='top_menu']/li[hasclass('divider')]" position="before">
-        <t t-foreach="website.menu_ids" t-as="submenu">
+        <t t-foreach="website.menu_id.child_id" t-as="submenu">
             <t t-call="website.submenu"/>
         </t>
     </xpath>

@@ -4,29 +4,15 @@
         <record id="forum_help" model="forum.forum">
             <field name="name">Help</field>
         </record>
-        
-        <record id="menu_questions_view" model="ir.ui.view">  
-            <field name="name">Forum</field>
-            <field name="type">qweb</field>
-            <field name="page">False</field>
-            <field name="arch" type="xml">
-                <t name="menu_questions_view" priority="29" t-name="website.menu_questions_view">
-                    <t t-call="website.layout">
-                        <t t-set="pageName" t-value="'menu_questions_view'"/>
-                        <div id="wrap" class="oe_structure oe_empty"/>
-                    </t>
-                </t>
-            </field>
-        </record>
         <record id="menu_questions" model="website.page">
-            <field name="path" eval="'/forum/'+str(ref('website_forum.forum_help'))"/>
-            <field name="ir_ui_view_id" ref="menu_questions_view" />
+            <field name="item_type">link</field>
+            <field name="name">Forum</field>
+            <field name="link_url" eval="'/forum/'+str(ref('website_forum.forum_help'))"/>
             <field name="sequence" type="int">35</field>
             <field name="is_menu">True</field>
             <field name="website_ids" eval="[(4, ref('website.default_website'))]" />
+            <field name="parent_id" ref="website.top_menu_container" />
         </record>
-        
-        
     </data>
     <data>
         <function model="ir.config_parameter" name="set_param" eval="('auth_signup.allow_uninvited', True)"/>

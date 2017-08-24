@@ -52,7 +52,6 @@
                         </ul>
                     </li>-->
                     <li id="manage-pages-menu" class="dropdown content active o_menu_sections oe_content_menu" t-if="editable">
-                      
                         <!--<a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false" href="#">-->
                         <a class="dropdown-toggle" data-action="open_management_page_menu" aria-expanded="false" href="#">
                             <span class="smallandgray">Page:</span> 
