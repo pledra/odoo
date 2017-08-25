@@ -60,8 +60,7 @@ class StockMove(models.Model):
              "be moved. Lowering this quantity does not generate a "
              "backorder. Changing this quantity on assigned moves affects "
              "the product reservation, and should be done with care.")
-    product_uom = fields.Many2one(
-        'product.uom', 'Unit of Measure', required=True, states={'done': [('readonly', True)]})
+    product_uom = fields.Many2one('product.uom', 'Unit of Measure', required=True)
     # TDE FIXME: make it stored, otherwise group will not work
     product_tmpl_id = fields.Many2one(
         'product.template', 'Product Template',
@@ -72,11 +71,11 @@ class StockMove(models.Model):
         help="It specifies attributes of packaging like type, quantity of packaging,etc.")
     location_id = fields.Many2one(
         'stock.location', 'Source Location',
-        auto_join=True, index=True, required=True, states={'done': [('readonly', True)]},
+        auto_join=True, index=True, required=True,
         help="Sets a location if you produce at a fixed location. This can be a partner location if you subcontract the manufacturing operations.")
     location_dest_id = fields.Many2one(
         'stock.location', 'Destination Location',
-        auto_join=True, index=True, required=True, states={'done': [('readonly', True)]},
+        auto_join=True, index=True, required=True,
         help="Location where the system will stock the finished products.")
     partner_id = fields.Many2one(
         'res.partner', 'Destination Address ',
@@ -155,11 +154,11 @@ class StockMove(models.Model):
     picking_code = fields.Selection(related='picking_id.picking_type_id.code', readonly=True)
     product_type = fields.Selection(related='product_id.type', readonly=True)
     additional = fields.Boolean("Whether the move was added after the picking's confirmation", default=False)
-    is_locked = fields.Boolean(related='picking_id.is_locked', default=True)
+    is_locked = fields.Boolean(related='picking_id.is_locked', readonly=True)
     is_initial_demand_editable = fields.Boolean('Is initial demand editable', compute='_compute_is_initial_demand_editable')
 
     @api.multi
-    @api.depends('has_tracking', 'move_line_ids', 'location_id', 'location_dest_id')
+    @api.depends('product_id', 'has_tracking', 'move_line_ids', 'location_id', 'location_dest_id')
     def _compute_show_details_visible(self):
         """ According to this field, the button that calls `action_show_details` will be displayed
         to work on a move from its picking form view, or not.
@@ -172,9 +171,7 @@ class StockMove(models.Model):
             multi_locations_enabled = False
             if self.user_has_groups('stock.group_stock_multi_locations'):
                 multi_locations_enabled = move.location_id.child_ids or move.location_dest_id.child_ids
-
             has_package = move.move_line_ids.mapped('package_id') | move.move_line_ids.mapped('result_package_id')
-
             consignment_enabled = self.user_has_groups('stock.group_tracking_owner')
             if move.picking_id.picking_type_id.show_operations is False\
                     and move.state != 'draft'\
@@ -314,7 +311,11 @@ class StockMove(models.Model):
         defaults = super(StockMove, self).default_get(fields_list)
         if self.env.context.get('default_picking_id'):
             picking_id = self.env['stock.picking'].browse(self.env.context['default_picking_id'])
-            if picking_id.state not in ['draft', 'confirmed']:
+            if picking_id.state == 'done':
+                defaults['state'] = 'done'
+                defaults['product_uom_qty'] = 0.0
+                defaults['additional'] = True
+            elif picking_id.state not in ['draft', 'confirmed']:
                 defaults['state'] = 'assigned'
                 defaults['product_uom_qty'] = 0.0
                 defaults['additional'] = True
