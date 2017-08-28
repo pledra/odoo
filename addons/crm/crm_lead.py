@@ -884,6 +884,7 @@ class crm_lead(format_address, osv.osv):
         return res
 
     def create(self, cr, uid, vals, context=None):
+        import pudb;pudb.set_trace()
         context = dict(context or {})
         if vals.get('type') and not context.get('default_type'):
             context['default_type'] = vals.get('type')

@@ -958,6 +958,7 @@ class MailThread(models.AbstractModel):
 
         :raises: ValueError, TypeError
         """
+        import pudb;pu.db
         if not isinstance(message, Message):
             raise TypeError('message must be an email.message.Message at this point')
         MailMessage = self.env['mail.message']
