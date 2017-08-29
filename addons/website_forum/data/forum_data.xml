@@ -4,14 +4,12 @@
         <record id="forum_help" model="forum.forum">
             <field name="name">Help</field>
         </record>
-        <record id="menu_questions" model="website.page">
-            <field name="item_type">link</field>
+        <record id="menu_questions" model="website.menu">
             <field name="name">Forum</field>
-            <field name="link_url" eval="'/forum/'+str(ref('website_forum.forum_help'))"/>
+            <field name="url" eval="'/forum/'+str(ref('website_forum.forum_help'))"/>
+            <field name="parent_id" ref="website.main_menu"/>
             <field name="sequence" type="int">35</field>
-            <field name="is_menu">True</field>
-            <field name="website_ids" eval="[(4, ref('website.default_website'))]" />
-            <field name="parent_id" ref="website.top_menu_container" />
+            <field name="website_id" ref="website.default_website"/>
         </record>
     </data>
     <data>

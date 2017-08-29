@@ -24,7 +24,7 @@ class Event(models.Model):
         'Dedicated Menu', compute='_compute_website_menu', inverse='_set_website_menu',
         help="Creates menus Introduction, Location and Register on the page "
              " of the event on the website.", store=True)
-    menu_id = fields.Many2one('website.page', 'Event Menu')
+    menu_id = fields.Many2one('website.menu', 'Event Menu')
 
     def _compute_is_participating(self):
         # we don't allow public user to see participating label
@@ -70,8 +70,8 @@ class Event(models.Model):
                 event.menu_id.unlink()
             elif event.website_menu:
                 if not event.menu_id:
-                    root_menu = self.env['website'].new_root_menu(event.name)
-                    event.menu_id = root_menu.id
+                    root_menu = self.env['website.menu'].create({'name': event.name})
+                    event.menu_id = root_menu
 
                 existing_page_names = event.menu_id.child_id.mapped('name')
                 required_page_names = [entry[0] for entry in self._get_menu_entries()]
@@ -88,35 +88,24 @@ class Event(models.Model):
                         if not url:
                             page_name = slugify(name + ' ' + self.name)
                             page_xmlid = xml_id.split('.')[0] + '.' + slugify(name + ' ' + self.name)
+                            url = "/event/" + slug(self) + "/page/" + page_xmlid
                             # new page
                             template_record = self.env.ref(xml_id)
                             key = '%s.%s' % (xml_id.split('.')[0], page_name)
-                            page = template_record.copy({'website_id': self.env['website'].get_current_website().id, 'key': key})
-                                                        
-                            self.env['website.page'].create({
+                            view = template_record.copy({'website_id': self.env['website'].get_current_website().id, 'key': key})
+                            website_page = self.env['website.page'].create({
                                 'name': name,
-                                'path': "/event/" + slug(self) + "/page/" + slugify(name + ' ' + self.name),
-                                'key': xml_id.split('.')[0] + '.' + slugify(name + ' ' + self.name),
-                                'arch': page.arch.replace(xml_id, page_xmlid),
-                                
+                                'url': url,
+                                'ir_ui_view_id': view.id,
                                 'website_ids': [(6, None, [self.env['website'].get_current_website().id])],
-                                'type': 'qweb',
-                                'page': False,
-                                'is_menu': True,
-                                'parent_id': event.menu_id.id,
-                                'sequence': sequence,
                             })
-                        else:
-                            self.env['website.page'].create({
-                                'name': name,
-                                'path': url,
-                                'website_ids': [(6, None, [self.env['website'].get_current_website().id])],
-                                'type': 'qweb',
-                                'page': False,
-                                'is_menu': True,
-                                'parent_id': event.menu_id.id,
-                                'sequence': sequence,
-                            })
+                        self.env['website.menu'].create({
+                            'name': name,
+                            'url': url,
+                            'parent_id': event.menu_id.id,
+                            'sequence': sequence,
+                            'page_id': website_page.id if website_page else None,
+                        })
 
     @api.multi
     def _compute_website_menu(self):

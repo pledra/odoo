@@ -7,14 +7,12 @@
             <field name="value">AIzaSyDOWlmDW-7DbLmOR9ZsT5AOEXf4n6TFwQA</field>
         </record>
         
-        <record id="website_menu_slides" model="website.page">
-            <field name="item_type">link</field>
+        <record id="website_menu_slides" model="website.menu">
             <field name="name">Presentations</field>
-            <field name="link_url">/slides</field>
+            <field name="url">/slides</field>
+            <field name="parent_id" ref="website.main_menu"/>
             <field name="sequence" type="int">50</field>
-            <field name="is_menu">True</field>
-            <field name="website_ids" eval="[(4, ref('website.default_website'))]" />
-            <field name="parent_id" ref="website.top_menu_container" />
+            <field name="website_id" ref="website.default_website"/>
         </record>
 
         <record id="slide_template_published" model="mail.template">

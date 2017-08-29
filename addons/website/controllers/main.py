@@ -108,10 +108,10 @@ class Website(Home):
 
         homepage = request.env['website'].browse(request.env['website'].get_current_website().id).homepage_id
         if homepage:
-            if homepage.path == '/':
+            if homepage.url == '/':
                 # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page
                 return request.env['ir.http']._serve_page()
-            return request.env['ir.http'].reroute(homepage.path)
+            return request.env['ir.http'].reroute(homepage.url)
         else:
             try:
                 website_page = request.env['ir.http']._serve_page()
@@ -120,13 +120,13 @@ class Website(Home):
             except:
                 first_menu = request.website.sudo().menu_id
                 if first_menu:
-                    if first_menu.path and (not (first_menu.path.startswith(('/', '/?', '/#')))):
-                        return request.redirect(first_menu.path)
-                    elif first_menu.path == '/':
+                    if first_menu.url and (not (first_menu.url.startswith(('/', '/?', '/#')))):
+                        return request.redirect(first_menu.url)
+                    elif first_menu.url == '/':
                         # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page
                         return request.env['ir.http']._serve_page()
                     else:
-                        return request.redirect(first_menu.path)
+                        return request.redirect(first_menu.url)
                 else:
                     # if no menu & "/" does not exists (we are in except) -> trigger 404 by rendering not existing page
                     return request.env['ir.http']._serve_page()

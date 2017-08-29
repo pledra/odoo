@@ -10,16 +10,14 @@
     </data>
 
     <data noupdate="1">
-        <record id="menu_questions" model="website.page">
+        <record id="menu_questions" model="website.menu">
             <field name="name">Documentation</field>
-            <field name="item_type">link</field>
-            <field name="link_url">/forum/how-to</field>
+            <field name="url" eval="'/forum/how-to'"/>
+            <field name="parent_id" ref="website.main_menu"/>
             <field name="sequence" type="int">65</field>
-            <field name="is_menu">True</field>
-            <field name="website_ids" eval="[(4, ref('website.default_website'))]" />
-            <field name="parent_id" ref="website.top_menu_container" />
+            <field name="website_id" ref="website.default_website"/>
         </record>
-
+        
         <record id="base.open_menu" model="ir.actions.todo">
             <field name="action_id" ref="action_open_documentation"/>
             <field name="state">open</field>

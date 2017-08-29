@@ -134,14 +134,8 @@ response = request.render("website.template_partner_comment", {
         
         
         <!--
-            Website pages
+            Default Website pages
         -->
-        
-        <record id="top_menu_container" model="website.page">
-            <field name="name">Website's top menu container</field>
-            <field name="item_type">root_menu</field>
-            <field name="website_published">False</field>
-        </record>
         
         <!-- 
           Keep homepage & contactus page split between ir_ui_view & website_page record 
@@ -156,6 +150,7 @@ response = request.render("website.template_partner_comment", {
 
         
         <record id="homepage" model="ir.ui.view">
+            <field name="name">Home</field>
             <field name="type">qweb</field>
             <field name="key">website.homepage</field>
             <field name="page">True</field>            
@@ -171,17 +166,15 @@ response = request.render("website.template_partner_comment", {
         <record id="homepage_page" model="website.page">
             <field name="name">Home</field>
             <field name="website_published">True</field>
-            <field name="path">/</field>
-            <field name="item_type">page</field>
+            <field name="url">/</field>
             <field name="ir_ui_view_id" ref="homepage" />
-            <field name="sequence" type="int">10</field>
-            <field name="parent_id" ref="top_menu_container" />
         </record>
         <record id="default_website" model="website">
             <field name="homepage_id" ref="homepage_page" />
         </record>
         
         <record id="contactus" model="ir.ui.view">
+            <field name="name">Contact Us</field>
             <field name="type">qweb</field>
             <field name="key">website.contactus</field>
             <field name="page">True</field>          
@@ -217,15 +210,13 @@ response = request.render("website.template_partner_comment", {
         </record>
         <record id="contactus_page" model="website.page">
             <field name="name">Contact Us</field>
-            <field name="item_type">page</field>
-            <field name="path">/contactus</field>
+            <field name="url">/contactus</field>
             <field name="website_published">True</field>
             <field name="ir_ui_view_id" ref="contactus" />
-            <field name="sequence" type="int">60</field>
-            <field name="parent_id" ref="top_menu_container" />
         </record>
         
         <record id="aboutus" model="ir.ui.view">
+            <field name="name">About us</field>
             <field name="type">qweb</field>
             <field name="key">website.aboutus</field>
             <field name="page">True</field>            
@@ -276,17 +267,29 @@ response = request.render("website.template_partner_comment", {
         </record>
         <record id="aboutus_page" model="website.page">
             <field name="name">About us</field>
-            <field name="item_type">page</field>
             <field name="website_published">True</field>
-            <field name="path">/aboutus</field>
+            <field name="url">/aboutus</field>
             <field name="ir_ui_view_id" ref="aboutus" />
-            <field name="is_menu">False</field>
-            <field name="parent_id" ref="top_menu_container" />
+        </record>
+        
+        <!--
+            Default Website link menu to page
+        -->
+        
+        <record id="menu_homepage" model="website.menu">
+            <field name="page_id" ref="homepage_page" />
+        </record>
+
+        <record id="menu_contactus" model="website.menu">
+            <field name="page_id" ref="contactus_page" />
         </record>
         
 
-
+        <!--
+            Website2
+        -->
         <record id="website2_homepage" model="ir.ui.view">
+            <field name="name">Home</field>
             <field name="type">qweb</field>
             <field name="key">website.homepage</field>
             <field name="page">True</field>            
@@ -328,12 +331,10 @@ response = request.render("website.template_partner_comment", {
         </record>
         <record id="website2_homepage_page" model="website.page">
             <field name="name">Home</field>
-            <field name="item_type">page</field>
             <field name="website_published">True</field>
-            <field name="path">/</field>
+            <field name="url">/</field>
             <field name="ir_ui_view_id" ref="website2_homepage" />
             <field name="website_ids" eval="[(4, ref('website2'))]" />
-            <field name="sequence" type="int">10</field>
         </record>
         <record id="website2" model="website">
             <field name="homepage_id" ref="website2_homepage_page" />

@@ -163,21 +163,21 @@ class IrHttp(models.AbstractModel):
         if req_page.startswith('/website.'):
             return request.redirect('/%s?%s' % (req_page[9:], request.httprequest.query_string), code=301)
         
-        domain = [('path', '=', req_page), '|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
+        domain = [('url', '=', req_page), '|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
         publish = request.env.user.has_group('website.group_website_publisher')
         if not publish:
             domain.append(('website_published', '=', True))
         mypage = request.env['website.page'].search(domain, limit=1)
         
         values = {
-            'path': req_page[1:],
+            'url': req_page[1:],
             'deletable': True,  # used to add 'delete this page' in content menu
             'main_object': mypage,
         }
         if mypage:
             # If this is a redirection, redirect it
-            if mypage.item_type == 'redirect':
-                return request.redirect(mypage.redirect_url, code=mypage.redirect_type)
+            #if mypage.item_type == 'redirect':
+            #    return request.redirect(mypage.redirect_url, code=mypage.redirect_type)
             return mypage.ir_ui_view_id.render(values)
         else:
             if request.website.is_publisher():

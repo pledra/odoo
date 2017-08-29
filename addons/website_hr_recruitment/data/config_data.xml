@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <record id="menu_jobs" model="website.page">
-            <field name="item_type">link</field>
+        <record id="menu_jobs" model="website.menu">
             <field name="name">Jobs</field>
-            <field name="link_url">/jobs</field>
+            <field name="url">/jobs</field>
+            <field name="parent_id" ref="website.main_menu"/>
+            <field name="website_id" ref="website.default_website"/>
             <field name="sequence" type="int">50</field>
-            <field name="is_menu">True</field>
-            <field name="website_ids" eval="[(4, ref('website.default_website'))]" />
-            <field name="parent_id" ref="website.top_menu_container" />
         </record>
-        
         <record id="action_open_website" model="ir.actions.act_url">
             <field name="name">Website Recruitment Form</field>
             <field name="target">self</field>

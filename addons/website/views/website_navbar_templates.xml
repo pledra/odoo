@@ -102,8 +102,8 @@
                             <label class="o_switch js_publish_btn" for="id" >
                                 <input type="checkbox" t-att-checked="main_object.website_published" id="id"/>
                                 <span/>
-                                <span class="css_publish">Published</span>
-                                <span class="css_unpublish">Unpublished</span>
+                                <span class="css_publish">Unpublished</span>
+                                <span class="css_unpublish">Published</span>
                             </label>
                         </a>
                     </li>

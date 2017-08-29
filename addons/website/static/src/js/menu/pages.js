@@ -112,14 +112,17 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 opacity: 0.6,
                 placeholder: 'oe_menu_placeholder',
                 tolerance: 'pointer',
-                attribute: 'data-menu-id',
+                attribute: 'data-object-id',
                 expression: '()(.+)', // nestedSortable takes the second match of an expression (*sigh*)
                 connectWith: '#pages_management_other_pages',
                 receive: function(event, ui) { 
-                    var id = $(ui.item).data('menu-id');
-                    var index = self.to_delete.indexOf(+id);
-                    if(index)
-                        self.to_delete.splice(index, 1);
+                    var id = $(ui.item).data('object-id');
+                    if ($(ui.item).find('[data-is_menu]').data('is_menu')){
+                        
+                        var index = self.to_delete.indexOf(+id);
+                        if(index)
+                            self.to_delete.splice(index, 1);
+                    }
                 },
             });
             $('#pages_management_other_pages').nestedSortable({
@@ -132,10 +135,13 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 opacity: 0.6,
                 placeholder: 'oe_menu_placeholder',
                 tolerance: 'pointer',
-                attribute: 'data-menu-id',
+                attribute: 'data-object-id',
                 expression: '()(.+)', // nestedSortable takes the second match of an expression (*sigh*)
                 connectWith: '#pages_management_menu_pages',
-                receive: function(event, ui) { self.to_delete.push($(ui.item).data('menu-id'));},
+                receive: function(event, ui) { 
+                    if ($(ui.item).find('[data-is_menu]').data('is_menu'))
+                        self.to_delete.push($(ui.item).data('object-id'));
+                },
             });
             
             if (location.search.indexOf("spm") > -1)
@@ -156,20 +162,22 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         }).then(function (homepage_path) {
             return self._rpc({
                 model: 'website.page',
-                method: 'get_pages',
+                method: 'get_pages_not_in_menu',
                 args: [context.website_id],
                 kwargs: {
                     context: context
                 },
             }).then(function (result) {
                 return self._rpc({
-                    model: 'website.page',
+                    model: 'website.menu',
                     method: 'get_tree',
                     args: [context.website_id],
                     kwargs: {
                         context: context
                     },
                 }).then(function (menu) {
+                    //We don't need the root_menu in the page management UI
+                    menu = menu.children;
                     self.menus = menu;
                     self.root_menu_id = menu.id;
                     self.flat = self._flatenize(menu);
@@ -215,8 +223,8 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         });       
         
         self._rpc({
-            model: 'website.page',
-            method: 'save_tree_menu',
+            model: 'website.menu',
+            method: 'save',
             args: [[context.website_id], { data: data, to_delete: self.to_delete }],
             kwargs: {
                 context: context
@@ -241,13 +249,19 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         }).then(function (homepage_path) {
             return self._rpc({
                 model: 'website.page',
-                method: 'get_page',
-                args: [data.pageId,context.website_id],
+                method: 'get_object',
+                args: [data.objectId,context.website_id],
                 kwargs: {
                     context: context
                 },
-            }).then(function (page) {
-                $(".oe_page_management_page_info").html($(qweb.render('website.pagesMenu.page_info', {page: page[0], homepage_path: homepage_path, server_url:window.location.origin})));
+            }).then(function (object) {
+                var length_url = window.location.origin.length;
+                var server_url = window.location.origin;
+                var server_url_trunc = server_url;
+                if(length_url > 20){
+                    server_url_trunc = server_url.slice(0,9) + '..' + server_url.slice(length_url-9,length_url);
+                }
+                $(".oe_page_management_page_info").html($(qweb.render('website.pagesMenu.page_info', {page: object[0], homepage_path: homepage_path, server_url: window.location.origin, server_url_trunc: server_url_trunc})));
                 $(".oe_page_management_page_info").show();
                 $("button[data-action='save_management_page_menu']").prop('disabled', true);
             });
@@ -258,28 +272,28 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         $("button[data-action='save_management_page_menu']").prop('disabled', false);
     },
     _savePageInfo: function(data){
+        var object_id = data.objectId.split("-")[1];
+        var object_model = data.objectId.split("-")[0];
+        
         var self = this;
         var context = weContext.get();
         
         var is_menu = $(".oe_page_management_page_info #is_menu").prop('checked');
-        var page_name = $(".oe_page_management_page_info #page_name").val();
+        var object_name = $(".oe_page_management_page_info #object_name").val();
+        var object_url = $(".oe_page_management_page_info #object_url").val();
         var params = {
-            name: page_name, 
+            name: object_name, 
+            url: object_url,
             is_menu: is_menu,
-            id: data.id,
+            id: data.objectId,
         };
-        var params_ext;
-        if(data.item_type == 'page'){
-            var page_path = $(".oe_page_management_page_info #page_path").val();
-            var is_homepage = $(".oe_page_management_page_info #is_homepage").prop('checked');
-            params_ext = {path: page_path, is_homepage: is_homepage};
+        if(object_model == 'page'){
+            params.is_homepage = $(".oe_page_management_page_info #is_homepage").prop('checked');
+            //var is_homepage = $(".oe_page_management_page_info #is_homepage").prop('checked');
+            //var params_ext = {is_homepage: is_homepage};
+            //ES6: Object.assign(params, params_ext);
+            //for (var attrname in params_ext) { params[attrname] = params_ext[attrname]; }
         }
-        else if(data.item_type == 'link'){
-            var page_link_url = $(".oe_page_management_page_info #page_link_url").val();
-            params_ext = {link_url: page_link_url};
-        }
-        //ES6: Object.assign(params, params_ext);
-        for (var attrname in params_ext) { params[attrname] = params_ext[attrname]; }
         self._rpc({
             model: 'website.page',
             method: 'save_page_info',
@@ -288,9 +302,10 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 context: context
             },
         }).then(function () {
-            //Redirect to the modified page or link
-            window.location = data.item_type == 'page' ? page_path + '?spm=1' : page_link_url;
-            //Just some not very usefull ui but help user to see it is working
+            //If the saved element is a link, no point to redirect to its url, just reload the page (to redraw menu & page management)
+            //TODO: To be discussed, should we redirect to url ? If the url point to a website's url its fine, but it is like google.com?
+            window.location.href = object_model == 'page' ? object_url + '?spm=1' : "";
+            //Just some not very usefull ui but help user to see it is working (redirect may take a few ms to execute)
             $(".oe_page_management_page_info").hide();
             $("button[data-action='save_management_page_menu']").prop('disabled', false);
         });
@@ -368,7 +383,7 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         window.location.href = data.path + "?show_seo=1";
     },
     _goToTrack: function(data) {
-        alert("todo");
+        window.location.href = '/r?u=' + encodeURIComponent(window.location.origin + data.path);
     },
     /**
      * Retrieves the page dependencies for the given object id.

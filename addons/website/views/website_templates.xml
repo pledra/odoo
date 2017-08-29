@@ -49,7 +49,6 @@
     <script type="text/javascript" src="/website/static/src/js/editor/rte.summernote.js"/>
     <script type="text/javascript" src="/website/static/src/js/editor/snippets.options.js"/>
 
-    <script type="text/javascript" src="/website/static/src/js/menu/content.js"/>
     <script type="text/javascript" src="/website/static/src/js/menu/customize.js"/>
     <script type="text/javascript" src="/website/static/src/js/menu/edit.js"/>
     <script type="text/javascript" src="/website/static/src/js/menu/mobile_view.js"/>
@@ -68,17 +67,16 @@
 
 <!-- Layout -->
 <template id="submenu" name="Submenu">
-    <t t-set="path" t-value="submenu.link_url if not submenu.path else submenu.path"/>
     <li t-if="not submenu.child_id" t-att-class="
-        'active' if path and unslug_url(request.httprequest.path) == unslug_url(path.replace('/website.', '/')) else None
+        'active' if submenu.url and unslug_url(request.httprequest.path) == unslug_url(submenu.url.replace('/website.', '/')) else None
         ">
-        <a t-att-href="path if path.startswith('/') else '//' + path" t-ignore="true" t-att-target="'_blank' if submenu.new_window else None">
+        <a t-att-href="submenu.url if submenu.url.startswith('/') else '//' + submenu.url" t-ignore="true" t-att-target="'_blank' if submenu.new_window else None">
             <span t-field="submenu.name"/>
         </a>
     </li>
     <li t-if="submenu.child_id" t-attf-class="dropdown #{
-        (path and path != '/' and any([request.httprequest.path == child.path.replace('/website.', '/') for child in submenu.child_id if child.path]) or
-         (path and request.httprequest.path == path.replace('/website.', '/'))) and 'active'
+        (submenu.url and submenu.url != '/' and any([request.httprequest.path == child.url.replace('/website.', '/') for child in submenu.child_id if child.url]) or
+         (submenu.url and request.httprequest.path == submenu.url.replace('/website.', '/'))) and 'active'
         }">
         <a class="dropdown-toggle" data-toggle="dropdown" href="#">
             <span t-field="submenu.name"/> <span class="caret" t-ignore="true"></span>

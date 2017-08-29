@@ -1,24 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
 <t t-name="website.pagesMenu.submenu">
-    <t t-set="path" t-value="page.item_type == 'page' ? page.path : page.link_url"/>
-    <li t-att-data-menu-id="page.id">
+    <li t-att-data-object-id="object.id">
         <div class="input-group">
             <span class="input-group-addon fa fa-bars"/>
-            <a href="#" t-att-data-page-id="page.id" data-action="load_page_info">
-                <span t-att-class="path == current_page_url ? 'bold black form-control' : 'form-control'">
+            <a href="#" t-att-data-object-id="object.id" data-action="load_page_info">
+                <span t-att-class="object.url == current_page_url ? 'bold black form-control' : 'form-control'">
                     <span class="js_menu_label">
-                        <t t-esc="page.name"/>
+                        <t t-esc="object.name"/>
                     </span>
                     <i class="pull-right fa fa-angle-right" style="margin-top: 3px"/>
-                    <i t-if="page.item_type == 'link'" class="pull-right fa fa-link" style="margin-top: 3px"/>
-                    <i t-if="path == homepage_path" class="pull-right fa fa-home" style="margin-top: 3px"/>
+                    <i t-if="object.is_link" class="pull-right fa fa-link" style="margin-top: 3px"/>
+                    <i t-if="object.url == homepage_path" class="pull-right fa fa-home" style="margin-top: 3px"/>
                 </span>
             </a>
         </div>
-        <t t-set="children" t-value="page.children"/>
+        <t t-set="children" t-value="object.children"/>
         <ul t-if="children">
-            <t t-foreach="children" t-as="page">
+            <t t-foreach="children" t-as="object">
                 <t t-call="website.pagesMenu.submenu"/>
             </t>
         </ul>
@@ -70,20 +69,20 @@
         <li t-if="false"><a data-toggle="tab" class="text-muted" href="#seo_promote">SEO (promote)</a></li>
         <li t-if="page.item_type == 'link'" t-att-class="page.item_type == 'link' ? 'active' : ''"><a data-toggle="tab" class="text-muted" href="#link_settings">Link Settings</a></li>
     </ul>-->
-    <t t-if="page.item_type == 'page'">                          
+    <t t-if="page.model == 'Page'">                          
         <form class="form-horizontal">
             <div class="form-group">
-              <label class="control-label col-sm-4" for="page_name">Page Name</label>
+              <label class="control-label col-sm-4" for="object_name">Page Name</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control input-sm" id="page_name" t-att-value="page.name" />
+                    <input type="text" class="form-control input-sm" id="object_name" t-att-value="page.name" />
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-sm-4" for="page_path">Page Url</label>
+                <label class="control-label col-sm-4" for="object_url">Page Url</label>
                 <div class="col-sm-8">
                     <div class="input-group">
-                        <span class="input-group-addon"><t t-esc="server_url" /></span>
-                        <input type="text" class="form-control input-sm" id="page_path" t-att-value="page.path" />
+                        <span class="input-group-addon" t-att-title="server_url"><t t-esc="server_url_trunc" /></span>
+                        <input type="text" class="form-control input-sm" id="object_url" t-att-value="page.url" />
                     </div>
                 </div>
             </div>
@@ -103,38 +102,26 @@
                 <div class="col-sm-8">
                     <a>
                         <label class="o_switch js_publish_btn" for="is_homepage" >
-                            <input type="checkbox" t-att-checked="page.path == homepage_path ? true : undefined" id="is_homepage"/>
+                            <input type="checkbox" t-att-checked="page.url == homepage_path ? true : undefined" id="is_homepage"/>
                             <span/>
                         </label>
                     </a>
                 </div>
             </div>
-            <!--<div class="form-group">
-                <label class="control-label col-sm-4" for="page_redirect_to">Redirection Url</label>
-                <div class="col-sm-8">
-                    <input type="text" class="form-control input-sm" id="page_redirect_to" t-att-value="page.redirect_to" />
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-sm-4" for="page_redirect_type">Redirection Type</label>
-                <div class="col-sm-8">
-                    <input type="text" class="form-control input-sm" id="page_redirect_type" t-att-value="page.redirect_type" />
-                </div>
-            </div>-->
         </form>
     </t>
-    <t t-if="page.item_type == 'link'">                          
+    <t t-if="page.model == 'Link'">                          
         <form class="form-horizontal">
             <div class="form-group">
-              <label class="control-label col-sm-4" for="menu_name">Menu Name</label>
+              <label class="control-label col-sm-4" for="object_name">Menu Name</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control input-sm" id="menu_name" t-att-value="page.name" />
+                    <input type="text" class="form-control input-sm" id="object_name" t-att-value="page.name" />
                 </div>
             </div>
             <div class="form-group">
-                <label class="control-label col-sm-4" for="page_link_url">Link to</label>
+                <label class="control-label col-sm-4" for="object_url">Link to</label>
                 <div class="col-sm-8">
-                    <input type="text" class="form-control input-sm" id="page_link_url" t-att-value="page.link_url" />
+                    <input type="text" class="form-control input-sm" id="object_url" t-att-value="page.url" />
                 </div>
             </div>
             <div class="form-group">
@@ -152,27 +139,32 @@
     </t>
     <div>
         <hr />
-        <a href="#" data-action="clone_page" class="text-muted" t-att-data-id="page.id"><i class="fa fa-clone"/> Clone <t t-esc="page.item_type == 'page' ? 'Page' : 'Link'" /></a>
-        <a href="#" data-action="delete_page" class="text-muted" t-att-data-id="page.id"><i class="fa fa-trash"/> Delete <t t-esc="page.item_type == 'page' ? 'Page' : 'Link'" /></a>  
-        <a t-att-href="page.item_type == 'page' ? page.path + '?spm=1' : page.link_url" class="text-muted" t-att-data-id="page.id"><i class="fa fa-arrow-right"/> Goto <t t-esc="page.item_type == 'page' ? 'Page' : 'Link'" /></a>  
+        <a href="#" data-action="clone_page" class="text-muted" t-att-data-object-id="page.id">
+            <i class="fa fa-clone"/> Clone <t t-esc="page.model" />
+        </a>
+        <a href="#" data-action="delete_page" class="text-muted" t-att-data-object-id="page.id">
+            <i class="fa fa-trash"/> Delete <t t-esc="page.model" />
+        </a>  
+        <a t-att-href="page.url + '?spm=1'" class="text-muted" t-att-data-object-id="page.id">
+            <i class="fa fa-arrow-right"/> Go to <t t-esc="page.model" />
+        </a>  
         <small class="pull-right text-muted">
-            <a href="#" t-att-data-id="page.id" t-att-data-item_type="page.item_type" data-action="save_page_info" class="colorTODO btn btn-xs btn-success">Save</a>
+            <a href="#" t-att-data-object-id="page.id" data-action="save_page_info" class="colorTODO btn btn-xs btn-success">Save</a>
         </small>
     </div>
-    <div t-if="page.item_type == 'page'">
+    <div t-if="page.model == 'Page'">
         <br />
-        <a t-att-data-path="page.path" data-action="go_to_seo" class="text-muted"><i class="fa fa-line-chart"/> Seo</a> 
-        <a t-att-data-path="page.path" data-action="go_to_track" class="text-muted"><i class="fa fa-thumb-tack"/> Track</a> 
+        <a t-att-data-path="page.url" data-action="go_to_seo" class="text-muted"><i class="fa fa-line-chart"/> Optimize SEO</a> 
+        <a t-att-data-path="page.url" data-action="go_to_track" class="text-muted"><i class="fa fa-thumb-tack"/> Track this Page</a> 
     </div>
 </div>
 
 <div t-name="website.pagesMenu" style="margin:10px;">
-    <t t-esc="page_url" />
     <p class="open_pages_menu" data-toggle="collapse" data-target="#pages_management_menu_pages">
         <span class="caret"></span> Menu Pages (<t t-esc="tree_menu.length" />)
     </p>
     <ul class="oe_menu_editor list-unstyled collapse in" id="pages_management_menu_pages">
-        <t t-foreach="tree_menu" t-as="page">
+        <t t-foreach="tree_menu" t-as="object">
             <t t-call="website.pagesMenu.submenu"/>
         </t>
     </ul>
@@ -180,7 +172,10 @@
         <span class="caret"></span> Other Pages (<t t-esc="pages.length" />)
     </p>
     <ul class="oe_menu_editor list-unstyled collapse in" id="pages_management_other_pages">
-        <li t-foreach="pages" t-as="page" t-att-data-menu-id="page.id">
+        <t t-foreach="pages" t-as="object">
+            <t t-call="website.pagesMenu.submenu"/>
+        </t>
+        <!--<li t-foreach="pages" t-as="page" t-att-data-menu-id="page.id">
             <t t-set="path" t-value="page.item_type == 'page' ? page.path : page.link_url"/>
             <div class="input-group">
                 <span class="input-group-addon fa fa-bars"/>
@@ -195,7 +190,7 @@
                     </span>
                 </a>
             </div>
-        </li>
+        </li>-->
     </ul>
     <hr />
     <div>

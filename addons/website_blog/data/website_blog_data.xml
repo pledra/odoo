@@ -5,17 +5,13 @@
             <field name="name">Our Blog</field>
             <field name="subtitle">Get in touch with us</field>
         </record>    
-      
-        <record id="menu_news" model="website.page">
-            <field name="item_type">link</field>
-            <field name="link_url" eval="'/blog/'+str(ref('website_blog.blog_blog_1'))"/>
-            <field name="sequence" type="int">40</field>
-            <field name="is_menu">True</field>
-            <field name="website_ids" eval="[(4, ref('website.default_website'))]" />
+        <record id="menu_news" model="website.menu">
             <field name="name">Blog</field>
-            <field name="parent_id" ref="website.top_menu_container" />
+            <field name="url" eval="'/blog/'+str(ref('website_blog.blog_blog_1'))"/>
+            <field name="parent_id" ref="website.main_menu"/>
+            <field name="sequence" type="int">40</field>
+            <field name="website_id" ref="website.default_website"/>
         </record>
-
 
         <!-- Pre loaded covers -->
 
