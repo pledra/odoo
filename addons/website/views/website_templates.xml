@@ -801,14 +801,6 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
 </sitemapindex>
 </template>
 
-<!-- TODO:RDE - QSM rebase conflict-> Check if content is updated & if so update it in ir_ui_view record
-<template id="homepage" name="Homepage" page="True" priority="29">
-    <t t-call="website.layout">
-        <t t-set="pageName" t-value="'homepage'"/>
-        <div id="wrap" class="oe_structure oe_empty"/>
-    </t>
-</template>-->
-
 <template id="company_description" name="Company Description">
     <address itemscope="itemscope" itemtype="http://schema.org/Organization">
         <!-- TODO widget contact must add itemprop attributes -->
@@ -826,77 +818,6 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
     </t>
 </template>
 
-<!-- TODO:RDE - QSM rebase conflict-> Check if content is updated & if so update it in ir_ui_view record
-<template id="contactus" name="Contact us" page="True">
-    <t t-call="website.layout">
-      <div id="wrap">
-        <div class="oe_structure"/>
-        <div class="container">
-            <h1>Contact us</h1>
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="oe_structure">
-                        <div>
-                            <p>Contact us about anything related to our company or services.</p>
-                            <p>We'll do our best to get back to you as soon as possible.</p>
-                        </div>
-                    </div>
-                    <div class="text-center mt64" name="mail_button">
-                        <a t-attf-href="mailto:{{ res_company.email }}" class="btn btn-primary" id="o_contact_mail">Send us an email</a>
-                    </div>
-                </div>
-                <div class="col-md-4 mb32">
-                    <t t-call="website.company_description"/>
-                </div>
-            </div>
-        </div>
-        <div class="oe_structure"/>
-      </div>
-    </t>
-</template>
-
-<template id="aboutus" name="About us" page="True">
-    <t t-call="website.layout">
-        <div id="wrap">
-            <div class="oe_structure">
-
-                <section>
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <h1 class="text-center">About us</h1>
-                                <h3 class="text-muted text-center">Great products for great people</h3>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section>
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-md-6 mt32">
-                                <p>
-                                      We are a team of passionate people whose goal is to improve everyone's
-                                      life through disruptive products. We build great products to solve your
-                                      business problems.
-                                </p>
-                                <p>
-                                      Our products are designed for small to medium size companies willing to optimize
-                                      their performance.
-                                </p>
-                            </div>
-                            <div class="col-md-4 col-md-offset-2 mt16 mb16">
-                                <img src="/website/static/src/img/library/business_conference.jpg" class="img img-responsive shadow" alt="Our Team"/>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-            </div>
-            <div class="oe_structure"></div>
-        </div>
-    </t>
-</template>-->
 <template id="website_search_box" name="Website Searchbox">
     <div class="input-group">
         <div class="oe_search">
@@ -908,7 +829,6 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
     </div>
 </template>
 
-
 <template id="index_management">
     <t groups="website.group_website_publisher" t-ignore="true">
         <div t-attf-class="pull-right js_index_management #{object.website_indexed and 'css_published' or 'css_unpublished'}" t-att-data-id="object.id" t-att-data-object="object._name">
@@ -917,58 +837,5 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
         </div>
     </t>
 </template>
-
-<!--<template id="edit_website_pages" name="Website Pages Management">
-  <t t-call="website.layout">
-    <div id="wrap">
-      <div class="container js_pages_management">
-          <h3>Pages Management
-              <t t-call="website.website_search_box"/>
-          </h3>
-          <t t-if="not pages">
-              <p>There are currently no pages for your website.</p>
-          </t>
-          <div t-if="pages" class="panel panel-default">
-              <div class="table-responsive"><table class="table table-hover o_my_status_table">
-                  <thead>
-                    <tr class="active">
-                      <th>
-                        <span>Name</span>
-                      </th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <t t-foreach="pages" t-as="page">
-                      <tr class="pages_management_main_object" t-att-data-main-object="page">
-                          <td>
-                              <t t-call="website.publish_management">
-                                  <t t-set="object" t-value="page"/>
-                                  <t t-set="publish_edit" t-value="page.website_published"/>
-                              </t>
-                              <a t-attf-href="{{page.path}}"><t t-esc="page.name"/></a>
-                          </td>
-                          <td>
-                              <span class="dropdown">
-                                  <a class="dropdown-toggle fa fa-lg fa-cog" data-toggle="dropdown" href="#" title="Manage this page"></a>
-                                  <ul class="dropdown-menu dropdown-menu-right" role="menu">
-                                      <li><a href="#" class="js_rename_page">Rename</a></li>
-                                      <li><a t-attf-href="{{page.path}}?enable_editor=1">Edit</a></li>
-                                      <li><a href="#" data-action="duplicate_page">Duplicate</a></li>
-                                      <li><a href="#" class="js_delete_page">Delete</a></li>
-                                  </ul>
-                            </span>
-                          </td>
-                      </tr>
-                  </t>
-              </table></div>
-              <div t-if="pager" class="o_portal_pager text-center">
-                <t t-call="website.pager"/>
-              </div>
-          </div>
-      </div>
-    </div>
-  </t>
-</template>-->
-
 
 </odoo>

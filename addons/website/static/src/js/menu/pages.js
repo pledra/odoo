@@ -117,10 +117,9 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 connectWith: '#pages_management_other_pages',
                 receive: function(event, ui) { 
                     var id = $(ui.item).data('object-id');
-                    if ($(ui.item).find('[data-is_menu]').data('is_menu')){
-                        
-                        var index = self.to_delete.indexOf(+id);
-                        if(index)
+                    if (id.indexOf('menu') !== -1){
+                        var index = self.to_delete.indexOf(id);
+                        if(index !== -1)
                             self.to_delete.splice(index, 1);
                     }
                 },
@@ -139,8 +138,9 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 expression: '()(.+)', // nestedSortable takes the second match of an expression (*sigh*)
                 connectWith: '#pages_management_menu_pages',
                 receive: function(event, ui) { 
-                    if ($(ui.item).find('[data-is_menu]').data('is_menu'))
-                        self.to_delete.push($(ui.item).data('object-id'));
+                    var id = $(ui.item).data('object-id');
+                    if (id.indexOf('menu') !== -1)
+                        self.to_delete.push(id);
                 },
             });
             

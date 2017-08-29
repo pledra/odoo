@@ -10,7 +10,7 @@ from werkzeug import urls
 from werkzeug.exceptions import NotFound
 
 from odoo import api, fields, models, tools
-from odoo.addons.http_routing.models.ir_http import slugify
+from odoo.addons.http_routing.models.ir_http import slugify, unslug
 from odoo.addons.portal.controllers.portal import pager
 from odoo.tools import pycompat
 from odoo.http import request
@@ -738,9 +738,9 @@ class Menu(models.Model):
             
         # Delete menu that were drag & droped to "other pages"
         if data['to_delete']:
-            # Transform the ID 'menu-XX' to XX
-            to_delete = map(transform_id, data['to_delete'])
-            self.browse(to_delete).unlink()
+            # Get the ID XX from 'menu-XX'
+            test = [unslug(elem)[1] for elem in data['to_delete']]
+            self.browse(test).unlink()
 
         # First level menus won't have a parent_id, we should give them the website root menu's id
         for elem in data['data']:
