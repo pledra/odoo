@@ -238,6 +238,26 @@ class MailActivity(models.Model):
         return message.ids and message.ids[0] or False
 
     @api.multi
+    def action_done_schedule_next(self):
+        ctx = self.env.context.copy()
+        ctx.update({
+            'default_res_id': self.res_id,
+            'default_res_model': self.res_model,
+            })
+        new_form = {
+            'name': _('New'),
+            'context':ctx,
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'mail.activity',
+            'views': [(False, 'form')],
+            'type': 'ir.actions.act_window',
+            'target': 'new',
+        }
+        self.action_feedback()
+        return new_form
+
+    @api.multi
     def action_close_dialog(self):
         return {'type': 'ir.actions.act_window_close'}
 
