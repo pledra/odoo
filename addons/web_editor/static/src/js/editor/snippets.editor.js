@@ -556,9 +556,7 @@ var SnippetsMenu = Widget.extend({
             if ($target.closest('.oe_overlay, .note-popover').length) {
                 return;
             }
-            self._activateSnippet($target).then(function () {
-                self.trigger('snippet:ready');
-            });
+            self._activateSnippet($target);
         });
 
         core.bus.on('deactivate_snippet', this, this._onDeactivateSnippet);
@@ -599,8 +597,6 @@ var SnippetsMenu = Widget.extend({
             var r = $.summernote.core.range.create();
             $(r && r.sc).closest('.o_default_snippet_text').removeClass('o_default_snippet_text');
         });
-
-        this.on('snippet:ready', this, function() {});
 
         return $.when.apply($, defs);
     },
