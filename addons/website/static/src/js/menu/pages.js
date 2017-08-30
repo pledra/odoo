@@ -335,11 +335,10 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
     _clonePage: function(data){
         var self = this;
         var context = weContext.get();
-        self.mo_id = data.id;
         self._rpc({
             model: 'website.page',
-            method: 'clone_page',
-            args: [self.mo_id],
+            method: 'clone_object',
+            args: [data.objectId],
             kwargs: {
                 context: context,
             },
@@ -350,7 +349,7 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
     _deletePage: function (data) {
         var self = this;
         var context = weContext.get();
-        var moID = data.id;
+        var moID = data.objectId;
         
         var def = $.Deferred();
         

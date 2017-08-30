@@ -396,7 +396,7 @@
     <field name="key">website_hr_recruitment.thankyou</field>
     <field name="page">True</field>          
     <field name="arch" type="xml">
-        <t name="Thank you (Recruitment)" t-name="website.contactus">
+        <t name="Thank you (Recruitment)" t-name="website_hr_recruitment.thankyou">
             <t t-call="website.layout">
                 <div id="wrap">
                     <div class="oe_structure">

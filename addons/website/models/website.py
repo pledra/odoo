@@ -162,35 +162,25 @@ class Website(models.Model):
         ])
 
     @api.model
-    def delete_page(self, page_id):
+    def delete_page(self, object_id):
         """ Delete a page, given its identifier
             :param page_id : website.page identifier
         """
-        page = self.env['website.page'].browse(page_id)
-        if page:
-            page.unlink()
+        model, id = object_id.split('-')
+        if model == 'menu':
+            menu = self.env['website.menu'].browse(id)
+            if menu:
+                page_id = menu.page_id
+                if page_id:
+                    self.env['website.page'].browse(page_id).unlink()
+                menu.unlink()
+        elif model == 'page':
+            page = self.env['website.page'].browse(id)
+            if page:
+                page.unlink()
 
     @api.model
-    def rename_page(self, page_id, new_name):
-        """ Change the name of the given page
-            :param page_id : id of the page to rename
-            :param new_name : name to use
-        """
-        page = self.env['website.page'].browse(page_id)
-        if page:
-            # slugify the new name
-            page_name = slugify(new_name, max_length=50)
-            page_name = self.get_unique_path(page_name)
-            page.write({
-                'url': '/' + page_name,
-                'name': new_name,
-                'arch_db': page.arch_db.replace(slugify(page.name), page_name, 1)
-            })
-            return page_name
-        return False
-
-    @api.model
-    def page_search_dependencies(self, view_id=False):
+    def page_search_dependencies(self, object_id=False):
         """ Search dependencies just for information. It will not catch 100%
             of dependencies and False positive is more than possible
             Each module could add dependences in this dict
@@ -198,11 +188,12 @@ class Website(models.Model):
                 view, and the value is the list of text and link to the resource using given page
         """
         dependencies = {}
-        if not view_id:
+        if not object_id:
             return dependencies
 
-        page = self.env['website.page'].browse(view_id)
-        if page.item_type == 'page':
+        model, id = object_id.split('-')
+        if model == 'page':
+            page = self.env['website.page'].browse(int(id))
             website_id = self._context.get('website_id')
 
             url = page.url.replace("website.", "")
@@ -226,7 +217,6 @@ class Website(models.Model):
 
             # search for website_page with link
             website_page_search_dom = [
-                ('item_type', '=', 'page'),
                 '|', ('website_ids', 'in', website_id), ('website_ids', '=', False),
                 '|', ('ir_ui_view_id.arch_db', 'ilike', url), ('ir_ui_view_id.arch_db', 'ilike', fullurl)
             ]
@@ -240,16 +230,15 @@ class Website(models.Model):
 
             # search for menu with link
             menu_search_dom = [
-                '|', ('website_ids', 'in', website_id), ('website_ids', '=', False),
-                '|', ('url', '=', url), ('url', '=', fullurl),
-                ('is_menu', '=', True)
+                '|', ('website_id', '=', website_id), ('website_id', '=', False),
+                '|', ('url', 'ilike', '%s' % url), ('url', 'ilike', '%s' % fullurl)
             ]
 
             menu_key = _('Menu')
-            pages_menu = self.env['website.page'].search(menu_search_dom)
-            for page in pages_menu:
+            menus = self.env['website.menu'].search(menu_search_dom)
+            for menu in menus:
                 dependencies.setdefault(menu_key, []).append({
-                    'text': _('This page is in the menu <b>%s</b>') % page.name,
+                    'text': _('This page is in the menu <b>%s</b>') % menu.name,
                     'link': False
                 })
                 
@@ -648,18 +637,12 @@ class Page(models.Model):
         return True
 
     @api.model
-    def clone_page(self, page_id):
+    def clone_object(self, object_id):
         """ Clone a page, given its identifier
             :param page_id : website.page identifier
         """
-        page = self.env['website.page'].browse(page_id)
-        new_page = page.copy()
-
-        new_name = page.name + ' (copy)'
-        new_page.write({
-            'name': new_name,
-        })
-        if page.item_type == 'page':
+        def clone_page(page):
+            new_page = page.copy({'name': page.name + ' (copy)'})
             # Copy the page's ir_ui_view or the cloned page will be linked to the same ir_ui_view
             new_path = self.env['website'].get_unique_path(page.url)
             view = self.env['ir.ui.view'].browse(page.ir_ui_view_id.id)
@@ -668,10 +651,27 @@ class Page(models.Model):
                 'url': '/' + new_path,
                 'ir_ui_view_id': new_view.id
             })
-            return new_path + '?enable_editor=1'
-        # If the cloned element is a link, no point to redirect to its url, just reload the page (to redraw menu & page management)
-        return ""
+            return new_page
 
+        model, id = object_id.split('-')
+        if model == 'menu':
+            menu = self.env['website.menu'].browse(int(id))
+            if menu:
+                # If the cloned element is a link (menu without a page), no point to redirect to its url,
+                # just reload the page (to redraw menu & page management)
+                menu.copy({'name': menu.name + ' (copy)'})
+                return ""
+        elif model == 'page':
+            page = self.env['website.page'].browse(int(id))
+            new_page = clone_page(page)
+            
+            menu = self.env['website.menu'].search([('page_id', '=', page.id)], limit=1)
+            if menu:
+                # If the cloned element is a menu having a page
+                new_menu = menu.copy()
+                new_menu.write({'url': new_page.url, 'name': menu.name + ' (copy)', 'page_id': new_page.id})
+                
+            return new_page.url + '?enable_editor=1'
 
 
 class Menu(models.Model):

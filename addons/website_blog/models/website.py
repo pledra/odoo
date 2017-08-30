@@ -8,11 +8,12 @@ class Website(models.Model):
     _inherit = "website"
 
     @api.model
-    def page_search_dependencies(self, view_id):
-        dep = super(Website, self).page_search_dependencies(view_id)
+    def page_search_dependencies(self, object_id):
+        dep = super(Website, self).page_search_dependencies(object_id)
 
-        page = self.env['website.page'].browse(view_id)
-        if page.item_type == 'page':
+        model, id = object_id.split('-')
+        if model == 'page':
+            page = self.env['website.page'].browse(int(id))
             path = page.path.replace("website.", "")
             fullpath = "/website.%s" % path[1:]
 
