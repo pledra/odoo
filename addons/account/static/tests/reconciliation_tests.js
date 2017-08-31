@@ -916,8 +916,6 @@ QUnit.module('account', {
 
         assert.strictEqual(widget.$('.accounting_view tbody .cell_label, .accounting_view tbody .cell_right').text().replace(/[\n\r\s$,]+/g, ' '),
             " ATOS Banque 954.68 Tax 20.00% 190.94 ATOS Frais 26.71 Tax 10.00% include 2.67", "should display 4 lines");
-        assert.strictEqual(widget.$('.accounting_view tfoot .cell_label, .accounting_view tfoot .cell_left').text().replace(/[\n\r\s$,]+/g, ' '),
-            "Create Write-off229.12", "should display the 'Create Write-off' line with value in left column");
 
         widget.$('.create .create_amount input').val('100').trigger('input');
 
