@@ -7,19 +7,12 @@ var core = require('web.core');
 var rpc = require('web.rpc');
 var Widget = require('web.Widget');
 var base = require('web_editor.base');
-var editPages = require('website.editPages');
-
-
 
 var qweb = core.qweb;
 var _t = core._t;
 var ZeroClipboard = window.ZeroClipboard;
 
 var exports = {};
-
-editPages.ManagePagesMenu.prototype.xmlDependencies = editPages.ManagePagesMenu.prototype.xmlDependencies.concat(
-    ['/website_links/static/src/xml/track_page.xml']
-);
 
 if (!$('.o_website_links_create_tracked_url').length) {
     return $.Deferred().reject("DOM doesn't contain '.o_website_links_create_tracked_url'");
