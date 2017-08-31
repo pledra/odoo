@@ -667,6 +667,14 @@ class Page(models.Model):
                 
             return new_page.url + '?enable_editor=1'
 
+    """@api.multi
+    def write(self, vals):
+        self.ensure_one()
+        if 'website_published' in vals and 'date_publish' not in vals:
+            if (self.date_publish or '') <= fields.Datetime.now():
+                vals['date_publish'] = vals['website_published'] and fields.Datetime.now()
+        result = super(Page, self).write(vals)
+        return result"""
 
 class Menu(models.Model):
 

@@ -11,7 +11,7 @@
                     </span>                    
                     <i class="pull-right fa fa-angle-right" style="margin-top: 3px"/>
                     <i t-if="object.is_link" class="pull-right fa fa-link" style="margin-top: 3px"/>
-                    <i t-if="object.website_published == 'true'" class="pull-right fa fa-eye-slash" style="margin-top: 3px"/>
+                    <i t-if="!object.website_published" class="pull-right fa fa-eye-slash" style="margin-top: 3px"/>
                     <i t-if="object.url == homepage_path" class="pull-right fa fa-home" style="margin-top: 3px"/>
                 </span>
             </a>
@@ -33,7 +33,6 @@
     <ul class="nav nav-tabs">
         <li t-if="page.model == 'Page'" t-att-class="page.model == 'Page' ? 'active' : ''"><a data-toggle="tab" class="text-muted" href="#page_settings">Page Settings</a></li>
         <li t-if="page.model == 'Page'"><a class="text-muted" t-att-href="page.url +'?show_seo=1&amp;spm=1'">Optimize SEO</a></li>
-        <li t-if="page.model == 'Page'"><a class="text-muted" href="#" t-att-data-path="page.url" data-action="go_to_track">Track this page</a></li>
         <li t-if="page.url != current_page_url" class="pull-right" >
             <a class="btn-link" t-att-href="page.url + '?spm=1'" t-att-data-object-id="page.id">
                 Go to <t t-esc="page.model" /> <i class="fa fa-arrow-right"/>

@@ -170,7 +170,7 @@ class Website(Home):
         return request.render('website.robots', {'url_root': request.httprequest.url_root}, mimetype='text/plain')
 
     @http.route('/sitemap.xml', type='http', auth="public", website=True)
-    def sitemap_xml_index(self):
+    def sitemap_xml_index(self, **kwargs):
         current_website = request.website
         Attachment = request.env['ir.attachment'].sudo()
         View = request.env['ir.ui.view'].sudo()

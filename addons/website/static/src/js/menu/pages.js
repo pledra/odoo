@@ -116,6 +116,7 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 expression: '()(.+)', // nestedSortable takes the second match of an expression (*sigh*)
                 connectWith: '#pages_management_other_pages',
                 stop: function(event, ui) { 
+                    $("[data-action='save_management_page_menu']").show();
                     self._truncatePageName(ui.item);
                 },
                 receive: function(event, ui) { 
@@ -168,9 +169,13 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
     },
     _truncatePageName: function(items){ 
         items.each(function(index){
-            var available_width = $('.form-control', this).width() - 38 + 'px';
+            var available_width = $('.form-control', this).width();
+            $("i", this).each(function(index){
+                //5 being margin-left of icon
+                available_width -= $(this).width() + 5;
+            });
             $(".js_menu_label", this).css({
-                'width': available_width,
+                'width': available_width - 5 + 'px',
                 'overflow': 'hidden',
                 'display': 'inline-block',
                 'text-overflow': 'ellipsis',

@@ -17,14 +17,14 @@ var ZeroClipboard = window.ZeroClipboard;
 
 var exports = {};
 
+editPages.ManagePagesMenu.prototype.xmlDependencies = editPages.ManagePagesMenu.prototype.xmlDependencies.concat(
+    ['/website_links/static/src/xml/track_page.xml']
+);
+
 if (!$('.o_website_links_create_tracked_url').length) {
     return $.Deferred().reject("DOM doesn't contain '.o_website_links_create_tracked_url'");
 }
 
-    editPages.ManagePagesMenu.prototype.xmlDependencies.concat(
-        ['/website_links/static/src/xml/track_page.xml']
-    );
-    
     var SelectBox = Widget.extend({
         init: function (obj) {
             this.obj = obj;
