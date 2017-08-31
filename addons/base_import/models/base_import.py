@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import base64
 import datetime
 import io
 import itertools
@@ -9,6 +10,7 @@ import psycopg2
 import operator
 import os
 import re
+import requests
 
 from odoo import api, fields, models
 from odoo.tools.translate import _
@@ -645,6 +647,19 @@ class Import(models.TransientModel):
                 # Parse float, sometimes float values from file have currency symbol or () to denote a negative value
                 # We should be able to manage both case
                 self._parse_float_from_data(data, index, name, options)
+
+            elif field['type'] == 'binary' and field.get('attachment'):
+                for num, line in enumerate(data):
+                    if re.match("^(http|https)://", line[index], re.IGNORECASE):
+                        try:
+                            bin_file = requests.get(line[index])
+                            bin_file.raise_for_status()
+                            line[index] = base64.encodestring(bin_file.content)
+                        except requests.exceptions.ConnectionError:
+                            raise ValueError(_("Could not fetch the specified url: %s. Please check your internet connection.") % (line[index]))
+                        except Exception as e:
+                            raise ValueError(_("Error Parsing URL %s [%s:L%d]: %s") % (line[index], name, num + 1, e))
+
         return data
 
     @api.multi
