@@ -68,7 +68,7 @@ var PageMenuEntryDialog = widget.LinkDialog.extend({
             window.location.reload(true);
         });
 
-        return this._super.apply(this, arguments);
+        //return this._super.apply(this, arguments);
     }
 });
 
@@ -81,10 +81,10 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         close_page_info: '_closePageInfo',
         save_page_info: '_savePageInfo',
         new_menu: '_newMenu',
+        new_item: '_newItem',
         new_page: '_newPage',
         clone_page: '_clonePage',
-        delete_page: '_deletePage',
-        go_to_seo: '_goToSeo',
+        delete_object: '_deleteObject',
         go_to_track: '_goToTrack',
     }),
     /**
@@ -115,7 +115,11 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 attribute: 'data-object-id',
                 expression: '()(.+)', // nestedSortable takes the second match of an expression (*sigh*)
                 connectWith: '#pages_management_other_pages',
+                stop: function(event, ui) { 
+                    self._truncatePageName(ui.item);
+                },
                 receive: function(event, ui) { 
+                    $("[data-action='save_management_page_menu']").show();
                     var id = $(ui.item).data('object-id');
                     if (id.indexOf('menu') !== -1){
                         var index = self.to_delete.indexOf(id);
@@ -137,15 +141,41 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 attribute: 'data-object-id',
                 expression: '()(.+)', // nestedSortable takes the second match of an expression (*sigh*)
                 connectWith: '#pages_management_menu_pages',
+                stop: function(event, ui) { 
+                    self._truncatePageName(ui.item);
+                },
                 receive: function(event, ui) { 
+                    $("[data-action='save_management_page_menu']").show();
                     var id = $(ui.item).data('object-id');
                     if (id.indexOf('menu') !== -1)
                         self.to_delete.push(id);
                 },
             });
             
-            if (location.search.indexOf("spm") > -1)
+            // We can't truncate too long page name with css (table, float..) and can't do it 
+            // by limiting the length of the string (every character hasnt the same width (i vs m))
+            // plus we have 2 level nested list.
+            // So we will set the allowed space to exactly what we have
+          
+            
+            
+            if (location.search.indexOf("spm") > -1){
                 self._openManagementPageMenu();
+                $(".oe_page_management_menu .current_page").click();
+            }
+            $("[data-action='save_management_page_menu']").hide();
+        });
+    },
+    _truncatePageName: function(items){ 
+        items.each(function(index){
+            var available_width = $('.form-control', this).width() - 38 + 'px';
+            $(".js_menu_label", this).css({
+                'width': available_width,
+                'overflow': 'hidden',
+                'display': 'inline-block',
+                'text-overflow': 'ellipsis',
+                'white-space': 'nowrap'
+            });
         });
     },
     _loadPageManagementMenu: function () {
@@ -189,6 +219,7 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
     },
     _openManagementPageMenu: function() {
         this.$el.toggleClass('open');
+        this._truncatePageName($(".oe_page_management_menu li[data-object-id]"));
     },
     _flatenize: function (nodes, dict) {
         dict = dict || {};
@@ -258,18 +289,18 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 var length_url = window.location.origin.length;
                 var server_url = window.location.origin;
                 var server_url_trunc = server_url;
-                if(length_url > 20){
-                    server_url_trunc = server_url.slice(0,9) + '..' + server_url.slice(length_url-9,length_url);
+                if(length_url > 30){
+                    server_url_trunc = server_url.slice(0,14) + '..' + server_url.slice(length_url-14,length_url);
                 }
-                $(".oe_page_management_page_info").html($(qweb.render('website.pagesMenu.page_info', {page: object[0], homepage_path: homepage_path, server_url: window.location.origin, server_url_trunc: server_url_trunc})));
+                $(".oe_page_management_page_info").html($(qweb.render('website.pagesMenu.page_info', {page: object[0], homepage_path: homepage_path, server_url: window.location.origin, server_url_trunc: server_url_trunc, current_page_url: window.location.pathname})));
                 $(".oe_page_management_page_info").show();
-                $("button[data-action='save_management_page_menu']").prop('disabled', true);
+                $(".js_pagesMenu_btns .btn").prop('disabled', true);
             });
         });
     },
     _closePageInfo: function(){
         $(".oe_page_management_page_info").hide();
-        $("button[data-action='save_management_page_menu']").prop('disabled', false);
+        $(".js_pagesMenu_btns .btn").prop('disabled', false);
     },
     _savePageInfo: function(data){
         var object_id = data.objectId.split("-")[1];
@@ -289,10 +320,8 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         };
         if(object_model == 'page'){
             params.is_homepage = $(".oe_page_management_page_info #is_homepage").prop('checked');
-            //var is_homepage = $(".oe_page_management_page_info #is_homepage").prop('checked');
-            //var params_ext = {is_homepage: is_homepage};
-            //ES6: Object.assign(params, params_ext);
-            //for (var attrname in params_ext) { params[attrname] = params_ext[attrname]; }
+            params.website_published = $(".oe_page_management_page_info #is_published").prop('checked');
+            //params.date_publish = $(".oe_page_management_page_info #date_publish").val();
         }
         self._rpc({
             model: 'website.page',
@@ -307,30 +336,22 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
             window.location.href = object_model == 'page' ? object_url + '?spm=1' : "";
             //Just some not very usefull ui but help user to see it is working (redirect may take a few ms to execute)
             $(".oe_page_management_page_info").hide();
-            $("button[data-action='save_management_page_menu']").prop('disabled', false);
+            $(".js_pagesMenu_btns .btn").prop('disabled', false);
         });
     },
     _newMenu: function() {
         var self = this;
         var dialog = new PageMenuEntryDialog(this, {menu_link_options: false}, undefined, {});
-        dialog.on('save', this, function (link) {
-            var new_menu = {
-                id: _.uniqueId('new-'),
-                name: link.text,
-                url: link.url,
-                new_window: link.isNewWindow,
-                parent_id: false,
-                sequence: 0,
-                children: [],
-            };
-            self.flat[new_menu.id] = new_menu;
-            self.$('.oe_menu_editor').append(
-                qweb.render('website.pagesMenu.submenu', { submenu: new_menu }));
-        });
+        
         dialog.open();
     },
     _newPage: function() {
         $('#new-content-menu').click();
+    },
+    _newItem: function() {
+        //TODO: better way ?
+        $('#o_new_content_menu_choices').toggleClass('o_hidden');
+        this._openManagementPageMenu()
     },
     _clonePage: function(data){
         var self = this;
@@ -346,40 +367,58 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
             window.location.href = path;
         });
     },
-    _deletePage: function (data) {
+    _deleteObject: function (data) {
         var self = this;
         var context = weContext.get();
         var moID = data.objectId;
-        
-        var def = $.Deferred();
-        
-        // Search the page dependencies
-        this._getPageDependencies(moID, context)
-        .then(function (dependencies) {
-        // Inform the user about those dependencies and ask him confirmation
-            var confirmDef = $.Deferred();
+        var object_model = moID.split("-")[0];
+        var object_id = moID.split("-")[1];
+
+        if(object_model == 'menu'){
             Dialog.safeConfirm(self, "", {
-                title: _t("Delete Page"),
-                $content: $(qweb.render('website.delete_page', {dependencies: dependencies})),
-                confirm_callback: confirmDef.resolve.bind(confirmDef),
-                cancel_callback: def.resolve.bind(self),
+                title: _t("Delete Link"),
+                $content: $(qweb.render('website.delete_link')),
+                confirm_callback: function(){
+                    self._rpc({
+                        model: 'website',
+                        method: 'delete_object',
+                        args: [moID],
+                        context: context,
+                    }).then(function () {
+                        window.location.href = "/?spm=1";
+                    });
+                },
+                //cancel_callback: def.resolve.bind(self),
             });
-            return confirmDef;
-        }).then(function () {
-        // Delete the page if the user confirmed
-            return self._rpc({
-                model: 'website',
-                method: 'delete_page',
-                args: [moID],
-                context: context,
-            });
-        }).then(function () {
-        // Redirect to homepage as the page is now deleted
-            window.location.href = "/?spm=1";
-        }, def.reject.bind(def));
-    },
-    _goToSeo: function(data) {
-        window.location.href = data.path + "?show_seo=1";
+        }
+        else if(object_model == 'page'){
+            var def = $.Deferred();
+            // Search the page dependencies
+            this._getPageDependencies(object_id, context)
+            .then(function (dependencies) {
+            // Inform the user about those dependencies and ask him confirmation
+                var confirmDef = $.Deferred();
+                Dialog.safeConfirm(self, "", {
+                    title: _t("Delete Page"),
+                    $content: $(qweb.render('website.delete_page', {dependencies: dependencies})),
+                    confirm_callback: confirmDef.resolve.bind(confirmDef),
+                    cancel_callback: def.resolve.bind(self),
+                });
+                return confirmDef;
+            }).then(function () {
+            // Delete the page if the user confirmed
+                return self._rpc({
+                    model: 'website',
+                    method: 'delete_object',
+                    args: [moID],
+                    context: context,
+                });
+            }).then(function () {
+            // Redirect to homepage as the page is now deleted
+                window.location.href = "/?spm=1";
+            }, def.reject.bind(def));
+        }
+        
     },
     _goToTrack: function(data) {
         window.location.href = '/r?u=' + encodeURIComponent(window.location.origin + data.path);

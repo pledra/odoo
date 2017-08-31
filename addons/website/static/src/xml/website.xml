@@ -60,6 +60,9 @@
         <p>Are you sure you want to delete this page ?</p>
         <t t-call="website.dependencies"/>
     </div>
+    <div t-name="website.delete_link">
+        <p>Are you sure you want to delete this link ?</p>
+    </div>
 
     <div t-name="website.rename_page">
         <div class="well">

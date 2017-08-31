@@ -186,6 +186,13 @@ class IrHttp(models.AbstractModel):
             else:
                 #should be raise
                 return werkzeug.exceptions.NotFound()
+                
+    @classmethod
+    def _check_redirect(cls):
+        req_page = request.httprequest.path
+        domain = ['|', ('website_id', '=', request.website.id), ('website_id', '=', False)]
+        domain += [('url_from', '=', req_page), ('active', '=', True)]
+        return request.env['website.redirect'].search(domain, limit=1)
 
     @classmethod
     def _handle_exception(cls, exception):
@@ -197,8 +204,13 @@ class IrHttp(models.AbstractModel):
             attach = cls._serve_attachment()
             if attach:
                 return attach
+
             # Avoid error on /web/database/manager
             if hasattr(request, 'website'):
+                redirect = cls._check_redirect()
+                if redirect:
+                    return request.redirect(redirect.url_to, code=redirect.type)
+                    
                 website_page = cls._serve_page()
                 if website_page:
                     return website_page

@@ -256,49 +256,6 @@ class Website(Home):
     #------------------------------------------------------
     # Edit
     #------------------------------------------------------
-    
-    """@http.route(['/website/pages_management', '/website/pages_management/<int:page_number>'], type='http', auth="user", website=True)
-    def edit_website_pages(self, page_number=1, sortby=None, **kw):
-        Page = request.env['website.page']
-
-        searchbar_sortings = {
-            #'date': {'label': _('Order Date'), 'order': 'date_order desc'},
-            'name': {'label': _('Name'), 'order': 'name'},
-        }
-        # default sortby order
-        if not sortby:
-            sortby = 'name'
-        # proper way to do that ?
-        try:
-            sort_order = searchbar_sortings[sortby]['order']
-        except:
-            sort_order = 'name'
-
-        domain = ['|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
-        order_count = Page.search_count(domain)
-        # pager
-        pager = request.website.pager(
-            url="/website/pages_management",
-            url_args={'sortby': sortby},
-            total=order_count,
-            page=page_number,
-            step=10
-        )
-        # content according to pager and archive selected
-        pages = Page.search(domain, order=sort_order, limit=10, offset=pager['offset'])
-        request.session['edit_website_pages_history'] = pages.ids[:100]
-
-        values = {
-            #'date': date_begin,
-            'pages': pages.sudo(),
-            #'page_name': 'order',
-            'pager': pager,
-            #'archive_groups': archive_groups,
-            #'default_url': '/my/orders',
-            #'searchbar_sortings': searchbar_sortings,
-            'sortby': sortby,
-        }
-        return request.render("website.edit_website_pages", values)"""
 
     # As we now autorize '/' as path, there is a particular case where user click on create page on 404 as admin on / page 
     # then he is redirect to '/website/add/' without <path:path>

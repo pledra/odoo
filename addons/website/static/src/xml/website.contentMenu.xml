@@ -5,12 +5,13 @@
         <div class="input-group">
             <span class="input-group-addon fa fa-bars"/>
             <a href="#" t-att-data-object-id="object.id" data-action="load_page_info">
-                <span t-att-class="object.url == current_page_url ? 'bold black form-control' : 'form-control'">
+                <span t-att-class="(object.url == current_page_url) &amp;&amp; !object.is_link ? 'bold current_page black form-control' : 'form-control'">
                     <span class="js_menu_label">
-                        <t t-esc="object.name"/>
-                    </span>
+                        <t t-esc="object.name" />
+                    </span>                    
                     <i class="pull-right fa fa-angle-right" style="margin-top: 3px"/>
                     <i t-if="object.is_link" class="pull-right fa fa-link" style="margin-top: 3px"/>
+                    <i t-if="object.website_published == 'true'" class="pull-right fa fa-eye-slash" style="margin-top: 3px"/>
                     <i t-if="object.url == homepage_path" class="pull-right fa fa-home" style="margin-top: 3px"/>
                 </span>
             </a>
@@ -23,143 +24,120 @@
         </ul>
     </li>
 </t>
-<!--<div t-name="website.contentMenu.dialog.select">
-    <select class="form-control mb16" t-if="widget.roots">
-        <t t-foreach="widget.roots" t-as="root">
-            <option t-att-value="root.id"><t t-esc="root.name"/></option>
-        </t>
-    </select>
-</div>-->
-<!--<div t-name="website.contentMenu.dialog.edit">
-    <select class="form-control mb16" t-if="widget.roots">
-        <t t-foreach="widget.roots" t-as="root">
-            <option t-att-value="root.id"><t t-esc="root.name"/></option>
-        </t>
-    </select>
-    <ul class="oe_menu_editor list-unstyled">
-        <t t-foreach="widget.menu.children" t-as="page">
-            <t t-call="website.pagesMenu.submenu"/>
-        </t>
-    </ul>
-    <div class="mt32">
-        <small class="pull-right text-muted">
-            Drag a menu to the right to create a sub-menu
-        </small>
-        <a href="#" class="js_add_menu">
-            <i class="fa fa-plus-circle"/> Add Menu Entry
-        </a>
-    </div>
-</div>-->
-<!--<t t-name="website.contentMenu.dialog.edit.link_menu_options">
-    <div class="form-group">
-        <label class="control-label col-sm-3">Link</label>
-        <div class="col-sm-9">
-            <input type="radio" name="link_menu_options" id="url" value="url" checked="checked"/> <label class="control-label mr16" for="url" >URL or Email</label>
-            <input type="radio" name="link_menu_options" id="new_page" value="new_page"/> <label class="control-label" for="new_page">New Page</label>
-        </div>
-    </div>
-</t>-->
+
 
 <!-- Pages Management -->
-<div t-name="website.pagesMenu.page_info" style="margin:10px;">
+<div t-name="website.pagesMenu.page_info">
     <span class="fa fa-lg fa-times" data-action="close_page_info"></span>
     <br />
-    <!--<ul class="nav nav-tabs">
-        <li t-if="page.item_type == 'page'" t-att-class="page.item_type == 'page' ? 'active' : ''"><a data-toggle="tab" class="text-muted" href="#page_settings">Page Settings</a></li>
-        <li t-if="false"><a data-toggle="tab" class="text-muted" href="#seo_promote">SEO (promote)</a></li>
-        <li t-if="page.item_type == 'link'" t-att-class="page.item_type == 'link' ? 'active' : ''"><a data-toggle="tab" class="text-muted" href="#link_settings">Link Settings</a></li>
-    </ul>-->
-    <t t-if="page.model == 'Page'">                          
-        <form class="form-horizontal">
-            <div class="form-group">
-              <label class="control-label col-sm-4" for="object_name">Page Name</label>
-                <div class="col-sm-8">
-                    <input type="text" class="form-control input-sm" id="object_name" t-att-value="page.name" />
+    <ul class="nav nav-tabs">
+        <li t-if="page.model == 'Page'" t-att-class="page.model == 'Page' ? 'active' : ''"><a data-toggle="tab" class="text-muted" href="#page_settings">Page Settings</a></li>
+        <li t-if="page.model == 'Page'"><a class="text-muted" t-att-href="page.url +'?show_seo=1&amp;spm=1'">Optimize SEO</a></li>
+        <li t-if="page.model == 'Page'"><a class="text-muted" href="#" t-att-data-path="page.url" data-action="go_to_track">Track this page</a></li>
+        <li t-if="page.url != current_page_url" class="pull-right" >
+            <a class="btn-link" t-att-href="page.url + '?spm=1'" t-att-data-object-id="page.id">
+                Go to <t t-esc="page.model" /> <i class="fa fa-arrow-right"/>
+            </a>  
+        </li>
+        <li t-if="page.model == 'Link'" t-att-class="page.model == 'Link' ? 'active' : ''"><a data-toggle="tab" class="text-muted" href="#link_settings">Link Settings</a></li>
+    </ul>
+    <div class="tab-content mt16">
+        <div t-if="page.model == 'Page'" id="page_settings" class="tab-pane fade in active">
+            <form class="form-horizontal">
+                <div class="form-group">
+                  <label class="control-label col-sm-3" for="object_name">Page Name</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control input-sm" id="object_name" t-att-value="page.name" />
+                    </div>
                 </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-sm-4" for="object_url">Page Url</label>
-                <div class="col-sm-8">
-                    <div class="input-group">
-                        <span class="input-group-addon" t-att-title="server_url"><t t-esc="server_url_trunc" /></span>
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="object_url">Page Url</label>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <span class="input-group-addon" t-att-title="server_url"><small><t t-esc="server_url_trunc" /></small></span>
+                            <input type="text" class="form-control input-sm" id="object_url" t-att-value="page.url" />
+                
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="is_menu">Show in top menu</label>
+                    <div class="col-sm-9">
+                        <a>
+                            <label class="o_switch js_publish_btn" for="is_menu" >
+                                <input type="checkbox" t-att-checked="page.is_menu ? true : undefined" id="is_menu"/>
+                                <span/>
+                            </label>
+                        </a>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="is_homepage">Use as homepage</label>
+                    <div class="col-sm-9">
+                        <a>
+                            <label class="o_switch js_publish_btn" for="is_homepage" >
+                                <input type="checkbox" t-att-checked="page.url == homepage_path ? true : undefined" id="is_homepage"/>
+                                <span/>
+                            </label>
+                        </a>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="is_published">Publish</label>
+                    <div class="col-sm-9">
+                        <a>
+                            <label class="o_switch js_publish_btn" for="is_published" >
+                                <input type="checkbox" t-att-checked="page.website_published ? true : undefined" id="is_published"/>
+                                <span/>
+                            </label>
+                        </a>
+                    </div>
+                </div>
+                <!--<div class="form-group">
+                  <label class="control-label col-sm-3" for="date_publish">Published Date</label>
+                    <div class="col-sm-9">
+                        <input type="date" class="form-control input-sm" id="date_publish" t-att-value="page.date_publish ? page.date_publish : ''" />
+                    </div>
+                </div>-->
+                
+                <t t-call="website.pagesMenu.page_opt"/>
+            </form>
+        </div>
+        <div t-if="page.model == 'Link'" id="link_settings" class="tab-pane fade in active">                    
+            <form class="form-horizontal">
+                <div class="form-group">
+                  <label class="control-label col-sm-3" for="object_name">Menu Name</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control input-sm" id="object_name" t-att-value="page.name" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="object_url">Link to</label>
+                    <div class="col-sm-9">
                         <input type="text" class="form-control input-sm" id="object_url" t-att-value="page.url" />
                     </div>
                 </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-sm-4" for="is_menu">Show in top menu</label>
-                <div class="col-sm-8">
-                    <a>
-                        <label class="o_switch js_publish_btn" for="is_menu" >
-                            <input type="checkbox" t-att-checked="page.is_menu ? true : undefined" id="is_menu"/>
-                            <span/>
-                        </label>
-                    </a>
+                <div class="form-group">
+                    <label class="control-label col-sm-3" for="is_menu">Show in top menu</label>
+                    <div class="col-sm-9">
+                        <a>
+                            <label class="o_switch js_publish_btn" for="is_menu" >
+                                <input type="checkbox" t-att-checked="page.is_menu ? true : undefined" id="is_menu"/>
+                                <span/>
+                            </label>
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-sm-4" for="is_homepage">Use as homepage</label>
-                <div class="col-sm-8">
-                    <a>
-                        <label class="o_switch js_publish_btn" for="is_homepage" >
-                            <input type="checkbox" t-att-checked="page.url == homepage_path ? true : undefined" id="is_homepage"/>
-                            <span/>
-                        </label>
-                    </a>
-                </div>
-            </div>
-        </form>
-    </t>
-    <t t-if="page.model == 'Link'">                          
-        <form class="form-horizontal">
-            <div class="form-group">
-              <label class="control-label col-sm-4" for="object_name">Menu Name</label>
-                <div class="col-sm-8">
-                    <input type="text" class="form-control input-sm" id="object_name" t-att-value="page.name" />
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-sm-4" for="object_url">Link to</label>
-                <div class="col-sm-8">
-                    <input type="text" class="form-control input-sm" id="object_url" t-att-value="page.url" />
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-sm-4" for="is_menu">Show in top menu</label>
-                <div class="col-sm-8">
-                    <a>
-                        <label class="o_switch js_publish_btn" for="is_menu" >
-                            <input type="checkbox" t-att-checked="page.is_menu ? true : undefined" id="is_menu"/>
-                            <span/>
-                        </label>
-                    </a>
-                </div>
-            </div>
-        </form>
-    </t>
-    <div>
-        <hr />
-        <a href="#" data-action="clone_page" class="text-muted" t-att-data-object-id="page.id">
-            <i class="fa fa-clone"/> Clone <t t-esc="page.model" />
-        </a>
-        <a href="#" data-action="delete_page" class="text-muted" t-att-data-object-id="page.id">
-            <i class="fa fa-trash"/> Delete <t t-esc="page.model" />
-        </a>  
-        <a t-att-href="page.url + '?spm=1'" class="text-muted" t-att-data-object-id="page.id">
-            <i class="fa fa-arrow-right"/> Go to <t t-esc="page.model" />
-        </a>  
-        <small class="pull-right text-muted">
-            <a href="#" t-att-data-object-id="page.id" data-action="save_page_info" class="colorTODO btn btn-xs btn-success">Save</a>
-        </small>
+                <t t-call="website.pagesMenu.page_opt"/>
+            </form>
+        </div>
     </div>
-    <div t-if="page.model == 'Page'">
-        <br />
-        <a t-att-data-path="page.url" data-action="go_to_seo" class="text-muted"><i class="fa fa-line-chart"/> Optimize SEO</a> 
-        <a t-att-data-path="page.url" data-action="go_to_track" class="text-muted"><i class="fa fa-thumb-tack"/> Track this Page</a> 
-    </div>
+    <hr class="mb4" />
+    <a href="#" t-att-data-object-id="page.id" data-action="save_page_info" class="pull-right btn btn-primary">Save</a>
 </div>
 
-<div t-name="website.pagesMenu" style="margin:10px;">
+
+<li t-name="website.pagesMenu" style="margin:10px;">
     <p class="open_pages_menu" data-toggle="collapse" data-target="#pages_management_menu_pages">
         <span class="caret"></span> Menu Pages (<t t-esc="tree_menu.length" />)
     </p>
@@ -175,36 +153,17 @@
         <t t-foreach="pages" t-as="object">
             <t t-call="website.pagesMenu.submenu"/>
         </t>
-        <!--<li t-foreach="pages" t-as="page" t-att-data-menu-id="page.id">
-            <t t-set="path" t-value="page.item_type == 'page' ? page.path : page.link_url"/>
-            <div class="input-group">
-                <span class="input-group-addon fa fa-bars"/>
-                <a href="#" t-att-data-page-id="page.id"  data-action="load_page_info">
-                    <span t-att-class="path == current_page_url ? 'bold black form-control' : 'form-control'">
-                        <span class="js_menu_label">
-                            <t t-esc="page.name"/>
-                        </span>
-                        <i class="pull-right fa fa-angle-right" style="margin-top: 3px"/>
-                        <i t-if="page.item_type == 'link'" class="pull-right fa fa-link" style="margin-top: 3px"/>
-                        <i t-if="path == homepage_path" class="pull-right fa fa-home" style="margin-top: 3px"/>
-                    </span>
-                </a>
-            </div>
-        </li>-->
     </ul>
     <hr />
-    <div>
-        <button data-action="save_management_page_menu" class="colorTODO pull-right btn btn-xs btn-success">Save</button>
+    <div class="js_pagesMenu_btns">
+        <button data-action="save_management_page_menu" class="pull-right btn btn-xs btn-primary">Save</button>
         
         <div class="btn-group dropup">
-            <button type="button" class="colorTODO btn btn-success btn-xs dropdown-toggle option_choice" data-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="btn btn-primary btn-xs dropdown-toggle option_choice" data-toggle="dropdown" aria-expanded="false">
                 <span class="caret"></span>
                 <span class="sr-only">Toggle Dropdown</span>
             </button>
-            <a href="#" class="colorTODO btn btn-success btn-xs" data-toggle="modal" data-target="#o_website_add_page_modal">
-               Add a new Page
-            </a>
-            
+            <button data-action="new_item" class="pull-right btn btn-xs btn-primary">Add a new Page</button>
             
             <ul class="dropdown-menu" role="menu">
                 <li>
@@ -223,5 +182,23 @@
         
         
     </div>
+</li>
+
+<div t-name="website.pagesMenu.page_opt">
+  <div class="form-group mt16">
+      <label class="control-label col-sm-3">Actions</label>
+      <div class="col-sm-9">
+          <div class="btn-group">
+            <a href="#" data-action="clone_page" class="btn btn-default btn-sm" t-att-data-object-id="page.id">
+                <i class="fa fa-clone"/> Clone <t t-esc="page.model" />
+            </a>
+            <a href="#" data-action="delete_object" class="btn btn-default btn-sm" t-att-data-object-id="page.id">
+                <i class="fa fa-trash"/> Delete <t t-esc="page.model" />
+            </a>  
+
+          </div>
+      </div>
+  </div>
 </div>
+  
 </templates>

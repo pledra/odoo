@@ -286,6 +286,15 @@ body .modal {
     }
 }
 
+.oe_page_management_menu, .oe_page_management_page_info {
+  .o-w-preserve-base();
+  .o-w-preserve-headings();
+  .o-w-preserve-forms();
+  .o-w-preserve-links();
+  .o-w-preserve-btn();
+  .o-w-preserve-tabs();
+}
+
 // ADD NEW PAGE MODAL
 #o_new_content_menu_choices {
     .o-position-absolute(@odoo-navbar-height, 0, 0, 0);

@@ -8,26 +8,24 @@ class Website(models.Model):
     _inherit = "website"
 
     @api.model
-    def page_search_dependencies(self, object_id):
-        dep = super(Website, self).page_search_dependencies(object_id)
+    def page_search_dependencies(self, page_id):
+        dep = super(Website, self).page_search_dependencies(page_id)
 
-        model, id = object_id.split('-')
-        if model == 'page':
-            page = self.env['website.page'].browse(int(id))
-            path = page.path.replace("website.", "")
-            fullpath = "/website.%s" % path[1:]
+        page = self.env['website.page'].browse(int(page_id))
+        path = page.path.replace("website.", "")
+        fullpath = "/website.%s" % path[1:]
 
-            dom = [
-                '|', ('content', 'ilike', path), ('content', 'ilike', fullpath)
-            ]
-            posts = self.env['blog.post'].search(dom)
-            if posts:
-                page_key = _('Blog Post')
-                dep[page_key] = []
-            for p in posts:
-                dep[page_key].append({
-                    'text': _('Blog Post <b>%s</b> seems to have a link to this page !') % p.name,
-                    'link': p.website_url
-                })
+        dom = [
+            '|', ('content', 'ilike', path), ('content', 'ilike', fullpath)
+        ]
+        posts = self.env['blog.post'].search(dom)
+        if posts:
+            page_key = _('Blog Post')
+            dep[page_key] = []
+        for p in posts:
+            dep[page_key].append({
+                'text': _('Blog Post <b>%s</b> seems to have a link to this page !') % p.name,
+                'link': p.website_url
+            })
 
         return dep

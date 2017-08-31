@@ -162,25 +162,28 @@ class Website(models.Model):
         ])
 
     @api.model
-    def delete_page(self, object_id):
-        """ Delete a page, given its identifier
-            :param page_id : website.page identifier
+    def delete_object(self, object_id):
+        """ Delete a page or a link, given its identifier
+            :param object_id : object identifier eg: menu-5
         """
         model, id = object_id.split('-')
         if model == 'menu':
-            menu = self.env['website.menu'].browse(id)
+            # If we are deleting a menu (without a page)
+            menu = self.env['website.menu'].browse(int(id))
             if menu:
-                page_id = menu.page_id
-                if page_id:
-                    self.env['website.page'].browse(page_id).unlink()
                 menu.unlink()
         elif model == 'page':
-            page = self.env['website.page'].browse(id)
+            # If we are deleting a page (that could possibly be a menu with a page)
+            page = self.env['website.page'].browse(int(id))
             if page:
+                # Check if it is a menu with a page and also delete menu if so
+                menu = self.env['website.menu'].search([('page_id', '=', page.id)], limit=1)
+                if menu:
+                    menu.unlink()
                 page.unlink()
 
     @api.model
-    def page_search_dependencies(self, object_id=False):
+    def page_search_dependencies(self, page_id=False):
         """ Search dependencies just for information. It will not catch 100%
             of dependencies and False positive is more than possible
             Each module could add dependences in this dict
@@ -188,59 +191,57 @@ class Website(models.Model):
                 view, and the value is the list of text and link to the resource using given page
         """
         dependencies = {}
-        if not object_id:
+        if not page_id:
             return dependencies
 
-        model, id = object_id.split('-')
-        if model == 'page':
-            page = self.env['website.page'].browse(int(id))
-            website_id = self._context.get('website_id')
+        page = self.env['website.page'].browse(int(page_id))
+        website_id = self._context.get('website_id')
 
-            url = page.url.replace("website.", "")
-            fullurl = "/website.%s" % url[1:]
-            
-            # search for ir_ui_view (not from a website_page) with link
-            page_search_dom = [
-                '|', ('website_id', '=', website_id), ('website_id', '=', False),
-                '|', ('arch_db', 'ilike', url), ('arch_db', 'ilike', fullurl)
-            ]
+        url = page.url.replace("website.", "")
+        fullurl = "/website.%s" % url[1:]
+        
+        # search for ir_ui_view (not from a website_page) with link
+        page_search_dom = [
+            '|', ('website_id', '=', website_id), ('website_id', '=', False),
+            '|', ('arch_db', 'ilike', url), ('arch_db', 'ilike', fullurl)
+        ]
 
-            page_key = _('Page')
-            views = self.env['ir.ui.view'].search(page_search_dom)
-            for view in views:
-                dependencies.setdefault(page_key, [])
-                if not view.page:
-                    dependencies[page_key].append({
-                        'text': _('Template <b>%s (id:%s)</b> contains a link to this page') % (view.key, view.id),
-                        'link': '#'
-                    })
-
-            # search for website_page with link
-            website_page_search_dom = [
-                '|', ('website_ids', 'in', website_id), ('website_ids', '=', False),
-                '|', ('ir_ui_view_id.arch_db', 'ilike', url), ('ir_ui_view_id.arch_db', 'ilike', fullurl)
-            ]
-            pages = self.env['website.page'].search(website_page_search_dom)
-            for page in pages:
-                dependencies.setdefault(page_key, [])
+        page_key = _('Page')
+        views = self.env['ir.ui.view'].search(page_search_dom)
+        for view in views:
+            dependencies.setdefault(page_key, [])
+            if not view.page:
                 dependencies[page_key].append({
-                    'text': _('Page <b>%s</b> contains a link to this page') % page.url,
-                    'link': page.url
+                    'text': _('Template <b>%s (id:%s)</b> contains a link to this page') % (view.key, view.id),
+                    'link': '#'
                 })
 
-            # search for menu with link
-            menu_search_dom = [
-                '|', ('website_id', '=', website_id), ('website_id', '=', False),
-                '|', ('url', 'ilike', '%s' % url), ('url', 'ilike', '%s' % fullurl)
-            ]
+        # search for website_page with link
+        website_page_search_dom = [
+            '|', ('website_ids', 'in', website_id), ('website_ids', '=', False),
+            '|', ('ir_ui_view_id.arch_db', 'ilike', url), ('ir_ui_view_id.arch_db', 'ilike', fullurl)
+        ]
+        pages = self.env['website.page'].search(website_page_search_dom)
+        for page in pages:
+            dependencies.setdefault(page_key, [])
+            dependencies[page_key].append({
+                'text': _('Page <b>%s</b> contains a link to this page') % page.url,
+                'link': page.url
+            })
 
-            menu_key = _('Menu')
-            menus = self.env['website.menu'].search(menu_search_dom)
-            for menu in menus:
-                dependencies.setdefault(menu_key, []).append({
-                    'text': _('This page is in the menu <b>%s</b>') % menu.name,
-                    'link': False
-                })
+        # search for menu with link
+        menu_search_dom = [
+            '|', ('website_id', '=', website_id), ('website_id', '=', False),
+            '|', ('url', 'ilike', '%s' % url), ('url', 'ilike', '%s' % fullurl)
+        ]
+
+        menu_key = _('Menu')
+        menus = self.env['website.menu'].search(menu_search_dom)
+        for menu in menus:
+            dependencies.setdefault(menu_key, []).append({
+                'text': _('This page is in the menu <b>%s</b>') % menu.name,
+                'link': False
+            })
                 
         return dependencies
 
@@ -534,21 +535,13 @@ class Page(models.Model):
     website_ids = fields.Many2many('website', string='Websites')
     ir_ui_view_id = fields.Many2one('ir.ui.view', string='View')
     website_indexed = fields.Boolean('Page Indexed', default=True)
+    date_publish = fields.Datetime('Published Date')
 
     @api.multi
     def unlink(self):
         """ When a website_page is deleted, the ORM does not delete its ir_ui_view.
             So we got to delete it ourself, but only if the ir_ui_view is not used by another website_page.
         """
-        # First, handle hierarchy related to the page being deleted
-        for page in self:
-            website_id = self.env['website'].browse(self.env['website'].get_current_website().id).menu_id.id
-            if page['is_menu']:
-                # If the page is in menu:
-                # 1. Remove also its children from menu
-                # 2. Remove children hierarchy (or children wont be listed in "other pages" which is a one level list)
-                self.search(['|', ('website_ids', 'in', website_id), ('website_ids', '=', False), ('parent_id', '=', page['id'])]).write({'parent_id': None, 'is_menu': False})
-
         # Second, handle it's ir_ui_view
         for page in self:
             # Other pages linked to the ir_ui_view of the page being deleted (will it even be possible?)
@@ -566,7 +559,7 @@ class Page(models.Model):
         pages_in_menu = self.env['website.menu'].search([('website_id', '=', website_id)]).mapped('url')
         pages_domain = ['|', ('website_ids', 'in', website_id), ('website_ids', '=', False)]
         pages_domain += [('url', 'not in', pages_in_menu)]
-        pages = self.search_read(pages_domain, fields=['id', 'name', 'url'], order='url')
+        pages = self.search_read(pages_domain, fields=['id', 'name', 'url', 'website_published', 'date_publish'], order='url')
         for page in pages:
             page['id'] = 'page-' + str(page['id'])
         return {
@@ -580,18 +573,18 @@ class Page(models.Model):
             domain = [('website_id', '=', website_id), ('id', '=', id)]
             item = self.env['website.menu'].search(domain, limit=1)
             if item.page_id:
-                item = self.search_read([('id', '=', item.page_id.id)], fields=['id', 'name', 'url'], limit=1)
+                item = self.search_read([('id', '=', item.page_id.id)], fields=['id', 'name', 'url', 'website_published', 'date_publish'], limit=1)
                 item[0]['model'] = 'Page'
                 item[0]['is_menu'] = True
                 item[0]['id'] = 'page-' + str(item[0]['id'])
             else:
-                item = self.env['website.menu'].search_read(domain, fields=['id', 'name', 'url'], limit=1)
+                item = self.env['website.menu'].search_read(domain, fields=['id', 'name', 'url', 'website_published', 'date_publish'], limit=1)
                 item[0]['model'] = 'Link'
                 item[0]['is_menu'] = True
                 item[0]['id'] = 'menu-' + str(item[0]['id'])
         else:
             domain = ['|', ('website_ids', 'in', website_id), ('website_ids', '=', False), ('id', '=', id)]
-            item = self.search_read(domain, fields=['id', 'name', 'url'], limit=1)
+            item = self.search_read(domain, fields=['id', 'name', 'url', 'website_published', 'date_publish'], limit=1)
             item[0]['model'] = 'Page'
             item[0]['is_menu'] = False
             item[0]['id'] = 'page-' + str(item[0]['id'])
@@ -605,9 +598,9 @@ class Page(models.Model):
             # If the website.menu is not in menu anymore:
             if not data['is_menu']:
                 # Just delete it
-                self.env['website.menu'].browse([id]).unlink()
+                self.env['website.menu'].browse(int(id)).unlink()
             else:
-                self.env['website.menu'].browse([id]).write({'name': data['name'], 'url': data['url']})
+                self.env['website.menu'].browse(int(id)).write({'name': data['name'], 'url': data['url']})
         elif model == 'page':
             if data['is_homepage']:
                 # If page is set as the new homepage, set it on website (only page can be set as homepage)
@@ -633,7 +626,8 @@ class Page(models.Model):
                         'parent_id': self.env['website'].browse(website_id).menu_id.id,
                         'website_id': self.env['website'].get_current_website().id,
                     })
-            self.browse([id]).write({'name': data['name'], 'url': data['url']})
+            # self.browse(int(id)).write({'name': data['name'], 'url': data['url'], 'website_published': data['website_published'], 'date_publish': data['date_publish']})
+            self.browse(int(id)).write({'name': data['name'], 'url': data['url'], 'website_published': data['website_published']})
         return True
 
     @api.model
@@ -711,9 +705,11 @@ class Menu(models.Model):
                 new_window=node.new_window,
                 sequence=node.sequence,
                 parent_id=node.parent_id.id,
-                is_link=False if node.page_id.id else True,
                 is_menu=True,
                 children=[],
+                is_link=False if node.page_id.id else True,
+                website_published=node.page_id.website_published if node.page_id.website_published else False,
+                date_publish=node.page_id.date_publish if node.page_id.date_publish else False,
             )
             for child in node.child_id:
                 menu_node['children'].append(make_tree(child))
@@ -735,12 +731,6 @@ class Menu(models.Model):
                     
         def transform_id(id):
             return id.split('-')[1]
-            
-        # Delete menu that were drag & droped to "other pages"
-        if data['to_delete']:
-            # Get the ID XX from 'menu-XX'
-            test = [unslug(elem)[1] for elem in data['to_delete']]
-            self.browse(test).unlink()
 
         # First level menus won't have a parent_id, we should give them the website root menu's id
         for elem in data['data']:
@@ -768,5 +758,32 @@ class Menu(models.Model):
             if isinstance(elem['parent_id'], basestring):
                 elem['parent_id'] = elem['parent_id'].split('-')[1]
 
-            self.browse(elem['id']).write(elem)
+            self.browse(int(elem['id'])).write(elem)
+            
+        # Delete menu that were drag & droped to "other pages"
+        # This loop has to be the last or deleting a parent menu will delete its child (cascade) that
+        # shouldn't be deleted
+        if data['to_delete']:
+            # Get the ID XX from 'menu-XX'
+            test = [unslug(elem)[1] for elem in data['to_delete']]
+            self.browse(test).unlink()
+            
         return True
+
+
+class WebsiteRedirect(models.Model):
+    _name = "website.redirect"
+    _description = "Website Redirect"
+    _order = "sequence"
+
+    comment = fields.Char('Redirect Comment')
+    type = fields.Selection([('301', 'Moved permanently'), ('302', 'Moved temporarily')], string='Redirection Type')
+    url_from = fields.Char('Redirect From')
+    url_to = fields.Char('Redirect To')
+    website_id = fields.Many2one('website', 'Website')
+    active = fields.Boolean(default=True)
+    
+    def _default_sequence(self):
+        menu = self.search([], limit=1, order="sequence DESC")
+        return menu.sequence or 0
+    sequence = fields.Integer(default=_default_sequence)

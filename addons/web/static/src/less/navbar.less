@@ -3,7 +3,7 @@
     padding-top:7px;
 }
 .oe_page_management_menu{
-    width:250px;
+    width:300px;
     color:#555555;
     /*a{
         color:#555555;
@@ -17,12 +17,16 @@
         }
     } 
 }
-div.oe_page_management_page_info{
+#oe_main_menu_navbar div.oe_page_management_page_info{
     position:absolute;
-    left: 248px;
-    width:500px;
-    padding:10px;
+    left: 298px;
+    min-width:600px;
+    padding: 0 @grid-gutter-width*0.5 @grid-gutter-width*0.5;
     color:#555555;
+    overflow: initial;
+    .col-sm-9 {
+      padding-left: 0;
+    }
     
 }
 .smallandgray{
@@ -33,31 +37,17 @@ div.oe_page_management_page_info{
     overflow-y:scroll;*/
     min-height:10px; /*empty list has no height are become not draggable anymore*/
 }
-a.colorTODO, button.colorTODO{
-    background-color: #21b799;
-    border-color: #1da187;
-    padding:0px 13px;
-    color:white;
-    
-    &.active, &:hover, &[disabled]{
-        background-color: #198c75;
-        border-color: #18836e;
-    }
-}
-button.colorTODO.dropdown-toggle{
-    padding:0 4px;
-}
 
-.oe_page_management_menu a[data-action="new_page"], .oe_page_management_page_info a[data-action="delete_page"], .oe_page_management_page_info a[data-action="clone_page"]{
+.oe_page_management_menu a[data-action="new_page"], .oe_page_management_page_info a[data-action="delete_object"], .oe_page_management_page_info a[data-action="clone_page"]{
     color:#555555;
 }
 
-.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus{
+/*.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus{
     border: none!important;
     border-bottom: 2px solid #875A7B!important;
     color: black!important;
     font-weight: bold;
-}
+}*/
 
 [data-action="close_page_info"]{
     position:absolute;
