@@ -1,4 +1,4 @@
-odoo.define('website_links.website_links', function (require) {
+odoo.define('website_links.website_links_menu', function (require) {
 'use strict';
 
 var editPages = require('website.editPages');
