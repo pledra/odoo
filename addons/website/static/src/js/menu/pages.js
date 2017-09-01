@@ -297,6 +297,8 @@ var ManagePagesMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
                 if(length_url > 30){
                     server_url_trunc = server_url.slice(0,14) + '..' + server_url.slice(length_url-14,length_url);
                 }
+                self.$el.find("li[data-object-id]").removeClass("active");
+                self.$el.find('li[data-object-id="' + data.objectId +'"]').addClass("active");
                 $(".oe_page_management_page_info").html($(qweb.render('website.pagesMenu.page_info', {page: object[0], homepage_path: homepage_path, server_url: window.location.origin, server_url_trunc: server_url_trunc, current_page_url: window.location.pathname})));
                 $(".oe_page_management_page_info").show();
                 $(".js_pagesMenu_btns .btn").prop('disabled', true);
