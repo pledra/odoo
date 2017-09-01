@@ -870,26 +870,17 @@ class Environment(Mapping):
         finally:
             self._protected.update(saved)
 
-    def field_todo(self, field):
+    def get_todo(self, field):
         """ Return a recordset with all records to recompute for ``field``. """
         ids = self.all.todo.get(field, ())
         return self[field.model_name].browse(ids)
 
-    def check_todo(self, field, record):
-        """ Check whether ``field`` must be recomputed on ``record``, and if so,
-            return the corresponding recordset to recompute.
-        """
-        ids = self.all.todo.get(field, ())
-        if record.id in ids:
-            return self[field.model_name].browse(ids)
+    def mark_todo(self, field, records):
+        """ Mark all ``fields`` to be recomputed on ``records``. """
+        self.all.todo[field].update(records._ids)
 
-    def add_todo(self, field, records):
-        """ Mark ``field`` to be recomputed on ``records``. """
-        if records:
-            self.all.todo[field].update(records._ids)
-
-    def remove_todo(self, field, records):
-        """ Mark ``field`` as recomputed on ``records``. """
+    def mark_done(self, field, records):
+        """ Mark all ``fields`` as recomputed on ``records``. """
         ids = self.all.todo[field]
         ids.difference_update(records._ids)
         if not ids:
@@ -899,7 +890,7 @@ class Environment(Mapping):
         """ Return whether some fields must be recomputed. """
         return bool(self.all.todo)
 
-    def get_todo(self):
+    def next_todo(self):
         """ Return a pair ``(field, records)`` to recompute.
             The field is such that none of its dependencies must be recomputed.
         """

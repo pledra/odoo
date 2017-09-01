@@ -2130,7 +2130,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             def recompute(field):
                 _logger.info("Storing computed values of %s", field)
                 recs = self.with_context(active_test=False).search([])
-                recs._recompute_todo(field)
+                recs.env.mark_todo(field, recs)
 
             for field in self._fields.values():
                 if not field.store:
@@ -2546,11 +2546,11 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 # discard fields with groups that the user may not access
                 if not (f.groups and not self.user_has_groups(f.groups))
                 # discard fields that must be recomputed
-                if not (f.compute and self.env.field_todo(f))
+                if not (f.compute and self.env.get_todo(f))
             )
 
         # special case: discard records to recompute for field
-        records -= self.env.field_todo(field)
+        records -= self.env.get_todo(field)
 
         # in onchange mode, discard computed fields and fields in cache
         if self.env.in_onchange:
@@ -4757,26 +4757,12 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                         continue
                     invalids.append((field, target._ids))
                     # mark field to be recomputed on target
-                    target._recompute_todo(field)
+                    target.env.mark_todo(field, target)
             # process non-stored fields
             for field in (fields - stored):
                 invalids.append((field, None))
 
         self.env.cache.invalidate(invalids)
-
-    def _recompute_check(self, field):
-        """ If ``field`` must be recomputed on some record in ``self``, return the
-            corresponding records that must be recomputed.
-        """
-        return self.env.check_todo(field, self)
-
-    def _recompute_todo(self, field):
-        """ Mark ``field`` to be recomputed. """
-        self.env.add_todo(field, self)
-
-    def _recompute_done(self, field):
-        """ Mark ``field`` as recomputed. """
-        self.env.remove_todo(field, self)
 
     @api.model
     def recompute(self):
@@ -4784,7 +4770,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             recompute have been determined by method :meth:`modified`.
         """
         while self.env.has_todo():
-            field, recs = self.env.get_todo()
+            field, recs = self.env.next_todo()
             # determine the fields to recompute
             fs = self.env[field.model_name]._field_computed[field]
             ns = [f.name for f in fs if f.store]
@@ -4809,7 +4795,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
             # mark computed fields as done
             for f in fs:
-                recs._recompute_done(f)
+                recs.env.mark_done(f, recs)
 
     #
     # Generic onchange method

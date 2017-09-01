@@ -993,9 +993,10 @@ class Field(MetaField('DummyField', (object,), {})):
             # this is a stored field or an old-style function field
             if self.compute:
                 # this is a stored computed field, check for recomputation
-                recs = record._recompute_check(self)
-                if recs:
+                recs = record.env.get_todo(self)
+                if record in recs:
                     # recompute the value (only in cache)
+                    recs = recs.with_env(recs.env(user=SUPERUSER_ID, context={}))
                     self.compute_value(recs)
                     # HACK: if result is in the wrong cache, copy values
                     if recs.env != env:
