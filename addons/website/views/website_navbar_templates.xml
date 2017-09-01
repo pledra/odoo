@@ -31,16 +31,12 @@
                 <ul class="o_menu_sections" groups="website.group_website_designer">
                     <li id="manage-pages-menu" class="dropdown content active o_menu_sections oe_content_menu" t-if="editable">
                         <a class="dropdown-toggle" data-action="open_management_page_menu" aria-expanded="false" href="#">
-                            <span class="smallandgray">Page:</span> 
-                            <em t-if="main_object"><t t-esc="main_object.name[:15]" /><t t-if="len(main_object.name) > 15" >..</t></em> 
+                            <span class="smallandgray">Page:</span>
+                            <em t-if="main_object"><t t-esc="main_object.name[:15]" /><t t-if="len(main_object.name) > 15" >..</t></em>
                             <span class="oe_topbar_current_page"/> <span class="caret"></span>
                         </a>
-                        <ul class="dropdown-menu oe_page_management_menu" role="menu">
-                          
-                        </ul>
-                        <div class="oe_page_management_page_info dropdown-menu" style="display:none;">
-                            
-                        </div>
+                        <ul class="dropdown-menu oe_page_management_menu" role="menu"/>
+                        <div class="oe_page_management_page_info dropdown-menu" style="display:none;"/>
                     </li>
                     <li class="o_new_content_menu" id="new-content-menu" groups="website.group_website_publisher">
                         <a href="#"><span class="fa fa-plus"/>New</a>
@@ -99,5 +95,4 @@
             </nav>
         </xpath>
     </template>
-    
 </odoo>
