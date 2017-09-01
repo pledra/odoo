@@ -12,7 +12,7 @@ class Website(models.Model):
         dep = super(Website, self).page_search_dependencies(page_id)
 
         page = self.env['website.page'].browse(int(page_id))
-        path = page.path.replace("website.", "")
+        path = page.url.replace("website.", "")
         fullpath = "/website.%s" % path[1:]
 
         dom = [
