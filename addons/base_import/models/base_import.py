@@ -11,6 +11,7 @@ import operator
 import os
 import re
 import requests
+from PIL import Image
 
 from odoo import api, fields, models
 from odoo.tools.translate import _
@@ -597,15 +598,6 @@ class Import(models.TransientModel):
             if line[index] is False:
                 raise ValueError(_("Column %s contains incorrect values (value: %s)" % (name, old_value)))
 
-    @api.multi
-    def _get_relational_subfield(self, model, rel_field_chain):
-        # Follow the relation chain to find the field at the end of the chain
-        # e.g.: [parent_field, subfield, subsubfield] => subsubfield
-        field = self.env[model].fields_get()[rel_field_chain[0]]
-        if len(rel_field_chain) == 1:
-            return field
-        else:
-            return self._get_relational_subfield(field['relation'], rel_field_chain[1:])
 
     @api.multi
     def _parse_import_data(self, data, import_fields, options):
@@ -623,6 +615,7 @@ class Import(models.TransientModel):
             name = prefix + name
             if field['type'] in ('date', 'datetime') and name in import_fields:
                 # Parse date
+                index = import_fields.index(name)
                 dt = datetime.datetime
                 server_format = DEFAULT_SERVER_DATE_FORMAT if field['type'] == 'date' else DEFAULT_SERVER_DATETIME_FORMAT
 
@@ -646,6 +639,7 @@ class Import(models.TransientModel):
             elif field['type'] in ('float', 'monetary') and name in import_fields:
                 # Parse float, sometimes float values from file have currency symbol or () to denote a negative value
                 # We should be able to manage both case
+                index = import_fields.index(name)
                 self._parse_float_from_data(data, index, name, options)
 
             elif field['type'] == 'binary' and field.get('attachment'):
@@ -653,6 +647,7 @@ class Import(models.TransientModel):
                     if re.match("^(http|https)://", line[index], re.IGNORECASE):
                         try:
                             bin_file = requests.get(line[index])
+                            Image.open(io.StringIO(bin_file.content))
                             bin_file.raise_for_status()
                             line[index] = base64.encodestring(bin_file.content)
                         except requests.exceptions.ConnectionError:
