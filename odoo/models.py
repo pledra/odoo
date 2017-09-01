@@ -4748,7 +4748,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 else:
                     env = self.env(user=SUPERUSER_ID, context={'active_test': False})
                     target0 = env[model_name].search([(path, 'in', self.ids)])
-                    target0 = target0.with_env(self.env)
+                    target0 = target0.with_context({})
                 # prepare recomputation for each field on linked records
                 for field in stored:
                     # discard records to not recompute for field
@@ -4757,8 +4757,6 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                         continue
                     invalids.append((field, target._ids))
                     # mark field to be recomputed on target
-                    if field.compute_sudo:
-                        target = target.sudo()
                     target._recompute_todo(field)
             # process non-stored fields
             for field in (fields - stored):
