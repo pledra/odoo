@@ -1278,6 +1278,67 @@ class TestStockValuation(TransactionCase):
 
         self.assertEqual(move5.value, -477.6)
 
+    def test_average_perpetual_2(self):
+        self.product1.product_tmpl_id.cost_method = 'average'
+
+        move1 = self.env['stock.move'].create({
+            'name': 'Receive 10 units at 10',
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+            'product_id': self.product1.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 10.0,
+            'price_unit': 10,
+        })
+        move1.action_confirm()
+        move1.action_assign()
+        move1.move_line_ids.qty_done = 10.0
+        move1.action_done()
+
+        move2 = self.env['stock.move'].create({
+            'name': 'Receive 10 units at 15',
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+            'product_id': self.product1.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 10.0,
+            'price_unit': 15,
+        })
+        move2.action_confirm()
+        move2.action_assign()
+        move2.move_line_ids.qty_done = 10.0
+        move2.action_done()
+
+        move3 = self.env['stock.move'].create({
+            'name': 'Deliver 15 units',
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'product_id': self.product1.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 15.0,
+        })
+        move3.action_confirm()
+        move3.action_assign()
+        move3.move_line_ids.qty_done = 15.0
+        move3.action_done()
+
+        move4 = self.env['stock.move'].create({
+            'name': 'Deliver 10 units',
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'product_id': self.product1.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 10.0,
+        })
+        move4.action_confirm()
+        move4.action_assign()
+        move4.move_line_ids.qty_done = 10.0
+        move4.action_done()
+
+        move2.move_line_ids.qty_done = 20
+
+        self.assertEqual(self.product1.stock_value, 87.5)
+
     def test_average_negative_1(self):
         """ Send goods that you don't have in stock and never received any unit.
         """

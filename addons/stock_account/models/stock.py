@@ -76,6 +76,7 @@ class StockMoveLine(models.Model):
                         move_id.with_context(force_valuation_amount=qty_difference * move_id.product_id.standard_price)._account_entry_move()
                     else:
                         move_id.with_context(force_valuation_amount=qty_difference*move_id.price_unit)._account_entry_move()
+                move_id.product_price_update_before_done(forced_qty=qty_difference)
         return super(StockMoveLine, self).write(vals)
 
 
@@ -230,7 +231,7 @@ class StockMove(models.Model):
         return res
 
     @api.multi
-    def product_price_update_before_done(self):
+    def product_price_update_before_done(self, forced_qty=None):
         tmpl_dict = defaultdict(lambda: 0.0)
         # adapt standard price on incomming moves if the product cost_method is 'average'
         std_price_update = {}
@@ -242,7 +243,8 @@ class StockMove(models.Model):
             else:
                 # Get the standard price
                 amount_unit = std_price_update.get((move.company_id.id, move.product_id.id)) or move.product_id.standard_price
-                new_std_price = ((amount_unit * product_tot_qty_available) + (move.get_price_unit() * move.product_qty)) / (product_tot_qty_available + move.product_qty)
+                qty = forced_qty or move.product_qty
+                new_std_price = ((amount_unit * product_tot_qty_available) + (move.get_price_unit() * qty)) / (product_tot_qty_available + move.product_qty)
 
             tmpl_dict[move.product_id.id] += move.product_qty
             # Write the standard price, as SUPERUSER_ID because a warehouse manager may not have the right to write on products
