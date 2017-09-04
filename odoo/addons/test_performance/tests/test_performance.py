@@ -151,7 +151,7 @@ class TestPerformance(TransactionCase):
         model = self.env['test_performance.base']
         model.create({'name': self.str('X')})
 
-    @queryCount(admin=38, demo=38)
+    @queryCount(admin=20, demo=20)
     def test_create_base_with_lines(self):
         """ Create records with lines. """
         model = self.env['test_performance.base']

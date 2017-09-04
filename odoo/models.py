@@ -4743,23 +4743,9 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             # process stored fields
             if path and stored:
                 # determine records of model_name linked by path to self
-                if path == 'id':
-                    target0 = self
-                else:
-                    env = self.env(user=SUPERUSER_ID, context={'active_test': False})
-                    target0 = env[model_name].search([(path, 'in', self.ids)])
-                    target0 = target0.with_context({})
-                # prepare recomputation for each field on linked records
-                for field in stored:
-                    # discard records to not recompute for field
-                    target = target0 - self.env.protected(field)
-                    if not target:
-                        continue
-                    invalids.append((field, target._ids))
-                    # mark field to be recomputed on target
-                    target.env.mark_todo(field, target)
-            # process non-stored fields
-            for field in (fields - stored):
+                self.env.prepare_todo(stored, path, self)
+            # invalidate fields in cache
+            for field in fields:
                 invalids.append((field, None))
 
         self.env.cache.invalidate(invalids)
