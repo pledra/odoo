@@ -262,7 +262,7 @@ class StockMove(models.Model):
                         ('date', '=', move.date),
                         ('id', '>', move.id)
             ]
-            domain += self._get_in_domain()
+            domain += move._get_in_domain()
             candidates = self.search(domain, order='date, id')
             if not candidates:
                 return

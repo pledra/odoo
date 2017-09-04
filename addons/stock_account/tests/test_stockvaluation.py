@@ -1123,6 +1123,72 @@ class TestStockValuation(TransactionCase):
         move2._fifo_vacuum()
         self.assertEqual(len(move2.account_move_ids), 1)
 
+    def test_fifo_negative_3(self):
+        """ Receives 10 units, send more, the extra quantity should be valued at the last fifo
+        price, running the vacuum should not do anything.
+        """
+        self.product1.product_tmpl_id.cost_method = 'fifo'
+
+        move1 = self.env['stock.move'].create({
+            'name': '10 in',
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+            'product_id': self.product1.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 10.0,
+            'price_unit': 10,
+            'move_line_ids': [(0, 0, {
+                'product_id': self.product1.id,
+                'location_id': self.stock_location.id,
+                'location_dest_id': self.customer_location.id,
+                'product_uom_id': self.uom_unit.id,
+                'qty_done': 10.0,
+            })]
+        })
+        move1.action_confirm()
+        move1.action_done()
+
+        move2 = self.env['stock.move'].create({
+            'name': '10 in',
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+            'product_id': self.product1.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 10.0,
+            'price_unit': 12,
+            'move_line_ids': [(0, 0, {
+                'product_id': self.product1.id,
+                'location_id': self.stock_location.id,
+                'location_dest_id': self.customer_location.id,
+                'product_uom_id': self.uom_unit.id,
+                'qty_done': 10.0,
+            })]
+        })
+        move2.action_confirm()
+        move2.action_done()
+
+        move3 = self.env['stock.move'].create({
+            'name': '10 in',
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'product_id': self.product1.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 21.0,
+            'price_unit': 0,
+            'move_line_ids': [(0, 0, {
+                'product_id': self.product1.id,
+                'location_id': self.stock_location.id,
+                'location_dest_id': self.customer_location.id,
+                'product_uom_id': self.uom_unit.id,
+                'qty_done': 21.0,
+            })]
+        })
+        move3.action_confirm()
+        move3.action_done()
+
+        (move1 + move2 + move3)._fifo_vacuum()
+        self.assertEqual(len(move3.account_move_ids), 1)
+
     def test_average_perpetual_1(self):
         # http://accountingexplained.com/financial/inventories/avco-method
         self.product1.product_tmpl_id.cost_method = 'average'
