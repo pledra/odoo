@@ -873,7 +873,7 @@ class Environment(Mapping):
 
     def get_todo(self, field):
         """ Return a recordset with all records to recompute for ``field``. """
-        self.flush_todo(field)
+        self.flush_todo([field])
         ids = self.all.todo.get(field, ())
         return self[field.model_name].browse(ids)
 
@@ -892,16 +892,17 @@ class Environment(Mapping):
         """ Prepare fields to be marked as todo, because of modified ``records``. """
         self.all.mods[(frozenset(fields), path)].update(records._ids)
 
-    def flush_todo(self, field=None):
-        """ Make sure all records to recompute for the given field (or all
+    def flush_todo(self, fields=None):
+        """ Make sure all records to recompute for the given fields (or all
             fields, if not given) are marked as expected.
         """
         if not self.all.mods:
             return
+        skip = (lambda fs: False) if fields is None else set(fields).isdisjoint
         env = self(user=SUPERUSER_ID, context={'active_test': False})
         for fields_path in list(self.all.mods):
             target_fields, path = fields_path
-            if field is not None and field not in target_fields:
+            if skip(target_fields):
                 continue
             # determine the records to recompute for target_fields
             model = env[next(iter(target_fields)).model_name]

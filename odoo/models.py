@@ -2831,7 +2831,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             return True
 
         # for recomputing fields
-        self.modified(self._fields)
+        self.modified(self._fields, force=True)
 
         self._check_concurrency()
 
@@ -3012,7 +3012,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
             if new_vals:
                 # put the values of pure new-style fields into cache, and inverse them
-                self.modified(set(new_vals) - set(old_vals))
+                self.modified(set(new_vals) - set(old_vals), force=True)
                 for record in self:
                     record._cache.update(record._convert_to_cache(new_vals, update=True))
                 for key in new_vals:
@@ -3037,7 +3037,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
         # for recomputing new-style fields
         extra_fields = ['write_date', 'write_uid'] if self._log_access else []
-        self.modified(list(vals) + extra_fields)
+        self.modified(list(vals) + extra_fields, force=True)
 
         # for updating parent_left, parent_right
         parents_changed = []
@@ -3283,7 +3283,6 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         protected_fields = [self._fields[n] for n in new_vals]
         with self.env.protecting(protected_fields, record):
             # put the values of pure new-style fields into cache, and inverse them
-            record.modified(set(new_vals) - set(old_vals))
             record._cache.update(record._convert_to_cache(new_vals))
             for key in new_vals:
                 self._fields[key].determine_inverse(record)
@@ -4715,13 +4714,13 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
         self.env.cache.invalidate(spec)
 
     @api.multi
-    def modified(self, fnames):
+    def modified(self, fnames, force=False):
         """ Notify that fields have been modified on ``self``. This invalidates
-            the cache, and prepares the recomputation of stored function fields
-            (new-style fields only).
+            the cache, and prepares the recomputation of stored computed fields.
 
             :param fnames: iterable of field names that have been modified on
                 records ``self``
+            :param force: whether fields must be marked to recompute right now
         """
         # group triggers by (model, path) to minimize the calls to search()
         invalids = []
@@ -4737,6 +4736,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 triggers[(field.model_name, path)].add(field)
 
         # process triggers, mark fields to be invalidated/recomputed
+        target_fields = set()
         for model_path, fields in triggers.items():
             model_name, path = model_path
             stored = {field for field in fields if field.compute and field.store}
@@ -4744,11 +4744,15 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             if path and stored:
                 # determine records of model_name linked by path to self
                 self.env.prepare_todo(stored, path, self)
+                target_fields.update(stored)
             # invalidate fields in cache
             for field in fields:
                 invalids.append((field, None))
 
         self.env.cache.invalidate(invalids)
+
+        if force and target_fields:
+            self.env.flush_todo(target_fields)
 
     @api.model
     def recompute(self):
