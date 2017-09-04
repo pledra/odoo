@@ -76,7 +76,8 @@ class StockMoveLine(models.Model):
                         move_id.with_context(force_valuation_amount=qty_difference * move_id.product_id.standard_price)._account_entry_move()
                     else:
                         move_id.with_context(force_valuation_amount=qty_difference*move_id.price_unit)._account_entry_move()
-                move_id.product_price_update_before_done(forced_qty=qty_difference)
+                if qty_difference > 0:
+                    move_id.product_price_update_before_done(forced_qty=qty_difference)
         return super(StockMoveLine, self).write(vals)
 
 
