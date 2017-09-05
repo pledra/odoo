@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import babel
 import json
 import locale
 import logging
@@ -33,6 +34,13 @@ class Lang(models.Model):
     direction = fields.Selection([('ltr', 'Left-to-Right'), ('rtl', 'Right-to-Left')], required=True, default='ltr')
     date_format = fields.Char(string='Date Format', required=True, default=DEFAULT_DATE_FORMAT)
     time_format = fields.Char(string='Time Format', required=True, default=DEFAULT_TIME_FORMAT)
+    week_start = fields.Selection([(1, 'Monday'),
+                                   (2, 'Tuesday'),
+                                   (3, 'Wednesday'),
+                                   (4, 'Thursday'),
+                                   (5, 'Friday'),
+                                   (6, 'Saturday'),
+                                   (7, 'Sunday')], string='First Day of Week')
     grouping = fields.Char(string='Separator Format', required=True, default='[]',
         help="The Separator Format should be like [,n] where 0 < n :starting from Unit digit. "
              "-1 will end the separation. e.g. [3,2,-1] will represent 106500 to be 1,06,500; "
@@ -209,6 +217,12 @@ class Lang(models.Model):
     @api.model
     def create(self, vals):
         self.clear_caches()
+        if not vals.get('week_start'):
+            try:
+                locale = babel.Locale(vals['code'])
+            except babel.core.UnknownLocaleError:
+                locale = babel.Locale('en_US')
+            vals.update({'week_start': locale.first_week_day + 1})  # babel.Locale() starts indexing from 0
         return super(Lang, self).create(vals)
 
     @api.multi
