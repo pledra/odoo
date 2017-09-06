@@ -212,6 +212,7 @@ class Holidays(models.Model):
         help='This area is automaticly filled by the user who validate the leave with second level (If Leave type need second validation)')
     double_validation = fields.Boolean('Apply Double Validation', related='holiday_status_id.double_validation')
     can_reset = fields.Boolean('Can reset', compute='_compute_can_reset')
+    can_approve = fields.Boolean('Can Aproove', compute='_compute_can_approve')
 
     @api.multi
     @api.depends('number_of_days_temp', 'type')
@@ -232,6 +233,16 @@ class Holidays(models.Model):
         for holiday in self:
             if group_hr_manager in user.groups_id or holiday.employee_id and holiday.employee_id.user_id == user:
                 holiday.can_reset = True
+
+    @api.depends('employee_id')
+    def _compute_can_approve(self):
+        """ User can not approve a leave request if it is its own leave request
+            or if he is an Hr Manager.
+        """
+        if self.user_has_groups('hr_holidays.group_hr_holidays_user'):
+            for holiday in self:
+                if holiday.employee_id.user_id.id != self.env.uid or holiday.type != 'remove':
+                    holiday.can_approve = True
 
     @api.constrains('date_from', 'date_to')
     def _check_date(self):
@@ -383,7 +394,7 @@ class Holidays(models.Model):
     def _create_resource_leave(self):
         """ This method will create entry in resource calendar leave object at the time of holidays validated """
         for leave in self:
-            self.env['resource.calendar.leaves'].create({
+            self.env['resource.calendar.leaves'].with_context({'tz': self._context.get('tz') or 'UTC'}).create({
                 'name': leave.name,
                 'date_from': leave.date_from,
                 'holiday_id': leave.id,
