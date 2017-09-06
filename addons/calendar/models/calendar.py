@@ -530,9 +530,15 @@ class Meeting(models.Model):
 
     @api.model
     def default_get(self, fields):
-        if 'default_res_model' in self.env.context:  # super default_model='crm.lead' for easier use in adddons
-            self = self.with_context(default_res_model_id=self.env['ir.model'].sudo().search([('model', '=', self.env.context['default_res_model'])], limit=1).id)
+        if self.env.context.get('default_res_model'):  # super default_model='crm.lead' for easier use in adddons
+            self = self.with_context(
+                default_res_model_id=self.env['ir.model'].sudo().search([
+                    ('model', '=', self.env.context['default_res_model'])
+                ], limit=1).id
+            )
+
         defaults = super(Meeting, self).default_get(fields)
+
         # support active_model / active_id as replacement of default_* if not already given
         if 'res_model_id' not in defaults and 'res_model_id' in fields and \
                 self.env.context.get('active_model') and self.env.context['active_model'] != 'calendar.event':
@@ -540,6 +546,7 @@ class Meeting(models.Model):
         if 'res_id' not in defaults and 'res_id' in fields and \
                 defaults.get('res_model_id') and self.env.context.get('active_id'):
             defaults['res_id'] = self.env.context['active_id']
+
         return defaults
 
     @api.model
@@ -1298,7 +1305,9 @@ class Meeting(models.Model):
 
     @api.multi
     def action_open_calendar_event(self):
-        return self.env[self.res_model].browse(self.res_id).get_formview_action()
+        if self.res_model and self.res_id:
+            return self.env[self.res_model].browse(self.res_id).get_formview_action()
+        return False
 
     @api.multi
     def action_sendmail(self):
