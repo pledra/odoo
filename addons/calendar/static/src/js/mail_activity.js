@@ -7,43 +7,57 @@ var core = require('web.core');
 var _t = core._t;
 
 Activity.include({
-    _onEditActivity: function (event) {
+
+    /**
+     * Override behavior to redirect to calendar event instead of activity
+     *
+     * @override
+     */
+    _onEditActivity: function (event, options) {
         var self = this;
         var activity_id = $(event.currentTarget).data('activity-id');
-        _.each(this.activities, function(activity) {
-            if(activity.id === activity_id) {
-                if (activity.activity_category === 'meeting' && activity.calendar_event_id) {
-                    return self._super(event, {
-                        res_model: 'calendar.event',
-                        res_id: activity.calendar_event_id[0]
-                    });
-                } else {
-                    return self._super(event);
-                }
-            }
-        });
+        var activity = _.find(this.activities, function (act) { return act.id === activity_id; });
+        if (activity && activity.activity_category === 'meeting') {
+            return self._super(event, _.extend({
+                res_model: 'calendar.event',
+                res_id: activity.calendar_event_id[0],
+            }));
+        }
+        return self._super(event, options);
     },
-    _onUnlinkActivity: function (event) {
+
+    /**
+     * Override behavior to warn that the calendar event is about to be removed as well
+     *
+     * @override
+     */
+    _onUnlinkActivity: function (event, options) {
         event.preventDefault();
         var self = this;
-        var _super = this._super;
         var activity_id = $(event.currentTarget).data('activity-id');
-        _.each(this.activities, function(activity) {
-            if(activity.id === activity_id) {
-                if (activity.activity_category === 'meeting') {
-                    Dialog.confirm(self, _t("The activity is linked to a meeting. Deleting it will remove the meeting as well. Do you want to proceed ?"), {
-                        confirm_callback: function () {
-                            return _super.call(self, event, {
-                                model: 'calendar.event',
-                                args: [[activity.calendar_event_id[0]]],
-                            });
-                        }
-                    });
-                } else {
-                    return self._super(event);
-                }
-            }
+        var unlink_options = _.defaults(options || {}, {
+            model: 'mail.activity',
+            args: [[activity_id]],
         });
+        var activity = _.find(this.activities, function (act) { return act.id === activity_id; });
+        if (activity.activity_category === 'meeting') {
+            Dialog.confirm(
+                self,
+                _t("The activity is linked to a meeting. Deleting it will remove the meeting as well. Do you want to proceed ?"), {
+                    confirm_callback: function () {
+                        return self._rpc({
+                            model: unlink_options.model,
+                            method: 'unlink_w_meeting',
+                            args: unlink_options.args,
+                        })
+                        .then(self._reload.bind(self, {activity: true}));
+                    },
+                }
+            );
+        }
+        else {
+            return self._super(event, options);
+        }
     },
 });
 

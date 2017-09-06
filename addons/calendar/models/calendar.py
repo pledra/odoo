@@ -547,6 +547,20 @@ class Meeting(models.Model):
                 defaults.get('res_model_id') and self.env.context.get('active_id'):
             defaults['res_id'] = self.env.context['active_id']
 
+        # created from calendar: try to create an activity on the related record
+        if not defaults.get('activity_ids') and defaults.get('res_model_id') and defaults.get('res_id'):
+            if hasattr(self.env[self.env['ir.model'].sudo().browse(defaults['res_model_id']).model], 'activity_ids'):
+                meeting_activity_type = self.env['mail.activity.type'].search([('category', '=', 'meeting')], limit=1)
+                if meeting_activity_type:
+                    activity_vals = {
+                        'res_model_id': defaults['res_model_id'],
+                        'res_id': defaults['res_id'],
+                        'activity_type_id': meeting_activity_type.id,
+                    }
+                    if defaults.get('user_id'):
+                        activity_vals['user_id'] = defaults['user_id']
+                    defaults['activity_ids'] = [(0, 0, activity_vals)]
+
         return defaults
 
     @api.model
@@ -735,7 +749,7 @@ class Meeting(models.Model):
     res_id = fields.Integer('Document ID')
     res_model_id = fields.Many2one('ir.model', 'Document Model', ondelete='cascade')
     res_model = fields.Char('Document Model Name', related='res_model_id.model', readonly=True, store=True)
-    activity_ids = fields.One2many('mail.activity', 'calendar_event_id', string='Activities', ondelete='cascade')
+    activity_ids = fields.One2many('mail.activity', 'calendar_event_id', string='Activities')
 
     # RECURRENCE FIELD
     rrule = fields.Char('Recurrent Rule', compute='_compute_rrule', inverse='_inverse_rrule', store=True)
@@ -953,21 +967,6 @@ class Meeting(models.Model):
             result[meeting.id] = cal.serialize().encode('utf-8')
 
         return result
-
-    @api.multi
-    def create_mail_activity(self, values):
-        res = {}
-        start_date = fields.Datetime.from_string(values['start']).date()
-        for meeting in self.filtered('res_model'):
-            res[meeting.id] = self.env['mail.activity'].create({
-                'user_id': self.env.uid,
-                'activity_type_id': self.env.context.get('activity_type_id'),
-                'summary': values.get('name'),
-                'note': values.get('description'),
-                'date_deadline': start_date,
-                'calendar_event_id': meeting.id,
-            })
-        return res
 
     @api.multi
     def create_attendees(self):
@@ -1405,26 +1404,17 @@ class Meeting(models.Model):
                         arg[2][n] = calendar_id.split('-')[0]
         return super(Meeting, self)._name_search(name=name, args=args, operator=operator, limit=limit, name_get_uid=name_get_uid)
 
-    def _update_mail_activity(self, values):
-        self.ensure_one()
-        for activity in self.activity_ids:
-            if values.get('name'):
-                activity.summary = values['name']
-            if values.get('description'):
-                activity.note = values['description']
-            if values.get('start'):
-                activity.date_deadline = fields.Datetime.from_string(values['start']).date()
-
     @api.multi
     def write(self, values):
         # compute duration, only if start and stop are modified
         if not 'duration' in values and 'start' in values and 'stop' in values:
             values['duration'] = self._get_duration(values['start'], values['stop'])
+
+        self._sync_activities(values)
+
         # process events one by one
         for meeting in self:
             # special write of complex IDS
-            if meeting.activity_ids:
-                meeting._update_mail_activity(values)
             real_ids = []
             new_ids = []
             if not is_calendar_id(meeting.id):
@@ -1491,8 +1481,7 @@ class Meeting(models.Model):
             values['duration'] = self._get_duration(values['start'], values['stop'])
 
         meeting = super(Meeting, self).create(values)
-        if self.env.context.get('create_activity'):
-            meeting.create_mail_activity(values)[meeting.id]
+        meeting._sync_activities(values)
 
         final_date = meeting._get_recurrency_end_date()
         # `dont_notify=True` in context to prevent multiple notify_next_alarm
@@ -1596,7 +1585,6 @@ class Meeting(models.Model):
                     # int() required because 'id' from calendar view is a string, since it can be calendar virtual id
                     records_to_unlink |= self.browse(int(meeting.id))
             else:
-                meeting.activity_ids.unlink()
                 records_to_exclude |= meeting
 
         result = False
@@ -1653,3 +1641,18 @@ class Meeting(models.Model):
         self.ensure_one()
         default = default or {}
         return super(Meeting, self.browse(calendar_id2real_id(self.id))).copy(default)
+
+    def _sync_activities(self, values):
+        # update activities
+        if self.mapped('activity_ids'):
+            activity_values = {}
+            if values.get('name'):
+                activity_values['summary'] = values['name']
+            if values.get('description'):
+                activity_values['note'] = values['description']
+            if values.get('start'):
+                activity_values['date_deadline'] = fields.Datetime.from_string(values['start']).date()
+            if values.get('user_id'):
+                activity_values['user_id'] = values['user_id']
+            if activity_values.keys():
+                self.mapped('activity_ids').write(activity_values)

@@ -5,16 +5,23 @@ from odoo import api, fields, models
 
 
 class CalendarEvent(models.Model):
-
     _inherit = 'calendar.event'
 
     @api.model
     def default_get(self, fields):
         defaults = super(CalendarEvent, self).default_get(fields)
+
+        # sync opportunity id to res_model / res_id (aka creating meeting from lead form)
         if 'res_model_id' not in defaults and defaults.get('opportunity_id'):
             defaults['res_model_id'] = self.env.ref('model_crm_lead').id
         if 'res_id' not in defaults and defaults.get('opportunity_id'):
             defaults['res_id'] = defaults['opportunity_id']
+
+        # sync res_model / res_id to opportunity id (aka creating meeting from lead chatter)
+        if 'opportunity_id' not in defaults and defaults.get('res_id') and (defaults.get('res_model') or defaults.get('res_model_id')):
+            if (defaults.get('res_model') and defaults['res_model'] == 'crm.lead') or self.env['ir.model'].sudo().browse(defaults['res_model_id']).model == 'crm.lead':
+                defaults['opportunity_id'] = defaults['res_id']
+
         return defaults
 
     def _compute_is_highlighted(self):
@@ -30,6 +37,7 @@ class CalendarEvent(models.Model):
     @api.model
     def create(self, vals):
         event = super(CalendarEvent, self).create(vals)
-        if event.opportunity_id:
+
+        if event.opportunity_id and not event.activity_ids:
             event.opportunity_id.log_meeting(event.name, event.start, event.duration)
         return event

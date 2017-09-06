@@ -20,21 +20,27 @@ class MailActivity(models.Model):
         self.ensure_one()
         action = self.env.ref('calendar.action_calendar_event').read()[0]
         action['context'] = {
-            'activity_type_id': self.activity_type_id.id,
+            'default_activity_type_id': self.activity_type_id.id,
             'default_res_id': self.env.context.get('default_res_id'),
             'default_res_model': self.env.context.get('default_res_model'),
             'default_name': self.summary,
             'default_description': self.note and tools.html2plaintext(self.note) or '',
-            'create_activity': True,
+            'default_activity_ids': [(6, 0, self.ids)],
         }
-        self.unlink()
         return action
 
-    @api.multi
-    def unlink(self):
-        for activity in self.filtered('feedback'):
-            feedback = tools.html2plaintext(activity.feedback)
-            description = activity.calendar_event_id.description
-            modify_feedback = (description or '') + "\n" + _("Feedback: ") + feedback
-            activity.calendar_event_id.write({'description': modify_feedback})
-        return super(MailActivity, self).unlink()
+    def action_feedback(self, feedback=False):
+        events = self.mapped('calendar_event_id')
+        res = super(MailActivity, self).action_feedback(feedback)
+        if feedback:
+            for event in events:
+                description = event.description
+                description = '%s\n%s%s' % (description or '', _("Feedback: "), feedback)
+                event.write({'description': description})
+        return res
+
+    def unlink_w_meeting(self):
+        events = self.mapped('calendar_event_id')
+        res = self.unlink()
+        events.unlink()
+        return res
