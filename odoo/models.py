@@ -3018,11 +3018,12 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 for key in new_vals:
                     self._fields[key].determine_inverse(self)
                 self.modified(set(new_vals) - set(old_vals))
+
                 # check Python constraints for inversed fields
                 self._validate_fields(set(new_vals) - set(old_vals))
-                # recompute new-style fields
-                if self.env.recompute and self._context.get('recompute', True):
-                    self.recompute()
+
+            if self.env.recompute and self._context.get('recompute', True):
+                self.recompute()
 
         return True
 
@@ -3221,10 +3222,6 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
                 self.invalidate_cache(['parent_left', 'parent_right'])
 
-        # recompute new-style fields
-        if self.env.recompute and self._context.get('recompute', True):
-            self.recompute()
-
         return True
 
     #
@@ -3287,8 +3284,10 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             for key in new_vals:
                 self._fields[key].determine_inverse(record)
             record.modified(set(new_vals) - set(old_vals))
+
             # check Python constraints for inversed fields
             record._validate_fields(set(new_vals) - set(old_vals))
+
             # recompute new-style fields
             if self.env.recompute and self._context.get('recompute', True):
                 self.recompute()
@@ -3439,10 +3438,6 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
             # check Python constraints
             self._validate_fields(vals)
-
-            if self.env.recompute and self._context.get('recompute', True):
-                # recompute new-style fields
-                self.recompute()
 
         self.check_access_rule('create')
         return id_new
