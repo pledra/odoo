@@ -19,7 +19,7 @@ class AccountInvoiceLine(models.Model):
         price_unit = super(AccountInvoiceLine,self)._get_anglo_saxon_price_unit()
         # in case of anglo saxon with a product configured as invoiced based on delivery, with perpetual
         # valuation and real price costing method, we must find the real price for the cost of good sold
-        if self.product_id.invoice_policy == "delivery" or any(s.qty_delivered for s in self.sale_line_ids):
+        if self.product_id.invoice_policy == "delivery":
             for s_line in self.sale_line_ids:
                 # qtys already invoiced
                 qty_done = sum([x.uom_id._compute_quantity(x.quantity, x.product_id.uom_id) for x in s_line.invoice_lines if x.invoice_id.state in ('open', 'paid')])
@@ -52,7 +52,7 @@ class AccountInvoiceLine(models.Model):
                 qty_to_consider = invoiced_qty - qty_done
             qty_to_consider = min(qty_to_consider, quantity - qty_delivered)
             qty_delivered += qty_to_consider
-            average_price_unit = (average_price_unit * (qty_delivered - qty_to_consider) + abs(move.price_unit) * qty_to_consider) / qty_delivered
+            average_price_unit = (average_price_unit * (qty_delivered - qty_to_consider) + move.price_unit * qty_to_consider) / qty_delivered
             if qty_delivered == quantity:
                 break
         return average_price_unit
