@@ -1395,9 +1395,7 @@ class TestStockValuation(TransactionCase):
         move4.action_assign()
         move4.move_line_ids.qty_done = 10.0
         move4.action_done()
-        import pudb; pudb.set_trace()
         move2.move_line_ids.qty_done = 0
-        import pudb; pudb.set_trace()
         self.assertEqual(self.product1.stock_value, -187.5)
 
     def test_average_negative_1(self):
