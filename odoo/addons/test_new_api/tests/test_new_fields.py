@@ -233,33 +233,55 @@ class TestFields(common.TransactionCase):
         self.assertEqual(ewan.parent, cath)
         self.assertEqual(ewan.name, "Erwan")
 
-        record = self.env['test_new_api.compute.inverse']
+        # counting how many times fields are computed/inversed
+        base = self.env['test_new_api.inverse.base']
+        log = base.line_ids.LOG
 
-        # create/write on 'foo' should only invoke the compute method
-        record.counts.update(compute=0, inverse=0)
-        record = record.create({'foo': 'Hi'})
-        self.assertEqual(record.foo, 'Hi')
-        self.assertEqual(record.bar, 'Hi')
-        self.assertEqual(record.counts, {'compute': 1, 'inverse': 0})
+        # create on base.name should compute both lines once
+        log.clear()
+        base = base.create({'name': 'Foo', 'line_ids': [(0, 0, {}), (0, 0, {})]})
+        self.assertEqual(base.name, 'Foo')
+        self.assertEqual(base.line_ids[0].name, 'Foo')
+        self.assertEqual(base.line_ids[1].name, 'Foo')
+        self.assertItemsEqual(log['compute'], base.line_ids.ids)
+        self.assertItemsEqual(log['inverse'], [])
 
-        record.counts.update(compute=0, inverse=0)
-        record.write({'foo': 'Ho'})
-        self.assertEqual(record.foo, 'Ho')
-        self.assertEqual(record.bar, 'Ho')
-        self.assertEqual(record.counts, {'compute': 1, 'inverse': 0})
+        # write on base.name should compute both lines once
+        log.clear()
+        base.write({'name': 'Bar'})
+        self.assertEqual(base.name, 'Bar')
+        self.assertEqual(base.line_ids[0].name, 'Bar')
+        self.assertEqual(base.line_ids[1].name, 'Bar')
+        self.assertItemsEqual(log['compute'], base.line_ids.ids)
+        self.assertItemsEqual(log['inverse'], [])
 
-        # create/write on 'bar' should only invoke the inverse method
-        record.counts.update(compute=0, inverse=0)
-        record = record.create({'bar': 'Hi'})
-        self.assertEqual(record.foo, 'Hi')
-        self.assertEqual(record.bar, 'Hi')
-        self.assertEqual(record.counts, {'compute': 0, 'inverse': 1})
+        # create on a single line.name should inverse it and compute the other one
+        log.clear()
+        base = base.create({'line_ids': [(0, 0, {}), (0, 0, {'name': 'Foo'})]})
+        self.assertEqual(base.name, 'Foo')
+        self.assertEqual(base.line_ids[0].name, 'Foo')
+        self.assertEqual(base.line_ids[1].name, 'Foo')
+        self.assertItemsEqual(log['compute'], base.line_ids[0].ids)
+        self.assertItemsEqual(log['inverse'], base.line_ids[1].ids)
 
-        record.counts.update(compute=0, inverse=0)
-        record.write({'bar': 'Ho'})
-        self.assertEqual(record.foo, 'Ho')
-        self.assertEqual(record.bar, 'Ho')
-        self.assertEqual(record.counts, {'compute': 0, 'inverse': 1})
+        # write on a single line.name should inverse it and compute the other one
+        log.clear()
+        base.write({'line_ids': [(1, base.line_ids[1].id, {'name': 'Bar'})]})
+        self.assertEqual(base.name, 'Bar')
+        self.assertEqual(base.line_ids[0].name, 'Bar')
+        self.assertEqual(base.line_ids[1].name, 'Bar')
+        self.assertItemsEqual(log['compute'], base.line_ids[0].ids)
+        self.assertItemsEqual(log['inverse'], base.line_ids[1].ids)
+
+        # write on both line.name should inverse and recompute both
+        log.clear()
+        base.write({'line_ids': [(1, base.line_ids[0].id, {'name': 'Foo'}),
+                                 (1, base.line_ids[1].id, {'name': 'Bar'})]})
+        self.assertEqual(base.name, 'Bar')
+        self.assertEqual(base.line_ids[0].name, 'Bar')
+        self.assertEqual(base.line_ids[1].name, 'Bar')
+        self.assertItemsEqual(log['compute'], base.line_ids.ids)
+        self.assertItemsEqual(log['inverse'], base.line_ids.ids)
 
     def test_14_search(self):
         """ test search on computed fields """

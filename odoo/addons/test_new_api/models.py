@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from collections import defaultdict
 import datetime
 
 from odoo import models, fields, api, _
@@ -321,24 +322,31 @@ class Related(models.Model):
     related_related_name = fields.Char(related='related_name')
 
 
-class ComputeInverse(models.Model):
-    _name = 'test_new_api.compute.inverse'
+class ComputeInverseBase(models.Model):
+    _name = 'test_new_api.inverse.base'
 
-    counts = {'compute': 0, 'inverse': 0}
+    name = fields.Char()
+    line_ids = fields.One2many('test_new_api.inverse.line', 'base_id')
 
-    foo = fields.Char()
-    bar = fields.Char(compute='_compute_bar', inverse='_inverse_bar', store=True)
 
-    @api.depends('foo')
-    def _compute_bar(self):
-        self.counts['compute'] += 1
-        for record in self:
-            record.bar = record.foo
+class ComputeInverseLine(models.Model):
+    _name = 'test_new_api.inverse.line'
 
-    def _inverse_bar(self):
-        self.counts['inverse'] += 1
-        for record in self:
-            record.foo = record.bar
+    LOG = defaultdict(list)             # log ids that are computed/inversed
+
+    name = fields.Char(compute='_compute_name', inverse='_inverse_name', store=True)
+    base_id = fields.Many2one('test_new_api.inverse.base')
+
+    @api.depends('base_id.name')
+    def _compute_name(self):
+        for line in self:
+            self.LOG['compute'].append(line.id)
+            line.name = line.base_id.name
+
+    def _inverse_name(self):
+        for line in self:
+            self.LOG['inverse'].append(line.id)
+            line.base_id.name = line.name
 
 
 class CompanyDependent(models.Model):
