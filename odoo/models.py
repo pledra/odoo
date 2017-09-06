@@ -4751,7 +4751,11 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
 
         self.env.cache.invalidate(invalids)
 
-        if force and target_fields:
+        if not force:
+            # target_fields that are protected must be determined right now
+            target_fields = {field for field in target_fields if self.env.protected(field)}
+
+        if target_fields:
             self.env.flush_todo(target_fields)
 
     @api.model

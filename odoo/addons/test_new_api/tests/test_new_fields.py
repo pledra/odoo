@@ -255,22 +255,22 @@ class TestFields(common.TransactionCase):
         self.assertItemsEqual(log['compute'], base.line_ids.ids)
         self.assertItemsEqual(log['inverse'], [])
 
-        # create on a single line.name should inverse it and compute the other one
+        # create on a single line.name should inverse it and recompute both
         log.clear()
         base = base.create({'line_ids': [(0, 0, {}), (0, 0, {'name': 'Foo'})]})
         self.assertEqual(base.name, 'Foo')
         self.assertEqual(base.line_ids[0].name, 'Foo')
         self.assertEqual(base.line_ids[1].name, 'Foo')
-        self.assertItemsEqual(log['compute'], base.line_ids[0].ids)
+        self.assertItemsEqual(log['compute'], base.line_ids.ids)
         self.assertItemsEqual(log['inverse'], base.line_ids[1].ids)
 
-        # write on a single line.name should inverse it and compute the other one
+        # write on a single line.name should inverse it and recompute both
         log.clear()
         base.write({'line_ids': [(1, base.line_ids[1].id, {'name': 'Bar'})]})
         self.assertEqual(base.name, 'Bar')
         self.assertEqual(base.line_ids[0].name, 'Bar')
         self.assertEqual(base.line_ids[1].name, 'Bar')
-        self.assertItemsEqual(log['compute'], base.line_ids[0].ids)
+        self.assertItemsEqual(log['compute'], base.line_ids.ids)
         self.assertItemsEqual(log['inverse'], base.line_ids[1].ids)
 
         # write on both line.name should inverse and recompute both
