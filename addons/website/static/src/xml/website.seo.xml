@@ -72,7 +72,8 @@
                 </tfoot>
             </table>
             <input type="checkbox" name="seo_page_index" />
-            <label for="seo_page_index" class="col-xs-3 control-label">Hide this page from search results</label>
+            <label for="seo_page_index" class="control-label">Hide this page from search results</label>
+            
         </section>
     </div>
 

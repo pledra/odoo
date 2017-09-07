@@ -1,3 +1,15 @@
+/* RDE TEMPORARY CSS -> TO CLEAN */
+.o_page_management_page_info .o_switch{
+    padding-top:7px;
+}
+#edit_website_pages{
+    .fa-check{
+        color: #00a09d;
+    }
+}
+
+
+
 ///
 /// This file regroups the style of website UI components (edition modals, forms, ...).
 ///
@@ -285,87 +297,6 @@ body .modal {
         }
     }
 }
-
-
-
-.oe_page_management_menu, .oe_page_management_page_info {
-  .o-w-preserve-base();
-  .o-w-preserve-headings();
-  .o-w-preserve-forms();
-  .o-w-preserve-links();
-  .o-w-preserve-btn();
-  .o-w-preserve-tabs();
-}
-
-/* RDE TEMPORARY CSS -> TO CLEAN */
-.oe_page_management_page_info .o_switch{
-    padding-top:7px;
-}
-.oe_page_management_menu{
-    width:300px;
-    color:#555555;
-    /*a{
-        color:#555555;
-    }*/
-    .fa-angle-right{
-        visibility: hidden;
-    }
-    li>div:hover{
-        .fa-angle-right{
-            visibility:visible;
-        }
-    } 
-}
-#oe_main_menu_navbar div.oe_page_management_page_info{
-    position:absolute;
-    left: 298px;
-    min-width:600px;
-    padding: 0 @grid-gutter-width*0.5 @grid-gutter-width*0.5;
-    color:#555555;
-    overflow: initial;
-    .col-sm-9 {
-      padding-left: 0;
-    }
-    
-}
-.smallandgray{
-    font-size:10px;color:rgb(206, 202, 202);
-}
-#pages_management_other_pages, #pages_management_menu_pages{
-    max-height:300px;
-    overflow-y:scroll;
-    min-height:10px; /*empty list has no height are become not draggable anymore*/
-}
-
-.oe_page_management_menu a[data-action="new_page"], .oe_page_management_page_info a[data-action="delete_object"], .oe_page_management_page_info a[data-action="clone_page"]{
-    color:#555555;
-}
-
-/*.nav-tabs > li.active > a, .nav-tabs > li.active > a:hover, .nav-tabs > li.active > a:focus{
-    border: none!important;
-    border-bottom: 2px solid #875A7B!important;
-    color: black!important;
-    font-weight: bold;
-}*/
-
-[data-action="close_page_info"]{
-    position:absolute;
-    top:5px;
-    right:5px;
-    cursor:pointer;
-}
-.bold{
-  font-weight: bold;
-  
-}
-.black{
-  color:black;
-}
-/* FIN TO DELETE RDE */
-
-
-
-
 
 // ADD NEW PAGE MODAL
 #o_new_content_menu_choices {

@@ -256,14 +256,45 @@ class Website(Home):
     #------------------------------------------------------
     # Edit
     #------------------------------------------------------
+    
+    @http.route(['/website/pages_management', '/website/pages_management/<int:page_number>'], type='http', auth="user", website=True)
+    def pages_management(self, page_number=1, sortby=None, search='', **kw):
+        Page = request.env['website.page']
+        searchbar_sortings = {
+            'url': {'label': _('Order Url'), 'order': 'url'},
+            'name': {'label': _('Order Name'), 'order': 'name'},
+        }
+        # default sortby order
+        if not sortby:
+            sortby = 'name'
+        
+        # proper way to do that ?
+        try:
+            sort_order = searchbar_sortings[sortby]['order']
+        except:
+            sort_order = 'name'
+        domain = ['|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
+        if search:
+            domain += ['|', ('name', 'ilike', search), ('url', 'ilike', search)]
 
-    # As we now autorize '/' as path, there is a particular case where user click on create page on 404 as admin on / page 
+        pages = Page.search(domain, order=sort_order, limit=10)
+        
+        values = {
+            'pages': pages,
+            'search': search,
+            'sortby': sortby,
+            'searchbar_sortings': searchbar_sortings,
+            'homepage': request.env['website'].browse(request.env['website'].get_current_website().id).homepage_id.id,
+        }
+        return request.render("website.edit_website_pages", values)
+
+    # As we now autorize '/' as path, there is a particular case where user click on create page on 404 as admin on / page
     # then he is redirect to '/website/add/' without <path:path>
     @http.route('/website/add/', type='http', auth="user", website=True)
     def page(self):
         #TODO: How should the url be set if the cloned page is "/" ?
         self.pagenew("Home")
-        
+
     @http.route('/website/add/<path:path>', type='http', auth="user", website=True)
     def pagenew(self, path, noredirect=False, add_menu=False, template=False):
         if template:

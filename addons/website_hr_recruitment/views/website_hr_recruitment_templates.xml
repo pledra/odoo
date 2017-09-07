@@ -86,11 +86,6 @@
                 <div class="container">
                     <div class="pull-right">
                         <a t-attf-href="/jobs/apply/#{job.id}" class="btn btn-primary btn-lg pull-right mt32 mb4">Apply Now!</a>
-                        <br/>
-                        <t t-call="website.publish_management">
-                            <t t-set="object" t-value="job"/>
-                            <t t-set="publish_edit" t-value="True"/>
-                        </t>
                     </div>
                     <label class="mb0 mt16"><a href="/jobs">Jobs</a></label> /
                     <h1 class="mb0 mt0" t-field="job.name"/>

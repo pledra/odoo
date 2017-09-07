@@ -325,12 +325,12 @@ var SeoConfigurator = Dialog.extend({
         'blur input[name=seo_page_title]': 'titleChanged',
         'blur textarea[name=seo_page_description]': 'descriptionChanged',
         'click button[data-action=add]': 'addKeyword',
+        'change input[name=seo_page_index]': 'indexedChanged',
     },
     canEditTitle: false,
     canEditDescription: false,
     canEditKeywords: false,
     canEditLanguage: false,
-    canEditIndexed: false,
     maxTitleSize: 65,
     maxDescriptionSize: 160,  // TODO master: remove me and add warning
 
@@ -376,8 +376,10 @@ var SeoConfigurator = Dialog.extend({
             self.updateTable(removed);
         });
         this.keywordList.insertAfter(this.$('.table thead'));
-        this.disableUnsavableFields();
-        this.renderPreview();
+        this.disableUnsavableFields().then(function(){
+            self.renderPreview();
+        });
+        
         this.getLanguages();
         this.updateTable();
     },
@@ -397,11 +399,10 @@ var SeoConfigurator = Dialog.extend({
     },
     disableUnsavableFields: function () {
         var self = this;
-        this.loadMetaData().then(function (data) {
+        return this.loadMetaData().then(function (data) {
             self.canEditTitle = data && ('website_meta_title' in data);
             self.canEditDescription = data && ('website_meta_description' in data);
             self.canEditKeywords = data && ('website_meta_keywords' in data);
-            self.canEditIndexed = data && ('website_indexed' in data);
             if (!self.canEditTitle) {
                 self.$('input[name=seo_page_title]').attr('disabled', true);
             }
@@ -411,12 +412,7 @@ var SeoConfigurator = Dialog.extend({
             if (!self.canEditTitle && !self.canEditDescription && !self.canEditKeywords) {
                 self.$footer.find('button[data-action=update]').attr('disabled', true);
             }
-            if (!self.canEditIndexed) {
-                self.$('input[name=seo_page_index]').attr('disabled', true);
-            }
-            else{
-                self.$('input[name=seo_page_index]').prop('checked', !data.website_indexed);
-            }
+            self.$('input[name=seo_page_index]').prop('checked', !data.website_indexed);
         });
     },
     suggestImprovements: function () {
@@ -458,9 +454,7 @@ var SeoConfigurator = Dialog.extend({
         if (this.canEditKeywords) {
             data.website_meta_keywords = this.keywordList.keywords().join(', ');
         }
-        if (this.canEditIndexed){
-            data.website_indexed = !self.$('input[name=seo_page_index]').prop('checked');
-        }
+        data.website_indexed = !self.$('input[name=seo_page_index]').prop('checked');
         this.saveMetaData(data).then(function () {
            self.close();
         });
@@ -531,12 +525,29 @@ var SeoConfigurator = Dialog.extend({
             self.renderPreview();
         });
     },
-    renderPreview: function () {
-        var preview = new Preview(this, {
-            title: this.htmlPage.title(),
-            description: this.htmlPage.description(),
-            url: this.htmlPage.url(),
+    indexedChanged: function () {
+        var self = this;
+        _.defer(function () {
+            self.renderPreview();
         });
+    },
+    renderPreview: function () {
+        var indexed = !self.$('input[name=seo_page_index]').prop('checked');
+        var preview = "";
+        if(indexed){
+            preview = new Preview(this, {
+                title: this.htmlPage.title(),
+                description: this.htmlPage.description(),
+                url: this.htmlPage.url(),
+            });
+        }
+        else{
+            preview = new Preview(this, {
+                //title: this.htmlPage.title(),
+                description: "You have hidden this page from search results. It won't be indexed by search engine",
+                //url: this.htmlPage.url(),
+            });
+        }
         var $preview = this.$('.js_seo_preview');
         $preview.empty();
         preview.appendTo($preview);

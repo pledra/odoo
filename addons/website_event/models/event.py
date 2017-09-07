@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from odoo import api, fields, models, _
-from odoo.addons.http_routing.models.ir_http import slug, slugify
+from odoo.addons.http_routing.models.ir_http import slug
 
 
 class EventType(models.Model):
@@ -84,27 +84,14 @@ class Event(models.Model):
                 # create missing entries
                 for sequence, (name, url, xml_id) in enumerate(self._get_menu_entries()):
                     if name not in existing_page_names:
-                        #TODO: rde: to clean, to be discussed
                         if not url:
-                            page_name = slugify(name + ' ' + self.name)
-                            page_xmlid = xml_id.split('.')[0] + '.' + slugify(name + ' ' + self.name)
-                            url = "/event/" + slug(self) + "/page/" + page_xmlid
-                            # new page
-                            template_record = self.env.ref(xml_id)
-                            key = '%s.%s' % (xml_id.split('.')[0], page_name)
-                            view = template_record.copy({'website_id': self.env['website'].get_current_website().id, 'key': key})
-                            website_page = self.env['website.page'].create({
-                                'name': name,
-                                'url': url,
-                                'ir_ui_view_id': view.id,
-                                'website_ids': [(6, None, [self.env['website'].get_current_website().id])],
-                            })
+                            newpath = self.env['website'].new_page(name + ' ' + self.name, xml_id, ispage=False)
+                            url = "/event/" + slug(self) + "/page/" + newpath
                         self.env['website.menu'].create({
                             'name': name,
                             'url': url,
                             'parent_id': event.menu_id.id,
                             'sequence': sequence,
-                            'page_id': website_page.id if website_page else None,
                         })
 
     @api.multi

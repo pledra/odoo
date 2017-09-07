@@ -56,6 +56,7 @@
     <script type="text/javascript" src="/website/static/src/js/menu/planner.js"/>
     <script type="text/javascript" src="/website/static/src/js/menu/seo.js"/>
     <script type="text/javascript" src="/website/static/src/js/menu/translate.js"/>
+    <script type="text/javascript" src="/website/static/src/js/menu/content.js"/>
     <script type="text/javascript" src="/website/static/src/js/menu/pages.js"/>
 
     <script type="text/javascript" src="/website/static/src/js/tours/banner.js"/>
@@ -836,6 +837,75 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
             <button class="btn btn-success js_index_btn">Indexed</button>
         </div>
     </t>
+</template>
+
+<template id="edit_website_pages" name="Website Pages Management">
+  <t t-call="website.layout">
+    <div id="wrap">
+      <div class="container" id="edit_website_pages">
+          <div class="row">
+              <div class="col-md-7"><h3 class="mt16">Pages Management</h3></div>
+              <form class="col-md-3 mt8" role="search" t-attf-action="/website/pages_management" method="get">
+                  <t t-call="website.website_search_box"/>
+              </form>
+              <div t-if="searchbar_sortings" class="dropdown col-md-2 mt8">
+                  <button class="btn btn-default" type="button" data-toggle="dropdown">
+                      <span class="fa fa-sort fa-lg" />
+                      <span class='hidden-xs hidden-sm hidden-md' t-esc="searchbar_sortings[sortby].get('label', 'Newest')"/>
+                      <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="portal_searchbar_sortby">
+                      <li t-foreach="searchbar_sortings" t-as="option" t-attf-class="#{sortby == option and 'active'}">
+                          <a t-att-href="request.httprequest.path + '?' + keep_query('*', sortby=option)">
+                              <span t-esc="searchbar_sortings[option].get('label')"/>
+                          </a>
+                      </li>
+                  </ul>
+              </div>
+          </div>
+          <t t-if="not pages">
+              <div t-if="search" class="alert alert-warning mt8" role="alert">
+                  Your search '<t t-esc="search" />' did not match any pages.
+              </div>
+              <div t-else="1" class="alert alert-warning mt8" role="alert">
+                  There are currently no pages for your website.
+              </div>
+          </t>
+          <div t-if="pages" class="panel panel-default">
+              <div class="table-responsive"><table class="table table-hover o_my_status_table">
+                  <thead>
+                    <tr class="active">
+                      <th><span>Name</span></th>
+                      <!--<th></th>-->
+                      <th><span>Url</span></th>
+                      <th style="text-align:center"><span>Show in menu</span></th>
+                      <th style="text-align:center"><span>Is published</span></th>
+                      <th style="text-align:center"><span>Is indexed</span></th>
+                      <th><span></span></th>
+                    </tr>
+                  </thead>
+                  <t t-foreach="pages" t-as="page">
+                      <tr class="pages_management_main_object" t-att-data-main-object="page">
+                          <td><i t-if="page.id == homepage" class="fa fa-home"></i> <t t-esc="page.name"/></td>
+                          <td><a t-attf-href="{{page.url}}"><t t-esc="page.url"/></a></td>
+                          <td style="text-align:center"><i t-att-class="'fa fa-check' if page.menu_ids else 'fa fa-times text-muted'" aria-hidden="true"></i></td>
+                          <td style="text-align:center"><i t-att-class="'fa fa-check' if page.website_published else 'fa fa-times text-muted'" aria-hidden="true"></i></td>
+                          <td style="text-align:center"><i t-att-class="'fa fa-check' if page.website_indexed else 'fa fa-times text-muted'" aria-hidden="true"></i></td>
+                          <td>
+                              <span class="dropdown">
+                                  <a class="dropdown-toggle fa fa-lg fa-cog js_page_properties" t-att-data-id="page.id" href="#" title="Manage this page"></a>
+                              </span>
+                          </td>
+                      </tr>
+                  </t>
+              </table></div>
+              <div t-if="pager" class="o_portal_pager text-center">
+                  <t t-call="website.pager"/>
+              </div>
+          </div>
+      </div>
+    </div>
+  </t>
 </template>
 
 </odoo>

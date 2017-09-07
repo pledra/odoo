@@ -29,22 +29,17 @@
                 <button type="button" class="fa fa-bars pull-right visible-xs-block o_mobile_menu_toggle"/>
 
                 <ul class="o_menu_sections" groups="website.group_website_designer">
-                    <li id="manage-pages-menu" class="dropdown content active o_menu_sections oe_content_menu" t-if="editable">
-                        <a class="dropdown-toggle" data-action="open_management_page_menu" aria-expanded="false" href="#">
-                            <span class="smallandgray">Page:</span>
-                            <em t-if="main_object"><t t-esc="main_object.name[:15]" /><t t-if="len(main_object.name) > 15" >..</t></em>
-                            <span class="oe_topbar_current_page"/> <span class="caret"></span>
-                        </a>
-                        <ul class="dropdown-menu oe_page_management_menu" role="menu"/>
-                        <div class="oe_page_management_page_info dropdown-menu" style="display:none;"/>
-                    </li>
-                    <li class="o_new_content_menu" id="new-content-menu" groups="website.group_website_publisher">
-                        <a href="#"><span class="fa fa-plus"/>New</a>
-                        <div id="o_new_content_menu_choices" class="o_hidden">
-                            <ul>
-                                <li groups="website.group_website_designer"><a href="#" data-action="new_page"><i class="fa fa-file-o"/><p>New Page</p></a></li>
-                            </ul>
-                        </div>
+                    <!-- Content -->
+                    <li t-if="editable" class="dropdown" id="content-menu">
+                        <a id="content-menu-button" class="dropdown-toggle waves" data-toggle="dropdown" href="#">Content</a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a data-action="edit_menu" href="#" title="Edit Top Menu">Edit Menu</a></li>
+                            <li><a href="/website/pages_management" title="Manage Your Website Pages">Manage Pages</a></li>
+                            <li t-if="deletable" role="separator" class="divider"></li>
+                            <li t-if="deletable"><a href="#" data-action="page_properties">Page Properties</a></li>
+                            <!--<li t-if="deletable"><a href="#" data-action="rename_page">Rename Page</a></li>
+                            <li t-if="deletable"><a href="#" data-action="delete_page">Delete Page</a></li>-->
+                        </ul>
                     </li>
                     <!-- Customize -->
                     <li class="dropdown" id="customize-menu">
@@ -60,7 +55,7 @@
                     <li class="dropdown" id="promote-menu">
                         <a class="dropdown-toggle waves" data-toggle="dropdown" href="#">Promote</a>
                         <ul class="dropdown-menu oe_promote_menu" role="menu">
-                            <li><a data-action="promote-current-page" href="#" title="Promote page on the web">Optimize SEO</a></li>
+                            <li t-if="'website_meta_title' in main_object.fields_get()"><a data-action="promote-current-page" href="#" title="Promote page on the web">Optimize SEO</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -81,9 +76,28 @@
                         <a data-action="show-mobile-preview" href="#"><span title="Mobile preview" class="fa fa-mobile"/></a>
                     </li>
                     <!-- Page Edition -->
+                    <li class="o_new_content_menu" id="new-content-menu">
+                        <a href="#"><span class="fa fa-plus"/>New</a>
+                        <div id="o_new_content_menu_choices" class="o_hidden">
+                            <ul>
+                                <li groups="website.group_website_designer"><a href="#" data-action="new_page"><i class="fa fa-file-o"/><p>New Page</p></a></li>
+                            </ul>
+                        </div>
+                    </li>
                     <li t-if="not translatable" id="edit-page-menu">
-
                         <a data-action="edit" href="#"><span class="fa fa-pencil"/>Edit</a>
+                    </li>
+                    <li t-if="'website_published' in main_object.fields_get()">
+                        <a class="btn btn-primary btn-xs dropdown-toggle css_edit_dynamic" data-toggle="dropdown">
+                            <span class="caret"></span>
+                            <span class="sr-only">Toggle Dropdown</span>
+                        </a>
+                        <ul class="dropdown-menu" role="menu">
+                            <li id="edit-in-backend">
+                                <a style="text-align: left;" t-attf-href="/web#return_label=Website&amp;view_type=form&amp;model=#{main_object._name}&amp;id=#{main_object.id}&amp;action=#{action}"
+                                   class="btn btn-link btn-xs" title='Edit in backend'>Edit in backend</a>
+                            </li>
+                        </ul>
                     </li>
                     <li t-if="translatable">
                         <a data-action="translate" href="#">TRANSLATE</a>

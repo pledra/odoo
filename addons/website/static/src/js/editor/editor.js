@@ -17,6 +17,7 @@ widget.LinkDialog.include({
      */
     bind_data: function () {
         wUtils.autocompleteWithPages(this, this.$('#o_link_dialog_url_input'));
+        wUtils.autocompleteWithPages(this, this.$('#o_link_dialog_existing_page_input'), true);
         return this._super.apply(this, arguments);
     },
 });
