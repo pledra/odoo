@@ -175,17 +175,15 @@ class IrHttp(models.AbstractModel):
             'main_object': mypage,
         }
         if mypage:
-            # If this is a redirection, redirect it
-            #if mypage.item_type == 'redirect':
-            #    return request.redirect(mypage.redirect_url, code=mypage.redirect_type)
             return mypage.ir_ui_view_id.render(values)
         else:
             if request.website.is_publisher():
                 values.pop('deletable')
+                values.pop('main_object') 
                 return request.render('website.page_404', values)
             else:
                 #should be raise
-                return werkzeug.exceptions.NotFound()
+                raise werkzeug.exceptions.NotFound()
                 
     @classmethod
     def _check_redirect(cls):

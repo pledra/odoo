@@ -325,7 +325,6 @@ var SeoConfigurator = Dialog.extend({
         'blur input[name=seo_page_title]': 'titleChanged',
         'blur textarea[name=seo_page_description]': 'descriptionChanged',
         'click button[data-action=add]': 'addKeyword',
-        'change input[name=seo_page_index]': 'indexedChanged',
     },
     canEditTitle: false,
     canEditDescription: false,
@@ -400,6 +399,8 @@ var SeoConfigurator = Dialog.extend({
     disableUnsavableFields: function () {
         var self = this;
         return this.loadMetaData().then(function (data) {
+            //If website.page, hide the google preview & tell user his page is currently unindexed 
+            self.isIndexed = (data && ('website_indexed' in data)) ? data.website_indexed : true;
             self.canEditTitle = data && ('website_meta_title' in data);
             self.canEditDescription = data && ('website_meta_description' in data);
             self.canEditKeywords = data && ('website_meta_keywords' in data);
@@ -412,7 +413,6 @@ var SeoConfigurator = Dialog.extend({
             if (!self.canEditTitle && !self.canEditDescription && !self.canEditKeywords) {
                 self.$footer.find('button[data-action=update]').attr('disabled', true);
             }
-            self.$('input[name=seo_page_index]').prop('checked', !data.website_indexed);
         });
     },
     suggestImprovements: function () {
@@ -454,7 +454,6 @@ var SeoConfigurator = Dialog.extend({
         if (this.canEditKeywords) {
             data.website_meta_keywords = this.keywordList.keywords().join(', ');
         }
-        data.website_indexed = !self.$('input[name=seo_page_index]').prop('checked');
         this.saveMetaData(data).then(function () {
            self.close();
         });
@@ -478,7 +477,10 @@ var SeoConfigurator = Dialog.extend({
             // return $.Deferred().reject(new Error("No main_object was found."));
             def.resolve(null);
         } else {
-            var fields = ['website_meta_title', 'website_meta_description', 'website_meta_keywords', 'website_indexed'];
+            var fields = ['website_meta_title', 'website_meta_description', 'website_meta_keywords'];
+            if (obj.model == 'website.page'){
+                fields.push('website_indexed');
+            }
             rpc.query({
                 model: obj.model,
                 method: 'read',
@@ -525,14 +527,8 @@ var SeoConfigurator = Dialog.extend({
             self.renderPreview();
         });
     },
-    indexedChanged: function () {
-        var self = this;
-        _.defer(function () {
-            self.renderPreview();
-        });
-    },
     renderPreview: function () {
-        var indexed = !self.$('input[name=seo_page_index]').prop('checked');
+        var indexed = this.isIndexed;
         var preview = "";
         if(indexed){
             preview = new Preview(this, {

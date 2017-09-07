@@ -120,15 +120,20 @@ class Website(Home):
                 if website_page:
                     return website_page
             except:
-                first_menu = request.website.sudo().menu_id
-                if first_menu:
-                    if first_menu.url and (not (first_menu.url.startswith(('/', '/?', '/#')))):
-                        return request.redirect(first_menu.url)
-                    elif first_menu.url == '/':
-                        # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page
-                        return request.env['ir.http']._serve_page()
+                top_menu = request.website.sudo().menu_id
+                if top_menu:
+                    first_menu = top_menu.child_id and top_menu.child_id[0]
+                    if first_menu:
+                        if first_menu.url and (not (first_menu.url.startswith(('/', '/?', '/#')))):
+                            return request.redirect(first_menu.url)
+                        elif first_menu.url == '/':
+                            # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page
+                            return request.env['ir.http']._serve_page()
+                        else:
+                            return request.redirect(first_menu.url)
                     else:
-                        return request.redirect(first_menu.url)
+                        # if no menu & "/" does not exists (we are in except) -> trigger 404 by rendering not existing page
+                        return request.env['ir.http']._serve_page()
                 else:
                     # if no menu & "/" does not exists (we are in except) -> trigger 404 by rendering not existing page
                     return request.env['ir.http']._serve_page()
@@ -304,9 +309,9 @@ class Website(Home):
     # As we now autorize '/' as path, there is a particular case where user click on create page on 404 as admin on / page
     # then he is redirect to '/website/add/' without <path:path>
     @http.route('/website/add/', type='http', auth="user", website=True)
-    def page(self):
+    def pagenewempty(self, noredirect=False, add_menu=False, template=False):
         #TODO: How should the url be set if the cloned page is "/" ?
-        self.pagenew("Home")
+        return self.pagenew("", noredirect, add_menu, template)
 
     @http.route('/website/add/<path:path>', type='http', auth="user", website=True)
     def pagenew(self, path, noredirect=False, add_menu=False, template=False):

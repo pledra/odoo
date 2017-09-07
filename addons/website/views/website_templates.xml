@@ -881,7 +881,9 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
                       <th style="text-align:center"><span>Show in menu</span></th>
                       <th style="text-align:center"><span>Is published</span></th>
                       <th style="text-align:center"><span>Is indexed</span></th>
-                      <th><span></span></th>
+                      <th></th>
+                      <th></th>
+                      <th></th>
                     </tr>
                   </thead>
                   <t t-foreach="pages" t-as="page">
@@ -896,6 +898,12 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
                                   <a class="dropdown-toggle fa fa-lg fa-cog js_page_properties" t-att-data-id="page.id" href="#" title="Manage this page"></a>
                               </span>
                           </td>
+                          <td>
+                              <a class="fa fa-lg fa-clone js_clone_page" t-att-data-id="page.id" href="#" title="Clone this page"></a>
+                          </td>
+                          <td>
+                              <a class="fa fa-lg fa-trash js_delete_page" t-att-data-id="page.id" href="#" title="Delete this page"></a>
+                          </td>   
                       </tr>
                   </t>
               </table></div>

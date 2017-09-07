@@ -33,7 +33,7 @@ DEFAULT_CDN_FILTERS = [
 def slugify_url(s, max_length=None):
     """ Slashes need to be allowed, slufify does not allow it
     """
-    uni = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode('ascii')
+    uni = unicodedata.normalize('NFKD', unicode(s)).encode('ascii', 'ignore').decode('ascii')
     #TODO: verify [^a-zA-Z0-9\/] is the same as [\W_] except it allows slashes?
     slug_str = re.sub('[^a-zA-Z0-9\/]', ' ', uni).strip().lower()
     slug_str = re.sub('[-\s]+', '-', slug_str)
@@ -121,7 +121,7 @@ class Website(models.Model):
             :param namespace : module part of the xml_id if none, the template module name is used
         """
         # completely arbitrary max_length
-        page_url = slugify_url(name, max_length=50)
+        page_url = slugify_url(name, 50)
         page_url = '/' + self.get_unique_path(page_url)
 
         template_record = self.env.ref(template)
@@ -131,18 +131,18 @@ class Website(models.Model):
         
         view.with_context(lang=None).write({
             'page': ispage,
-            'arch': template_record.arch.replace(template, page_url[1:]),
-            'name': name,
+            'arch': template_record.arch.replace(template, page_url[1:] or "home"),
+            'name': name or "Home",
         })
         page = self.env['website.page'].create({
-            'name': name,
+            'name': name or "Home",
             'url': page_url,
             'website_ids': [(6, None, [self.get_current_website().id])],
             'ir_ui_view_id': view.id
         })
         if add_menu:
             self.env['website.menu'].create({
-                'name': name,
+                'name': name or "Home",
                 'url': page_url,
                 'parent_id': self.browse(self.get_current_website().id).menu_id.id,
                 'page_id': page.id,
@@ -517,39 +517,23 @@ class WebsitePublishedMixin(models.AbstractModel):
 
 class Page(models.Model):
     _name = 'website.page'
-    _inherit = ['website.published.mixin', 'website.seo.metadata']
+    _inherits = {'ir.ui.view': 'ir_ui_view_id'}
+    _inherit = 'website.published.mixin'
     _description = 'Page'
 
     name = fields.Char('Page Name')
     url = fields.Char('Page Url')
     website_ids = fields.Many2many('website', string='Websites')
-    ir_ui_view_id = fields.Many2one('ir.ui.view', string='View')
+    ir_ui_view_id = fields.Many2one('ir.ui.view', string='View', required=True, ondelete="cascade")
     website_indexed = fields.Boolean('Page Indexed', default=True)
     date_publish = fields.Datetime('Published Date')
     # This is needed to be able to display if page is a menu in /website/page_management
     menu_ids = fields.One2many('website.menu', 'page_id', 'Related Menus')
 
-    @api.multi
-    def unlink(self):
-        """ When a website_page is deleted, the ORM does not delete its ir_ui_view.
-            So we got to delete it ourself, but only if the ir_ui_view is not used by another website_page.
-        """
-        # Second, handle it's ir_ui_view
-        for page in self:
-            # Other pages linked to the ir_ui_view of the page being deleted (will it even be possible?)
-            pages_linked_to_iruiview = self.env['website.page'].search(
-                [('ir_ui_view_id', '=', self.ir_ui_view_id.id), ('id', '!=', self.id)]
-            )
-            if len(pages_linked_to_iruiview) == 0:
-                # If there is no other pages linked to that ir_ui_view, we can delete the ir_ui_view
-                self.env['ir.ui.view'].search([('id', '=', self.ir_ui_view_id.id)]).unlink()
-        # And then delete the website_page itself
-        return super(Page, self).unlink()
-
     @api.model
     def get_page_info(self, id, website_id):
         domain = ['|', ('website_ids', 'in', website_id), ('website_ids', '=', False), ('id', '=', id)]
-        item = self.search_read(domain, fields=['id', 'name', 'url', 'website_published', 'date_publish', 'menu_ids'], limit=1)
+        item = self.search_read(domain, fields=['id', 'name', 'url', 'website_published', 'website_indexed', 'date_publish', 'menu_ids'], limit=1)
         item[0]['is_menu'] = False
         return item
         
@@ -588,8 +572,13 @@ class Page(models.Model):
                     'parent_id': self.env['website'].browse(website_id).menu_id.id,
                     'website_id': self.env['website'].get_current_website().id,
                 })
-        # .write({'name': data['name'], 'url': data['url'], 'website_published': data['website_published'], 'date_publish': data['date_publish']})
-        page.write({'name': data['name'], 'url': url, 'website_published': data['website_published']})
+                
+        page.write({
+            'name': data['name'], 'url': url,
+            'website_published': data['website_published'],
+            'website_indexed': data['website_indexed'],
+            #'date_publish': data['date_publish']
+        })
         
         # Create redirect if needed
         if data['create_redirect']:
@@ -628,7 +617,24 @@ class Page(models.Model):
                 new_menu.write({'url': new_page.url, 'name': menu.name + ' (copy)', 'page_id': new_page.id})
             
         return new_page.url + '?enable_editor=1'
-    
+        
+    @api.multi
+    def unlink(self):
+        """ When a website_page is deleted, the ORM does not delete its ir_ui_view.
+            So we got to delete it ourself, but only if the ir_ui_view is not used by another website_page.
+        """
+        # Handle it's ir_ui_view
+        for page in self:
+            # Other pages linked to the ir_ui_view of the page being deleted (will it even be possible?)
+            pages_linked_to_iruiview = self.env['website.page'].search(
+                [('ir_ui_view_id', '=', self.ir_ui_view_id.id), ('id', '!=', self.id)]
+            )
+            if len(pages_linked_to_iruiview) == 0:
+                # If there is no other pages linked to that ir_ui_view, we can delete the ir_ui_view
+                self.env['ir.ui.view'].search([('id', '=', self.ir_ui_view_id.id)]).unlink()
+        # And then delete the website_page itself
+        return super(Page, self).unlink()
+        
     @api.model
     def delete_page(self, page_id):
         """ Delete a page or a link, given its identifier

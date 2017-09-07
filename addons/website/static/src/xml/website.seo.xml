@@ -70,10 +70,7 @@
                         </td>
                     </tr>
                 </tfoot>
-            </table>
-            <input type="checkbox" name="seo_page_index" />
-            <label for="seo_page_index" class="control-label">Hide this page from search results</label>
-            
+            </table>            
         </section>
     </div>
 

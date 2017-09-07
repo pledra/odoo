@@ -55,7 +55,7 @@
                     <li class="dropdown" id="promote-menu">
                         <a class="dropdown-toggle waves" data-toggle="dropdown" href="#">Promote</a>
                         <ul class="dropdown-menu oe_promote_menu" role="menu">
-                            <li t-if="'website_meta_title' in main_object.fields_get()"><a data-action="promote-current-page" href="#" title="Promote page on the web">Optimize SEO</a></li>
+                            <li><a data-action="promote-current-page" href="#" title="Promote page on the web">Optimize SEO</a></li>
                         </ul>
                     </li>
                 </ul>
