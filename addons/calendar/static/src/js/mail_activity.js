@@ -17,7 +17,7 @@ Activity.include({
         var self = this;
         var activity_id = $(event.currentTarget).data('activity-id');
         var activity = _.find(this.activities, function (act) { return act.id === activity_id; });
-        if (activity && activity.activity_category === 'meeting') {
+        if (activity && activity.activity_category === 'meeting' && activity.calendar_event_id) {
             return self._super(event, _.extend({
                 res_model: 'calendar.event',
                 res_id: activity.calendar_event_id[0],
@@ -35,20 +35,16 @@ Activity.include({
         event.preventDefault();
         var self = this;
         var activity_id = $(event.currentTarget).data('activity-id');
-        var unlink_options = _.defaults(options || {}, {
-            model: 'mail.activity',
-            args: [[activity_id]],
-        });
         var activity = _.find(this.activities, function (act) { return act.id === activity_id; });
-        if (activity.activity_category === 'meeting') {
+        if (activity && activity.activity_category === 'meeting' && activity.calendar_event_id) {
             Dialog.confirm(
                 self,
                 _t("The activity is linked to a meeting. Deleting it will remove the meeting as well. Do you want to proceed ?"), {
                     confirm_callback: function () {
                         return self._rpc({
-                            model: unlink_options.model,
+                            model: 'mail.activity',
                             method: 'unlink_w_meeting',
-                            args: unlink_options.args,
+                            args: [[activity_id]],
                         })
                         .then(self._reload.bind(self, {activity: true}));
                     },
