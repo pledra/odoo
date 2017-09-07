@@ -530,7 +530,8 @@ class Meeting(models.Model):
 
     @api.model
     def default_get(self, fields):
-        if self.env.context.get('default_res_model'):  # super default_model='crm.lead' for easier use in adddons
+        # super default_model='crm.lead' for easier use in adddons
+        if self.env.context.get('default_res_model') and not self.env.context.get('default_res_model_id'):
             self = self.with_context(
                 default_res_model_id=self.env['ir.model'].sudo().search([
                     ('model', '=', self.env.context['default_res_model'])
@@ -546,20 +547,6 @@ class Meeting(models.Model):
         if 'res_id' not in defaults and 'res_id' in fields and \
                 defaults.get('res_model_id') and self.env.context.get('active_id'):
             defaults['res_id'] = self.env.context['active_id']
-
-        # created from calendar: try to create an activity on the related record
-        if not defaults.get('activity_ids') and defaults.get('res_model_id') and defaults.get('res_id'):
-            if hasattr(self.env[self.env['ir.model'].sudo().browse(defaults['res_model_id']).model], 'activity_ids'):
-                meeting_activity_type = self.env['mail.activity.type'].search([('category', '=', 'meeting')], limit=1)
-                if meeting_activity_type:
-                    activity_vals = {
-                        'res_model_id': defaults['res_model_id'],
-                        'res_id': defaults['res_id'],
-                        'activity_type_id': meeting_activity_type.id,
-                    }
-                    if defaults.get('user_id'):
-                        activity_vals['user_id'] = defaults['user_id']
-                    defaults['activity_ids'] = [(0, 0, activity_vals)]
 
         return defaults
 
@@ -1479,6 +1466,24 @@ class Meeting(models.Model):
         # compute duration, if not given
         if not 'duration' in values:
             values['duration'] = self._get_duration(values['start'], values['stop'])
+
+        # created from calendar: try to create an activity on the related record
+        if not values.get('activity_ids'):
+            defaults = self.default_get(['activity_ids', 'res_model_id', 'res_id'])
+            res_model_id = values.get('res_model_id', defaults.get('res_model_id'))
+            res_id = values.get('res_id', defaults.get('res_id'))
+            if not defaults.get('activity_ids') and res_model_id and res_id:
+                if hasattr(self.env[self.env['ir.model'].sudo().browse(res_model_id).model], 'activity_ids'):
+                    meeting_activity_type = self.env['mail.activity.type'].search([('category', '=', 'meeting')], limit=1)
+                    if meeting_activity_type:
+                        activity_vals = {
+                            'res_model_id': defaults['res_model_id'],
+                            'res_id': defaults['res_id'],
+                            'activity_type_id': meeting_activity_type.id,
+                        }
+                        if defaults.get('user_id'):
+                            activity_vals['user_id'] = defaults['user_id']
+                        defaults['activity_ids'] = [(0, 0, activity_vals)]
 
         meeting = super(Meeting, self).create(values)
         meeting._sync_activities(values)
