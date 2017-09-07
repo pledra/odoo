@@ -60,7 +60,40 @@
                 </tree>
             </field>
         </record>
-        
+
+
+        <!-- website.page list view -->
+        <record id="website_pages_tree_view" model="ir.ui.view">
+            <field name="name">website.page.list</field>
+            <field name="model">website.page</field>
+            <field name="arch" type="xml">
+                <tree string="Website Pages">
+                    <field name="name"/>
+                    <field name="url"/>
+                    <field name="website_indexed"/>
+                    <field name="website_published"/>
+                    <field name="create_uid" invisible="1"/>
+                    <field name="write_uid"/>
+                    <field name="write_date"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_website_pages_list" model="ir.actions.act_window">
+            <field name="name">Website Pages</field>
+            <field name="res_model">website.page</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="website_pages_tree_view"/>
+            <field name="target">current</field>
+        </record>
+
+        <menuitem name="Pages"
+            id="menu_website_pages_list"
+            action="action_website_pages_list"
+            parent="menu_website_global_configuration"
+            groups="base.group_system"/>
+
         <!-- ir.ui.view views -->
         <record model="ir.ui.view" id="view_view_form_extend">
             <field name="model">ir.ui.view</field>

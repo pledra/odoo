@@ -170,7 +170,7 @@ class IrHttp(models.AbstractModel):
         mypage = request.env['website.page'].search(domain, limit=1)
         
         values = {
-            'url': req_page[1:],
+            'path': req_page[1:],
             'deletable': True,  # used to add 'delete this page' in content menu
             'main_object': mypage,
         }

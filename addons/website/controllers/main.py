@@ -19,6 +19,7 @@ from odoo.http import request
 
 from odoo.addons.http_routing.models.ir_http import slug
 from odoo.addons.web.controllers.main import WebClient, Binary, Home
+from odoo.addons.portal.controllers.portal import pager as portal_pager, CustomerPortal
 
 from odoo.tools import pycompat, OrderedSet
 
@@ -63,6 +64,7 @@ class QueryURL(object):
 
 
 class Website(Home):
+    _items_per_page = CustomerPortal._items_per_page
 
     @http.route('/', type='http', auth="public", website=True)
     def index(self, **kw):
@@ -257,8 +259,8 @@ class Website(Home):
     # Edit
     #------------------------------------------------------
     
-    @http.route(['/website/pages_management', '/website/pages_management/<int:page_number>'], type='http', auth="user", website=True)
-    def pages_management(self, page_number=1, sortby=None, search='', **kw):
+    @http.route(['/website/pages', '/website/pages/page/<int:page>'], type='http', auth="user", website=True)
+    def pages_management(self, page=1, sortby='name', search='', **kw):
         Page = request.env['website.page']
         searchbar_sortings = {
             'url': {'label': _('Order Url'), 'order': 'url'},
@@ -270,16 +272,27 @@ class Website(Home):
         
         # proper way to do that ?
         try:
-            sort_order = searchbar_sortings[sortby]['order']
+            sort_order = searchbar_sortings.get(sortby, 'name')['order']
         except:
             sort_order = 'name'
         domain = ['|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
         if search:
             domain += ['|', ('name', 'ilike', search), ('url', 'ilike', search)]
 
-        pages = Page.search(domain, order=sort_order, limit=10)
+        pages_count = Page.search_count(domain)
+        
+        pager = portal_pager(
+            url="/website/pages",
+            url_args={'sortby': sortby},
+            total=pages_count,
+            page=page,
+            step=self._items_per_page
+        )
+        
+        pages = Page.search(domain, order=sort_order, limit=self._items_per_page, offset=pager['offset'])
         
         values = {
+            'pager': pager,
             'pages': pages,
             'search': search,
             'sortby': sortby,

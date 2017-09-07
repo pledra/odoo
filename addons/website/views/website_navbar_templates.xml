@@ -34,7 +34,7 @@
                         <a id="content-menu-button" class="dropdown-toggle waves" data-toggle="dropdown" href="#">Content</a>
                         <ul class="dropdown-menu" role="menu">
                             <li><a data-action="edit_menu" href="#" title="Edit Top Menu">Edit Menu</a></li>
-                            <li><a href="/website/pages_management" title="Manage Your Website Pages">Manage Pages</a></li>
+                            <li><a href="/website/pages" title="Manage Your Website Pages">Manage Pages</a></li>
                             <li t-if="deletable" role="separator" class="divider"></li>
                             <li t-if="deletable"><a href="#" data-action="page_properties">Page Properties</a></li>
                             <!--<li t-if="deletable"><a href="#" data-action="rename_page">Rename Page</a></li>

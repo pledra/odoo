@@ -121,7 +121,7 @@ class Website(models.Model):
             :param namespace : module part of the xml_id if none, the template module name is used
         """
         # completely arbitrary max_length
-        page_url = slugify(name, max_length=50)
+        page_url = slugify_url(name, max_length=50)
         page_url = '/' + self.get_unique_path(page_url)
 
         template_record = self.env.ref(template)
@@ -565,6 +565,7 @@ class Page(models.Model):
                 
         #If URL has been edited, slug it
         page = self.browse(int(data['id']))
+        original_url = page.url
         url = data['url']
         if page.url != url:
             url = slugify_url(url)
@@ -589,30 +590,42 @@ class Page(models.Model):
                 })
         # .write({'name': data['name'], 'url': data['url'], 'website_published': data['website_published'], 'date_publish': data['date_publish']})
         page.write({'name': data['name'], 'url': url, 'website_published': data['website_published']})
+        
+        # Create redirect if needed
+        if data['create_redirect']:
+            self.env['website.redirect'].create({
+                'type': data['redirect_type'],
+                'url_from': original_url,
+                'url_to': url,
+                'website_id': self.env['website'].get_current_website().id,
+            })
+            
         return True
-
+    
+    @api.multi
+    def copy(self, default=None):
+        view = self.env['ir.ui.view'].browse(self.ir_ui_view_id.id)
+        new_view = view.copy()
+        default = {
+            'name': self.name + ' (copy)',
+            'url': self.env['website'].get_unique_path(self.url),
+            'ir_ui_view_id': new_view.id,
+        }
+        return super(Page, self).copy(default=default)
+        
     @api.model
-    def clone_page(self, page_id):
+    def clone_page(self, page_id, clone_menu=True):
         """ Clone a page, given its identifier
             :param page_id : website.page identifier
         """
-
-        page = self.env['website.page'].browse(int(page_id))
-        new_page = page.copy({'name': page.name + ' (copy)'})
-        # Copy the page's ir_ui_view or the cloned page will be linked to the same ir_ui_view
-        new_path = self.env['website'].get_unique_path(page.url)
-        view = self.env['ir.ui.view'].browse(page.ir_ui_view_id.id)
-        new_view = view.copy()
-        new_page.write({
-            'url': new_path,
-            'ir_ui_view_id': new_view.id
-        })
-        
-        menu = self.env['website.menu'].search([('page_id', '=', page.id)], limit=1)
-        if menu:
-            # If the page being cloned has a menu, clone it too
-            new_menu = menu.copy()
-            new_menu.write({'url': new_page.url, 'name': menu.name + ' (copy)', 'page_id': new_page.id})
+        page = self.browse(int(page_id))
+        new_page = page.copy()
+        if clone_menu:
+            menu = self.env['website.menu'].search([('page_id', '=', page_id)], limit=1)
+            if menu:
+                # If the page being cloned has a menu, clone it too
+                new_menu = menu.copy()
+                new_menu.write({'url': new_page.url, 'name': menu.name + ' (copy)', 'page_id': new_page.id})
             
         return new_page.url + '?enable_editor=1'
     

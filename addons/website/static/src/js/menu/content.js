@@ -21,6 +21,8 @@ var PagePropertiesDialog = widget.Dialog.extend({
     events: _.extend({}, widget.Dialog.prototype.events, {
         'click a.js_clone_page': '_onClonePageButtonClick',
         'click a.js_delete_page': '_onDeletePageButtonClick',
+        'keyup input[id=page_url]': '_urlChanged',
+        'change input[id=create_redirect]': '_createRedirectChanged',
     }),
     /**
      * @constructor
@@ -43,12 +45,12 @@ var PagePropertiesDialog = widget.Dialog.extend({
             buttons: [
                 {text: _t("Save"), classes: "btn-primary o_save_button", click: self.save},
                 {text: _t("Discard"), close: true},
-                {text: _t("Go To Page"), classes: "btn-default pull-right", click: function(e){window.location.href = self.page.url;}}
+                {text: _t("Go To Page"), icon: "fa-globe", classes: "btn-link pull-right", click: function(e){window.location.href = self.page.url;}}
             ],
         }, options || {}));
         
         
-        //$("#publish_date_container").datetimepicker();
+    //$("#publish_date_container").datetimepicker();
         
       /*  var l10n = _t.database.parameters;
         var datepickers_options = {
@@ -101,18 +103,53 @@ var PagePropertiesDialog = widget.Dialog.extend({
           
         return $.when.apply($, defs);
     },
-
+    start: function() {
+        var self = this;
+        var context = weContext.get();
+        this.$(".ask_for_redirect").hide();
+        this.$(".redirect_type").hide();
+        this._rpc({
+            model: 'website.redirect',
+            method: 'fields_get',
+        })
+        .then(function (fields) {
+            $.each(fields.type.selection, function( index, value ) {
+                $('<option/>').val(
+                    fields.type.selection[index][0]
+                ).html(
+                    fields.type.selection[index][0] + ': ' + fields.type.selection[index][1]
+                ).appendTo('#redirect_type');
+            });
+        });
+        
+        this._getPageDependencies(self.page_id, context)
+        .then(function (dependencies) {
+            var dep = [];
+            $.each(dependencies, function( index, value ) {
+                if (dependencies[index].length > 0) {
+                    dep.push(dependencies[index].length + ' ' + index.toLowerCase() + (dependencies[index].length > 1 ? 's': ''));
+                }
+            });
+            if (dep.length > 0) {
+                $("#dependencies_redirect").html("(used in " + dep.join(", ") + ")");
+            }
+            
+        });
+    },
     save: function(data){        
         var self = this;
         var context = weContext.get();
-        var url = $(".o_page_management_page_info #object_url").val();
+        var url = $(".o_page_management_page_info #page_url").val();
+        
         var params = {
             id: self.page.id,
-            name: $(".o_page_management_page_info #object_name").val(), 
+            name: $(".o_page_management_page_info #page_name").val(), 
             url: url,
             is_menu: $(".o_page_management_page_info #is_menu").prop('checked'),
             is_homepage: $(".o_page_management_page_info #is_homepage").prop('checked'),
             website_published: $(".o_page_management_page_info #is_published").prop('checked'),
+            create_redirect: $(".o_page_management_page_info #create_redirect").prop('checked'),
+            redirect_type: $(".o_page_management_page_info #redirect_type").val(),
             //params.date_publish = $(".o_page_management_page_info #date_publish").val(),
         };
         self._rpc({
@@ -180,6 +217,24 @@ var PagePropertiesDialog = widget.Dialog.extend({
         }, def.reject.bind(def));
     
         
+    },
+    _urlChanged: function () {
+        var url = this.$('input[id=page_url]').val();
+        if (url != this.page.url) {
+            this.$(".ask_for_redirect").show();
+        }
+        else {
+            this.$(".ask_for_redirect").hide();
+        }
+    },
+    _createRedirectChanged: function () {
+      var createRedirect = this.$('input[id=create_redirect]').prop('checked');
+      if (createRedirect) {
+          this.$(".redirect_type").show();
+      }
+      else {
+          this.$(".redirect_type").hide();
+      }
     },
     /**
      * Retrieves the page dependencies for the given object id.
@@ -633,7 +688,7 @@ var ContentMenu = websiteNavbarData.WebsiteNavbarActionWidget.extend({
         }).then(function () {
             // Before reloading the page after menu modification, does the
             // given action to do.
-            //return beforeReloadCallback && beforeReloadCallback();
+            return beforeReloadCallback && beforeReloadCallback();
         }).then(function () {
             // Reload the page so that the menu modification are shown
             window.location.reload(true);
