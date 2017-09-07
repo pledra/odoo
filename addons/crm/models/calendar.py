@@ -9,13 +9,12 @@ class CalendarEvent(models.Model):
 
     @api.model
     def default_get(self, fields):
+        if self.env.context.get('default_opportunity_id'):
+            self = self.with_context(
+                default_res_model_id=self.env.ref('model_crm_lead').id,
+                default_res_id=self.env.context['default_opportunity_id']
+            )
         defaults = super(CalendarEvent, self).default_get(fields)
-
-        # sync opportunity id to res_model / res_id (aka creating meeting from lead form)
-        if 'res_model_id' not in defaults and defaults.get('opportunity_id'):
-            defaults['res_model_id'] = self.env.ref('model_crm_lead').id
-        if 'res_id' not in defaults and defaults.get('opportunity_id'):
-            defaults['res_id'] = defaults['opportunity_id']
 
         # sync res_model / res_id to opportunity id (aka creating meeting from lead chatter)
         if 'opportunity_id' not in defaults and defaults.get('res_id') and (defaults.get('res_model') or defaults.get('res_model_id')):

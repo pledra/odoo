@@ -1469,21 +1469,22 @@ class Meeting(models.Model):
 
         # created from calendar: try to create an activity on the related record
         if not values.get('activity_ids'):
-            defaults = self.default_get(['activity_ids', 'res_model_id', 'res_id'])
+            defaults = self.default_get(['activity_ids', 'res_model_id', 'res_id', 'user_id'])
             res_model_id = values.get('res_model_id', defaults.get('res_model_id'))
             res_id = values.get('res_id', defaults.get('res_id'))
+            user_id = values.get('user_id', defaults.get('user_id'))
             if not defaults.get('activity_ids') and res_model_id and res_id:
                 if hasattr(self.env[self.env['ir.model'].sudo().browse(res_model_id).model], 'activity_ids'):
                     meeting_activity_type = self.env['mail.activity.type'].search([('category', '=', 'meeting')], limit=1)
                     if meeting_activity_type:
                         activity_vals = {
-                            'res_model_id': defaults['res_model_id'],
-                            'res_id': defaults['res_id'],
+                            'res_model_id': res_model_id,
+                            'res_id': res_id,
                             'activity_type_id': meeting_activity_type.id,
                         }
-                        if defaults.get('user_id'):
-                            activity_vals['user_id'] = defaults['user_id']
-                        defaults['activity_ids'] = [(0, 0, activity_vals)]
+                        if user_id:
+                            activity_vals['user_id'] = user_id
+                        values['activity_ids'] = [(0, 0, activity_vals)]
 
         meeting = super(Meeting, self).create(values)
         meeting._sync_activities(values)
