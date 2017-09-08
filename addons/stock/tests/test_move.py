@@ -2,42 +2,43 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo.exceptions import UserError
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import SavepointCase
 
 
-class StockMove(TransactionCase):
-    def setUp(self):
-        super(StockMove, self).setUp()
-        self.stock_location = self.env.ref('stock.stock_location_stock')
-        self.customer_location = self.env.ref('stock.stock_location_customers')
-        self.supplier_location = self.env.ref('stock.stock_location_suppliers')
-        self.pack_location = self.env.ref('stock.location_pack_zone')
-        self.transit_location = self.env['stock.location'].search([
-            ('company_id', '=', self.env.user.company_id.id),
+class StockMove(SavepointCase):
+    @classmethod
+    def setUpClass(cls):
+        super(StockMove, cls).setUpClass()
+        cls.stock_location = cls.env.ref('stock.stock_location_stock')
+        cls.customer_location = cls.env.ref('stock.stock_location_customers')
+        cls.supplier_location = cls.env.ref('stock.stock_location_suppliers')
+        cls.pack_location = cls.env.ref('stock.location_pack_zone')
+        cls.transit_location = cls.env['stock.location'].search([
+            ('company_id', '=', cls.env.user.company_id.id),
             ('usage', '=', 'transit'),
         ], limit=1)
-        self.uom_unit = self.env.ref('product.product_uom_unit')
-        self.product1 = self.env['product.product'].create({
+        cls.uom_unit = cls.env.ref('product.product_uom_unit')
+        cls.product1 = cls.env['product.product'].create({
             'name': 'Product A',
             'type': 'product',
-            'categ_id': self.env.ref('product.product_category_all').id,
+            'categ_id': cls.env.ref('product.product_category_all').id,
         })
-        self.product2 = self.env['product.product'].create({
+        cls.product2 = cls.env['product.product'].create({
             'name': 'Product A',
             'type': 'product',
             'tracking': 'serial',
-            'categ_id': self.env.ref('product.product_category_all').id,
+            'categ_id': cls.env.ref('product.product_category_all').id,
         })
-        self.product3 = self.env['product.product'].create({
+        cls.product3 = cls.env['product.product'].create({
             'name': 'Product A',
             'type': 'product',
             'tracking': 'lot',
-            'categ_id': self.env.ref('product.product_category_all').id,
+            'categ_id': cls.env.ref('product.product_category_all').id,
         })
-        self.product4 = self.env['product.product'].create({
+        cls.product4 = cls.env['product.product'].create({
             'name': 'Product A',
             'type': 'consu',
-            'categ_id': self.env.ref('product.product_category_all').id,
+            'categ_id': cls.env.ref('product.product_category_all').id,
         })
 
     def test_in_1(self):

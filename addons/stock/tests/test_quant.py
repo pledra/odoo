@@ -2,29 +2,30 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo.exceptions import ValidationError
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import SavepointCase
 from odoo.exceptions import AccessError, UserError
 
 from datetime import datetime, timedelta
 
 
-class StockQuant(TransactionCase):
-    def setUp(self):
-        super(StockQuant, self).setUp()
-        Users = self.env['res.users'].with_context({'no_reset_password': True, 'mail_create_nosubscribe': True})
-        self.demo_user = Users.create({
+class StockQuant(SavepointCase):
+    @classmethod
+    def setUpClass(cls):
+        super(StockQuant, cls).setUpClass()
+        Users = cls.env['res.users'].with_context({'no_reset_password': True, 'mail_create_nosubscribe': True})
+        cls.demo_user = Users.create({
             'name': 'Pauline Poivraisselle',
             'login': 'pauline',
             'email': 'p.p@example.com',
             'notification_type': 'inbox',
-            'groups_id': [(6, 0, [self.env.ref('base.group_user').id])]
+            'groups_id': [(6, 0, [cls.env.ref('base.group_user').id])]
         })
-        self.stock_user = Users.create({
+        cls.stock_user = Users.create({
             'name': 'Pauline Poivraisselle',
             'login': 'pauline2',
             'email': 'p.p@example.com',
             'notification_type': 'inbox',
-            'groups_id': [(6, 0, [self.env.ref('stock.group_stock_user').id])]
+            'groups_id': [(6, 0, [cls.env.ref('stock.group_stock_user').id])]
         })
 
     def test_get_available_quantity_1(self):
