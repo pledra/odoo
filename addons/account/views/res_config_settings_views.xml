@@ -19,9 +19,10 @@
                     <div class="app_settings_block" data-string="Accounting" data-key="account_invoicing" groups="account.group_account_manager">
                         <field name="has_chart_of_accounts" invisible="1"/>
                         <field name="has_accounting_entries" invisible="1"/>
+                        <t attrs="{'invisible': [('has_accounting_entries','!=',False)]}">
                             <h2>Fiscal Localization</h2>
                             <div class="row mt16 o_settings_container">
-                                <div class="col-xs-12 col-md-6 o_setting_box" attrs="{'invisible': [('has_accounting_entries','!=',False)]}">
+                                <div class="col-xs-12 col-md-6 o_setting_box">
                                     <div class="o_setting_left_pane"/>
                                     <div class="o_setting_right_pane">
                                         <label string="Fiscal Localization"/>
@@ -40,19 +41,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-xs-12 col-md-6 o_setting_box" groups="account.group_account_user">
-                                    <div class="o_setting_left_pane"/>
-                                    <div class="o_setting_right_pane">
-                                        <label string="Chart of Accounts"/>
-                                        <div class="content-group">
-                                            <div class="row mt16">
-                                                <label string="# of digits on accounts" class="col-md-4 o_light_label"/>
-                                                <field name="code_digits"/>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
+                        </t>
                         <t groups="account.group_account_user">
                             <h2>Setup</h2>
                             <div class="row mt16 o_settings_container">
