@@ -85,30 +85,8 @@ class Website(Home):
         # First menu is not '/' & not admin & '/' exist in db               => return /
         # First menu is not '/' & not admin & '/' does not exist in db      => return first_menu url (not /)
         """
-        """
-        # try will return page or editable 404 if user has right
-        # except will return 404 or first_menu url if not "/"
-        try:
-            website_page = request.env['ir.http']._serve_page()
-            if website_page:
-                return website_page
-        except:
-            main_menu = request.env.ref('website.main_menu', raise_if_not_found=False)
-            if main_menu:
-                first_menu = main_menu.child_id and main_menu.child_id[0]
-                if first_menu:
-                    if first_menu.url and (not (first_menu.url.startswith(('/', '/?', '/#')))):
-                        return request.redirect(first_menu.url)
-                    elif first_menu.url == '/':
-                        # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page
-                        return request.env['ir.http']._serve_page()
-                    else:
-                        return request.env['ir.http'].reroute(first_menu.url)
-                else:
-                    # if no menu & "/" does not exists (we are in except) -> trigger 404 by rendering not existing page
-                    return request.env['ir.http']._serve_page()"""
-
-        homepage = request.env['website'].browse(request.env['website'].get_current_website().id).homepage_id
+        
+        homepage = request.website.homepage_id
         if homepage:
             if homepage.url == '/':
                 # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page

@@ -166,7 +166,38 @@ class IrHttp(models.AbstractModel):
         domain = [('url', '=', req_page), '|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
         publish = request.env.user.has_group('website.group_website_publisher')
         if not publish:
-            domain.append(('website_published', '=', True))
+            """ Possible cases when page is requested:
+                Is published & no date -> Show
+                Is published & date in futur -> Do not show
+                Is published & date in past -> Show
+                
+                Is not published & no date -> Do not show
+                Is not published & date in futur -> Do not show
+                Is not published & date in past -> Do not show??
+                
+                Problem:
+                    Admin set unpublished & set date in futur, we don't show
+                    After 2 weeks, date is now in past, should we serve the page to users?
+                    -> Yes, admin just forgot to check is_published and thought when date reach page will be published
+                    -> No, admin thought setting is_published to false would be prioritary on publish_date
+                    -> yes & no arguments are users dependant
+                        -> On write, if user is setting is_published to false, delete publish_date no matter what?
+                            -> If is_published is not checked & user is setting a date, do not save it? user confused then?
+                                -> Hide in front end the input date?
+                                    -> Maybe he won't notice the functionnality if it is hidden?
+            """
+            """domain.append(
+                '&', ('website_published', '=', True), ('date_publish', '=', ''),
+                
+                '&', ('website_published', '=', True), ('date_publish', '<=', datetime.datetime.now()),
+                
+                '&', ('website_published', '=', False), ('date_publish', '<=', datetime.datetime.now()),
+                
+                # DONT SHOW, publish_date is in futur?
+                '&', ('website_published', '=', True), ('date_publish', '>', datetime.datetime.now()),
+                '&', ('website_published', '=', False), ('date_publish', '>', datetime.datetime.now()),
+
+            )"""
         mypage = request.env['website.page'].search(domain, limit=1)
         
         values = {
@@ -179,7 +210,7 @@ class IrHttp(models.AbstractModel):
         else:
             if request.website.is_publisher():
                 values.pop('deletable')
-                values.pop('main_object') 
+                values.pop('main_object')
                 return request.render('website.page_404', values)
             else:
                 #should be raise

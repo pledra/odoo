@@ -577,7 +577,7 @@ class Page(models.Model):
             'name': data['name'], 'url': url,
             'website_published': data['website_published'],
             'website_indexed': data['website_indexed'],
-            #'date_publish': data['date_publish']
+            'date_publish': data['date_publish']
         })
         
         # Create redirect if needed
@@ -649,14 +649,14 @@ class Page(models.Model):
                 menu.unlink()
             page.unlink()
     
-    """@api.multi
+    @api.multi
     def write(self, vals):
         self.ensure_one()
         if 'website_published' in vals and 'date_publish' not in vals:
             if (self.date_publish or '') <= fields.Datetime.now():
                 vals['date_publish'] = vals['website_published'] and fields.Datetime.now()
         result = super(Page, self).write(vals)
-        return result"""
+        return result
 
 
 class Menu(models.Model):
@@ -684,9 +684,8 @@ class Menu(models.Model):
     parent_right = fields.Integer('Parent Rigth', index=True)
 
     @api.model
-    #TODO: should be page_id not page_path
-    def create_with_page(self, website_id, name, page_path):
-        page = self.env['website.page'].search([('url', '=', page_path)], limit=1)
+    def create_with_page(self, website_id, name, page_id):
+        page = self.env['website.page'].search([('id', '=', page_id)], limit=1)
         if page:
             self.create({
                 'name': name,
@@ -695,7 +694,7 @@ class Menu(models.Model):
                 'parent_id': self.env['website'].browse(website_id).menu_id.id,
                 'website_id': website_id,
             })
-            return True
+            return page.url
         return False
 
     # would be better to take a menu_id as argument
@@ -713,6 +712,7 @@ class Menu(models.Model):
                 parent_id=node.parent_id.id,
                 children=[],
                 is_homepage=is_homepage,
+                page_id=page_id,
             )
             for child in node.child_id:
                 menu_node['children'].append(make_tree(child))
@@ -736,11 +736,21 @@ class Menu(models.Model):
             self.browse(to_delete).unlink()
         for menu in data['data']:
             mid = menu['id']
+            # new menu are prefixed by new-
             if isinstance(mid, pycompat.string_types):
                 new_menu = self.create({'name': menu['name']})
                 replace_id(mid, new_menu.id)
         for menu in data['data']:
+            # if it is a menu with a m2o page
+            if menu['page_id']:
+                menu_record = self.browse(menu['id'])
+                # and the m2o relation should be changed
+                if menu_record['page_id'] != menu['page_id']:
+                    # Sync menu url with page url -> what about name sync ?
+                    page = self.env['website.page'].browse(int(menu['page_id']))
+                    menu['url'] = page.url
             self.browse(menu['id']).write(menu)
+            
         return True
 
 

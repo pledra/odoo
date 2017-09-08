@@ -57,7 +57,6 @@
     <script type="text/javascript" src="/website/static/src/js/menu/seo.js"/>
     <script type="text/javascript" src="/website/static/src/js/menu/translate.js"/>
     <script type="text/javascript" src="/website/static/src/js/menu/content.js"/>
-    <script type="text/javascript" src="/website/static/src/js/menu/pages.js"/>
 
     <script type="text/javascript" src="/website/static/src/js/tours/banner.js"/>
     <script type="text/javascript" src="/website/static/src/js/tours/rte.js"/>
@@ -875,15 +874,15 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
               <div class="table-responsive"><table class="table table-hover o_my_status_table">
                   <thead>
                     <tr class="active">
-                      <th><span>Name</span></th>
-                      <!--<th></th>-->
-                      <th><span>Url</span></th>
-                      <th style="text-align:center"><span>Show in menu</span></th>
+                      <th class="col-md-3"><span>Name</span></th>
+                      <th class="col-md-5"><span>Url</span></th>
+                      <!--<th style="text-align:center"><span>Show in menu</span></th>
                       <th style="text-align:center"><span>Is published</span></th>
-                      <th style="text-align:center"><span>Is indexed</span></th>
-                      <th></th>
-                      <th></th>
-                      <th></th>
+                      <th style="text-align:center"><span>Is indexed</span></th>-->
+                      <th class="col-md-1 text-center"><span><i title="Is your page in menu?" class="fa fa-thumb-tack" aria-hidden="true"></i></span></th>
+                      <th class="col-md-1 text-center"><span><i title="Is your page published on website?" class="fa fa-eye" aria-hidden="true"></i></span></th>
+                      <th class="col-md-1 text-center"><span><i title="Is your page indexed by search engines?" class="fa fa-globe" aria-hidden="true"></i></span></th>
+                      <th class="col-md-1"></th>
                     </tr>
                   </thead>
                   <t t-foreach="pages" t-as="page">
@@ -894,15 +893,9 @@ Sitemap: <t t-esc="url_root"/>sitemap.xml
                           <td style="text-align:center"><i t-att-class="'fa fa-check' if page.website_published else 'fa fa-times text-muted'" aria-hidden="true"></i></td>
                           <td style="text-align:center"><i t-att-class="'fa fa-check' if page.website_indexed else 'fa fa-times text-muted'" aria-hidden="true"></i></td>
                           <td>
-                              <span class="dropdown">
-                                  <a class="dropdown-toggle fa fa-lg fa-cog js_page_properties" t-att-data-id="page.id" href="#" title="Manage this page"></a>
-                              </span>
-                          </td>
-                          <td>
-                              <a class="fa fa-lg fa-clone js_clone_page" t-att-data-id="page.id" href="#" title="Clone this page"></a>
-                          </td>
-                          <td>
-                              <a class="fa fa-lg fa-trash js_delete_page" t-att-data-id="page.id" href="#" title="Delete this page"></a>
+                              <a class="fa fa-cog js_page_properties" t-att-data-id="page.id" href="#" title="Manage this page"></a>
+                              <a class="fa fa-clone js_clone_page" t-att-data-id="page.id" href="#" title="Clone this page"></a>
+                              <a class="fa fa-trash js_delete_page" t-att-data-id="page.id" href="#" title="Delete this page"></a>
                           </td>   
                       </tr>
                   </t>

@@ -67,6 +67,9 @@
             </div>
         </div>
     </div>
+    <t t-call="website.contentMenu.dialog.edit.m2o_page" />
+</t>
+<t t-name="website.contentMenu.dialog.edit.m2o_page">
     <div class="form-group">
         <label class="control-label col-sm-3" for="o_link_dialog_existing_page_input">Existing page</label>
         <div class="col-sm-9">

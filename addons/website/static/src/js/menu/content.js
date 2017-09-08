@@ -59,7 +59,6 @@ var PagePropertiesDialog = widget.Dialog.extend({
         var context = weContext.get();
         
         defs.push(this._rpc({
-            //TODO: This call should be remove but I don't know how to get the website.homepage_id
             model: 'website',
             method: 'get_homepage',
             args: [context.website_id],
@@ -111,6 +110,7 @@ var PagePropertiesDialog = widget.Dialog.extend({
             }
         });
         
+        
         var l10n = _t.database.parameters;
         var datepickers_options = {
            minDate: moment({ y: 1900 }),
@@ -126,10 +126,14 @@ var PagePropertiesDialog = widget.Dialog.extend({
               },
            locale : moment.locale(),
            format : time.strftime_to_moment_format(l10n.date_format +' '+ l10n.time_format),
-           defaultDate : self.page.date_publish,
          };
-         this.$("#date_publish_container, #date_publish").datetimepicker(datepickers_options);
-        
+         if (self.page.date_publish) {
+            datepickers_options.defaultDate = self.page.date_publish;
+         }
+         
+         this.$("#date_publish_container").datetimepicker(datepickers_options);
+         
+
          return this._super.apply(this, arguments);
     },
     save: function(data){        
@@ -137,6 +141,8 @@ var PagePropertiesDialog = widget.Dialog.extend({
         var context = weContext.get();
         var url = $(".o_page_management_page_info #page_url").val();
         
+        var date_publish = $(".o_page_management_page_info #date_publish").val();
+        date_publish = time.datetime_to_str(new Date(date_publish));
         var params = {
             id: self.page.id,
             name: $(".o_page_management_page_info #page_name").val(), 
@@ -147,7 +153,7 @@ var PagePropertiesDialog = widget.Dialog.extend({
             create_redirect: $(".o_page_management_page_info #create_redirect").prop('checked'),
             redirect_type: $(".o_page_management_page_info #redirect_type").val(),
             website_indexed: $(".o_page_management_page_info #is_indexed").prop('checked'),
-            date_publish: $(".o_page_management_page_info #date_publish").val(),
+            date_publish: date_publish,
         };
         self._rpc({
             model: 'website.page',
@@ -223,12 +229,14 @@ var MenuEntryDialog = widget.LinkDialog.extend({
      * @constructor
      * @override
      */
-    init: function (parent, options, editor, data) {
+    init: function (parent, options, editor, data) { 
         data.text = data.name || '';
         data.isNewWindow = data.new_window;
         this.data = data;
         this.menu_link_options = options.menu_link_options;
-        return this._super.apply(this, arguments);
+        this._super(parent, _.extend({}, {
+            title: _t("Create Menu"),
+        }, options || {}), editor, data);
     },
     /**
      * @override
@@ -238,6 +246,7 @@ var MenuEntryDialog = widget.LinkDialog.extend({
         this.$('.o_link_dialog_preview').remove();
         this.$('.window-new, .link-style').closest('.form-group').remove();
         this.$('label[for="o_link_dialog_label_input"]').text(_t("Menu Label"));
+        
         if (this.menu_link_options) { // add menu link option only when adding new menu
             this.$('#o_link_dialog_label_input').closest('.form-group').after(qweb.render('website.contentMenu.dialog.edit.link_menu_options'));
             
@@ -246,14 +255,46 @@ var MenuEntryDialog = widget.LinkDialog.extend({
                 self._hideOptions(self, this.value);                
             });
         }
-        this.$modal.find('.modal-lg').removeClass('modal-lg')
-                   .find('.col-md-8').removeClass('col-md-8').addClass('col-xs-12');
+        if (this.data.page_id) { // show page m2o widget when editing a menu having a m2o to a page
+            this.$('#o_link_dialog_label_input').closest('.form-group').after(qweb.render('website.contentMenu.dialog.edit.m2o_page'));
+            this.$('#o_link_dialog_url_input').parents('.form-group').hide();
+        }
+        
+        this.$modal.find('.col-md-8').removeClass('col-md-8').addClass('col-xs-12');
+              
+    
+        
+        this._rpc({
+            model: 'website',
+            method: 'search_pages',
+            args: [null, ''],//request.term],
+            kwargs: {
+                //limit: 15,
+                show_only_website_page_model: true,
+                context: weContext.get(),
+            },
+        }).then(function (pages) {
+            pages = _.map(pages, function (val) {
+                return {id: val.id, text:val.loc + ' (' + val.name + ')'};
+            });
+            self.$("#o_link_dialog_existing_page_input").select2({
+                placeholder: "Select a page",
+                multiple: false,
+                data: pages,
+            });
+            if (self.data.page_id) { // init m2o widget when editing a menu having a m2o to a page
+                self.$("#o_link_dialog_existing_page_input").val(self.data.page_id).trigger("change");
+            }
+        });
+                   
+                   
         return this._super.apply(this, arguments);
     },
     /**
      * @override
      */
     save: function () {
+        this.data.page_id = $("#o_link_dialog_existing_page_input").val();
         var self = this;
         var $e = this.$('#o_link_dialog_label_input');
         if (!$e.val() || !$e[0].checkValidity()) {
@@ -265,31 +306,24 @@ var MenuEntryDialog = widget.LinkDialog.extend({
             window.location = '/website/add/' + encodeURIComponent($e.val()) + '?add_menu=1';
             return;
         }
-        //TODO: rde this is to rewrite to m2o widget
+        
         if (this.$('input[name=link_menu_options]:checked').val() === 'existing_page') {
-            var existing_page = this.$('#o_link_dialog_existing_page_input').val();
-            var context = weContext.get();
-            this._rpc({
-                model: 'website.menu',
-                method: 'create_with_page',
-                args: [context.website_id, $e.val(), existing_page.split(' ')[0]],
-                context: context,
-            }).then(function (done) {
-                if (done){
-                    window.location = existing_page.split(' ')[0];
-                    return;
-                }
-                else {
-                    alert("TODO show ERROR");
-                }
-            });
+            //TODO:_super save is calling get_data() which is checkValidity() every fields
+            //So url is empty (and hidden) if you select an existing page and it wont get through save
+            var $f = self.$('#o_link_dialog_existing_page_input');
+            if (!$f.val() || !$f[0].checkValidity()) {
+                $f.closest('.form-group').addClass('has-error');
+                $f.focus();
+                return;
+            }
+            self.$("#o_link_dialog_url_input").val("tofix")
         }
+        
         return this._super.apply(this, arguments);
     },
     _hideOptions: function(_this,to_show) {
         _this.$('#o_link_dialog_existing_page_input').parents('.form-group').hide();
         _this.$('#o_link_dialog_url_input').parents('.form-group').hide();
-        _this.$('#o_link_dialog_existing_page_input').parents('.form-group').hide();
         if (to_show == 'url') {
             _this.$('#o_link_dialog_url_input').parents('.form-group').show();
         }
@@ -468,6 +502,7 @@ var EditMenuDialog = widget.Dialog.extend({
                 id: _.uniqueId('new-'),
                 name: link.text,
                 url: link.url,
+                page_id: link.page_id,
                 new_window: link.isNewWindow,
                 parent_id: false,
                 sequence: 0,
@@ -511,6 +546,7 @@ var EditMenuDialog = widget.Dialog.extend({
                     'name': link.text,
                     'url': link.url,
                     'new_window': link.isNewWindow,
+                    'page_id': link.page_id,
                 });
                 var $menu = self.$('[data-menu-id="' + id + '"]');
                 $menu.find('.js_menu_label').first().text(menu_obj.name);
