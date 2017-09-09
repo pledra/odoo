@@ -10,7 +10,6 @@ import mimetypes
 import os
 import re
 import sys
-import unicodedata
 
 import werkzeug
 import werkzeug.exceptions
@@ -158,34 +157,12 @@ class IrHttp(models.AbstractModel):
             return response
 
     @classmethod
-    def _serve_page(cls, req_page=False):
-        req_page = req_page or request.httprequest.path
-
-        domain = [('url', '=', req_page), '|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
-
-        if not request.website.is_publisher:
-            domain += [('website_published', '=', True), '|', ('date_publish', '=', False), ('date_publish', '>', datetime.datetime.now())]
-
-        mypage = request.env['website.page'].search(domain, limit=1)
-
-        if mypage:
-            return mypage.ir_ui_view_id.render({
-                'path': req_page[1:],
-                'deletable': True,
-                'main_object': mypage,
-            })
-
-        if request.website.is_publisher():
-            return request.render('website.page_404', {'path': req_page[1:]})
-        else:
-            return False
-
-    @classmethod
-    def _check_redirect(cls):
-        req_page = request.httprequest.path
-        domain = ['|', ('website_id', '=', request.website.id), ('website_id', '=', False)]
-        domain += [('url_from', '=', req_page), ('active', '=', True)]
-        return request.env['website.redirect'].search(domain, limit=1)
+    def _handle_exception_serve(cls, exception):
+        # serve attachment
+        attach = cls._serve_attachment()
+        if attach:
+            return attach
+        return False
 
     @classmethod
     def _handle_exception(cls, exception):
@@ -194,19 +171,9 @@ class IrHttp(models.AbstractModel):
         # This is done first as the attachment path may
         # not match any HTTP controller
         if isinstance(exception, werkzeug.exceptions.HTTPException) and exception.code == 404:
-            attach = cls._serve_attachment()
-            if attach:
-                return attach
-
-            # Avoid error on /web/database/manager
-            if hasattr(request, 'website'):
-                redirect = cls._check_redirect()
-                if redirect:
-                    return request.redirect(redirect.url_to, code=redirect.type)
-                    
-                website_page = cls._serve_page()
-                if website_page:
-                    return website_page
+            serve = cls._handle_exception_serve(exception)
+            if serve:
+                return serve
 
         # Don't handle exception but use werkeug debugger if server in --dev mode
         if 'werkzeug' in tools.config['dev_mode']:

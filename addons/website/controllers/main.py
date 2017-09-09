@@ -67,38 +67,18 @@ class Website(Home):
 
     @http.route('/', type='http', auth="public", website=True)
     def index(self, **kw):
-        """
-        # possibles cases :
-        # No menu & admin & '/' exist in db                                 => return /
-        # No menu & admin & '/' does not exist in db                        => return editable 404
-        # No menu & not admin & '/' exist in db                             => return /
-        # No menu & not admin & '/' doest not exist in db                   => return 404
-
-        # First menu is '/' & admin & '/' exist in db                       => return /
-        # First menu is '/' & admin & '/' does not exist in db              => return editable 404
-        # First menu is '/' & not admin & '/' exist in db                   => return /
-        # First menu is '/' & not admin & '/' does not exist in db          => return 404
-
-        # First menu is not '/' & admin & '/' exist in db                   => return /
-        # First menu is not '/' & admin & '/' does not exist in db          => return editable 404
-        # First menu is not '/' & not admin & '/' exist in db               => return /
-        # First menu is not '/' & not admin & '/' does not exist in db      => return first_menu url (not /)
-        """
-
         homepage = request.website.homepage_id
         if homepage and homepage.url != '/':
             return request.env['ir.http'].reroute(homepage.url)
-        else:
-            website_page = request.env['ir.http']._serve_page()
 
-            if website_page:
-                return website_page
-            else:
-                top_menu = request.website.sudo().menu_id
-                if top_menu:
-                    first_menu = top_menu.child_id and top_menu.child_id[0]
-                    if first_menu and (not (first_menu.url.startswith(('/', '/?', '/#')))):
-                            return request.redirect(first_menu.url)
+        website_page = request.env['ir.http']._serve_page()
+        if website_page:
+            return website_page
+        else:
+            top_menu = request.website.sudo().menu_id
+            first_menu = top_menu and top_menu.child_id and top_menu.child_id[0]
+            if first_menu and (not (first_menu.url.startswith(('/', '/?', '/#')))):
+                    return request.redirect(first_menu.url)
 
         raise request.not_found()
 
