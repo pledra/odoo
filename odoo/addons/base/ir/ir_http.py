@@ -158,64 +158,28 @@ class IrHttp(models.AbstractModel):
             return response
 
     @classmethod
-    def _serve_page(cls):
-        req_page = request.httprequest.path
-        if req_page.startswith('/website.'):
-            return request.redirect('/%s?%s' % (req_page[9:], request.httprequest.query_string), code=301)
-        
-        domain = [('url', '=', req_page), '|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
-        publish = request.env.user.has_group('website.group_website_publisher')
-        if not publish:
-            """ Possible cases when page is requested:
-                Is published & no date -> Show
-                Is published & date in futur -> Do not show
-                Is published & date in past -> Show
-                
-                Is not published & no date -> Do not show
-                Is not published & date in futur -> Do not show
-                Is not published & date in past -> Do not show??
-                
-                Problem:
-                    Admin set unpublished & set date in futur, we don't show
-                    After 2 weeks, date is now in past, should we serve the page to users?
-                    -> Yes, admin just forgot to check is_published and thought when date reach page will be published
-                    -> No, admin thought setting is_published to false would be prioritary on publish_date
-                    -> yes & no arguments are users dependant
-                        -> On write, if user is setting is_published to false, delete publish_date no matter what?
-                            -> If is_published is not checked & user is setting a date, do not save it? user confused then?
-                                -> Hide in front end the input date?
-                                    -> Maybe he won't notice the functionnality if it is hidden?
-            """
-            """domain.append(
-                '&', ('website_published', '=', True), ('date_publish', '=', ''),
-                
-                '&', ('website_published', '=', True), ('date_publish', '<=', datetime.datetime.now()),
-                
-                '&', ('website_published', '=', False), ('date_publish', '<=', datetime.datetime.now()),
-                
-                # DONT SHOW, publish_date is in futur?
-                '&', ('website_published', '=', True), ('date_publish', '>', datetime.datetime.now()),
-                '&', ('website_published', '=', False), ('date_publish', '>', datetime.datetime.now()),
+    def _serve_page(cls, req_page=False):
+        req_page = req_page or request.httprequest.path
 
-            )"""
+        domain = [('url', '=', req_page), '|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
+
+        if not request.website.is_publisher:
+            domain += [('website_published', '=', True), '|', ('date_publish', '=', False), ('date_publish', '>', datetime.datetime.now())]
+
         mypage = request.env['website.page'].search(domain, limit=1)
-        
-        values = {
-            'path': req_page[1:],
-            'deletable': True,  # used to add 'delete this page' in content menu
-            'main_object': mypage,
-        }
+
         if mypage:
-            return mypage.ir_ui_view_id.render(values)
+            return mypage.ir_ui_view_id.render({
+                'path': req_page[1:],
+                'deletable': True,
+                'main_object': mypage,
+            })
+
+        if request.website.is_publisher():
+            return request.render('website.page_404', {'path': req_page[1:]})
         else:
-            if request.website.is_publisher():
-                values.pop('deletable')
-                values.pop('main_object')
-                return request.render('website.page_404', values)
-            else:
-                #should be raise
-                raise werkzeug.exceptions.NotFound()
-                
+            return False
+
     @classmethod
     def _check_redirect(cls):
         req_page = request.httprequest.path

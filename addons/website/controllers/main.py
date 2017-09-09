@@ -6,7 +6,6 @@ from itertools import islice
 import json
 from xml.etree import ElementTree as ET
 import logging
-import re
 
 import requests
 import werkzeug.utils
@@ -85,36 +84,23 @@ class Website(Home):
         # First menu is not '/' & not admin & '/' exist in db               => return /
         # First menu is not '/' & not admin & '/' does not exist in db      => return first_menu url (not /)
         """
-        
+
         homepage = request.website.homepage_id
-        if homepage:
-            if homepage.url == '/':
-                # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page
-                return request.env['ir.http']._serve_page()
+        if homepage and homepage.url != '/':
             return request.env['ir.http'].reroute(homepage.url)
         else:
-            try:
-                website_page = request.env['ir.http']._serve_page()
-                if website_page:
-                    return website_page
-            except:
+            website_page = request.env['ir.http']._serve_page()
+
+            if website_page:
+                return website_page
+            else:
                 top_menu = request.website.sudo().menu_id
                 if top_menu:
                     first_menu = top_menu.child_id and top_menu.child_id[0]
-                    if first_menu:
-                        if first_menu.url and (not (first_menu.url.startswith(('/', '/?', '/#')))):
+                    if first_menu and (not (first_menu.url.startswith(('/', '/?', '/#')))):
                             return request.redirect(first_menu.url)
-                        elif first_menu.url == '/':
-                            # prevent endless loop -> if '/' does not exists & first menu is also '/' -> trigger 404 by rendering not existing page
-                            return request.env['ir.http']._serve_page()
-                        else:
-                            return request.redirect(first_menu.url)
-                    else:
-                        # if no menu & "/" does not exists (we are in except) -> trigger 404 by rendering not existing page
-                        return request.env['ir.http']._serve_page()
-                else:
-                    # if no menu & "/" does not exists (we are in except) -> trigger 404 by rendering not existing page
-                    return request.env['ir.http']._serve_page()
+
+        raise request.not_found()
 
     #------------------------------------------------------
     # Login - overwrite of the web login so that regular users are redirected to the backend
@@ -241,7 +227,7 @@ class Website(Home):
     #------------------------------------------------------
     # Edit
     #------------------------------------------------------
-    
+
     @http.route(['/website/pages', '/website/pages/page/<int:page>'], type='http', auth="user", website=True)
     def pages_management(self, page=1, sortby='name', search='', **kw):
         Page = request.env['website.page']
@@ -250,20 +236,14 @@ class Website(Home):
             'name': {'label': _('Order Name'), 'order': 'name'},
         }
         # default sortby order
-        if not sortby:
-            sortby = 'name'
-        
-        # proper way to do that ?
-        try:
-            sort_order = searchbar_sortings.get(sortby, 'name')['order']
-        except:
-            sort_order = 'name'
+        sort_order = searchbar_sortings.get(sortby, 'name')['order']
+
         domain = ['|', ('website_ids', 'in', request.website.id), ('website_ids', '=', False)]
         if search:
             domain += ['|', ('name', 'ilike', search), ('url', 'ilike', search)]
 
         pages_count = Page.search_count(domain)
-        
+
         pager = portal_pager(
             url="/website/pages",
             url_args={'sortby': sortby},
@@ -271,9 +251,8 @@ class Website(Home):
             page=page,
             step=self._items_per_page
         )
-        
         pages = Page.search(domain, order=sort_order, limit=self._items_per_page, offset=pager['offset'])
-        
+
         values = {
             'pager': pager,
             'pages': pages,
