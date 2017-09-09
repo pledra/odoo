@@ -136,7 +136,7 @@ class Website(Home):
                 'name': url,
                 'url': url,
             })
-        dom = [('url', '=' , '/sitemap-%d.xml' % current_website.id), ('type', '=', 'binary')]
+        dom = [('url', '=', '/sitemap-%d.xml' % current_website.id), ('type', '=', 'binary')]
         sitemap = Attachment.search(dom, limit=1)
         if sitemap:
             # Check if stored version is still valid
@@ -147,8 +147,8 @@ class Website(Home):
 
         if not content:
             # Remove all sitemaps in ir.attachments as we're going to regenerated them
-            dom = [('type', '=', 'binary'), '|', ('url', '=like' , '/sitemap-%d-%%.xml' % current_website.id),
-                   ('url', '=' , '/sitemap-%d.xml' % current_website.id)]
+            dom = [('type', '=', 'binary'), '|', ('url', '=like', '/sitemap-%d-%%.xml' % current_website.id),
+                   ('url', '=', '/sitemap-%d.xml' % current_website.id)]
             sitemaps = Attachment.search(dom)
             sitemaps.unlink()
 
@@ -252,11 +252,8 @@ class Website(Home):
 
     @http.route('/website/add/<path:path>', type='http', auth="user", website=True)
     def pagenew(self, path, noredirect=False, add_menu=False, template=False):
-        if template:
-            url = request.env['website'].new_page(path, add_menu=add_menu, template=template)
-        else:
-            url = request.env['website'].new_page(path, add_menu=add_menu)
-        
+        template = template and dict(template=template) or {}
+        url = request.env['website'].new_page(path, add_menu=add_menu, **template)
         if noredirect:
             return werkzeug.wrappers.Response(url, mimetype='text/plain')
         return werkzeug.utils.redirect(url + "?enable_editor=1")
@@ -394,7 +391,7 @@ class Website(Home):
     @http.route([
         '/website/action/<path_or_xml_id_or_id>',
         '/website/action/<path_or_xml_id_or_id>/<path:path>',
-        ], type='http', auth="public", website=True)
+    ], type='http', auth="public", website=True)
     def actions_server(self, path_or_xml_id_or_id, **post):
         ServerActions = request.env['ir.actions.server']
         action = action_id = None

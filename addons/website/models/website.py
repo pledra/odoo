@@ -128,7 +128,7 @@ class Website(models.Model):
         website_id = self._context.get('website_id')
         key = 'website.' + page_url[1:]
         view = template_record.copy({'website_id': website_id, 'key': key})
-        
+
         view.with_context(lang=None).write({
             'page': ispage,
             'arch': template_record.arch.replace(template, page_url[1:] or "home"),
