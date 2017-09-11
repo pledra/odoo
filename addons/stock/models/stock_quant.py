@@ -126,11 +126,12 @@ class StockQuant(models.Model):
         return self.search(domain, order=removal_strategy_order)
 
     @api.model
-    def _get_available_quantity(self, product_id, location_id, lot_id=None, package_id=None, owner_id=None, strict=False):
+    def _get_available_quantity(self, product_id, location_id, lot_id=None, package_id=None, owner_id=None, strict=False, allow_negative=False):
         """ Return the available quantity, i.e. the sum of `quantity` minus the sum of
         `reserved_quantity`, for the set of quants sharing the combination of `product_id,
         location_id` if `strict` is set to False or sharing the *exact same characteristics*
-        otherwise.
+        otherwise. If `strict` is set to False, we have to consider the tracked products: a
+        negative quant should not be reconciled with a positive of another one
         This method is called in the following usecases:
             - when a stock move checks its availability
             - when a stock move actually assign
@@ -142,11 +143,27 @@ class StockQuant(models.Model):
         In the last ones, `strict` should be set to `True`, as we work on a specific set of
         characteristics.
 
-        :return: available quantity as a float
+        :return: available (reservable) quantity as a float
         """
         self = self.sudo()
         quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict)
-        return sum(quants.mapped('quantity')) - sum(quants.mapped('reserved_quantity'))
+        if product_id.tracking == 'none':
+            available_quantity = sum(quants.mapped('quantity')) - sum(quants.mapped('reserved_quantity'))
+            if allow_negative:
+                return available_quantity
+            else:
+                return available_quantity if available_quantity >= 0.0 else 0.0
+        else:
+            availaible_quantities = {lot_id: 0.0 for lot_id in list(set(quants.mapped('lot_id'))) + ['untracked']}
+            for quant in quants:
+                if not quant.lot_id:
+                    availaible_quantities['untracked'] += quant.quantity - quant.reserved_quantity
+                else:
+                    availaible_quantities[quant.lot_id] += quant.quantity - quant.reserved_quantity
+            if allow_negative:
+                return sum(availaible_quantities.values())
+            else:
+                return sum([available_quantity for available_quantity in availaible_quantities.values() if available_quantity > 0])
 
     @api.model
     def _update_available_quantity(self, product_id, location_id, quantity, lot_id=None, package_id=None, owner_id=None, in_date=None):
@@ -162,7 +179,7 @@ class StockQuant(models.Model):
         :param datetime in_date: Should only be passed when calls to this method are done in
                                  order to move a quant. When creating a tracked quant, the
                                  current datetime will be used.
-        :return: tuple (available_quantity, in_date as a datetime)
+        :return: tuple (available_quantity including negative, in_date as a datetime)
         """
         self = self.sudo()
         quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=True)
@@ -206,7 +223,7 @@ class StockQuant(models.Model):
                 'owner_id': owner_id and owner_id.id,
                 'in_date': in_date,
             })
-        return self._get_available_quantity(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=False), fields.Datetime.from_string(in_date)
+        return self._get_available_quantity(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=False, allow_negative=True), fields.Datetime.from_string(in_date)
 
     @api.model
     def _update_reserved_quantity(self, product_id, location_id, quantity, lot_id=None, package_id=None, owner_id=None, strict=False):
@@ -222,10 +239,8 @@ class StockQuant(models.Model):
             was done and how much the system was able to reserve on it
         """
         self = self.sudo()
+        available_quantity = self._get_available_quantity(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict)
         quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict)
-
-        quants_quantity = sum(quants.mapped('quantity'))
-        available_quantity = quants_quantity - sum(quants.mapped('reserved_quantity'))
         if quantity > 0 and quantity > available_quantity:
             raise UserError(_('It is not possible to reserve more products than you have in stock.'))
         elif quantity < 0 and abs(quantity) > sum(quants.mapped('reserved_quantity')):
