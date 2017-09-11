@@ -56,13 +56,13 @@ odoo.define('payment.payment_form', function (require) {
                         console.warn('payment_form: unset partner_id when adding new token; things could go wrong');
                     }
                     var form_data = this.getFormData(inputs_form);
-                    var empty_inputs = false;
+                    var empty_inputs = [];
 
                     inputs_form.toArray().forEach(function (element) {
                         if (element.dataset.isRequired) {
                             if (element.value.length === 0) {
                                 $(element).closest('div.form-group').addClass('has-error');
-                                empty_inputs = true;
+                                empty_inputs.push(element.placeholder);
                             }
                             else {
                                 $(element).closest('div.form-group').removeClass('has-error');
@@ -70,10 +70,11 @@ odoo.define('payment.payment_form', function (require) {
                         }
                     });
 
-                    if (empty_inputs) {
+                    if (empty_inputs.length) {
+                        var error_msg = '<p>The following fields '+ ((empty_inputs.length > 1) ? 'are ' : 'is') + ' invalid or missing:</br>' + empty_inputs.join('<br/>') + '</p>'
                         this.displayError(
                             _t('Missing values'),
-                            _t('<p>Please fill all the inputs required.</p>')
+                            _t(error_msg)
                         );
                         return;
                     }
@@ -103,9 +104,8 @@ odoo.define('payment.payment_form', function (require) {
                         }
                         // if the server has returned false, we display an error
                         else {
-                            self.displayError(
-                                _t('Server Error'),
-                                _t("<p>We are not able to add your payment method at the moment.</p>"));
+                            self.$('#o_payment_add_token_acq_' + acquirer_id)
+                                .append('<div class="text-danger ml16">' + _t('e.g. Your credit card details are wrong. Please verify.') + '</div>');
                         }
                         // here we remove the 'processing' icon from the 'add a new payment' button
                         $(button).attr('disabled', false);
@@ -199,24 +199,26 @@ odoo.define('payment.payment_form', function (require) {
                 var inputs_form = $('input', acquirer_form);
                 var form_data = this.getFormData(inputs_form);
                 var ds = $('input[name="data_set"]', acquirer_form)[0];
-                var empty_inputs = false;
+                var empty_inputs = [];
+
 
                 inputs_form.toArray().forEach(function (element) {
                     if (element.dataset.isRequired) {
                         if (element.value.length === 0) {
                             $(element).closest('div.form-group').addClass('has-error');
+                            empty_inputs.push(element.placeholder);
                         }
                         else {
                             $(element).closest('div.form-group').removeClass('has-error');
                         }
-                        empty_inputs = true;
                     }
                 });
 
-                if (empty_inputs) {
+                if (empty_inputs.length) {
+                    var error_msg = '<p>The following fields '+ ((empty_inputs.length > 1) ? 'are ' : 'is') + ' invalid or missing:</br>' + empty_inputs.join('<br/>') + '</p>'
                     this.displayError(
                         _t('Missing values'),
-                        _t('<p>Please fill all the inputs required.</p>')
+                        _t(error_msg)
                     );
                     return;
                 }
@@ -249,10 +251,8 @@ odoo.define('payment.payment_form', function (require) {
                     }
                     // if the server has returned false, we display an error
                     else {
-                        self.displayError(
-                            _t('Server Error'),
-                            _t("<p>We are not able to add your payment method at the moment.</p>")
-                        );
+                        self.$('#o_payment_add_token_acq_' + acquirer_id)
+                            .append('<div class="text-danger ml16">' + _t('e.g. Your credit card details are wrong. Please verify.') + '</div>');
                     }
                     // here we remove the 'processing' icon from the 'add a new payment' button
                     $(button).attr('disabled', false);

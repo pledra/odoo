@@ -1,8 +1,17 @@
+odoo.define('payment.website_payment', function (require) {
+
+"use strict";
+
 $(document).ready(function () {
 
     $('input#cc_number').payment('formatCardNumber');
     $('input#cc_cvc').payment('formatCardCVC');
-    $('input#cc_expiry').payment('formatCardExpiry')
+    $('input#cc_expiry').payment('formatCardExpiry');
+
+    // set default cursor/focus on cc_number if value exist, when we use next and previous page
+    if ($('input#cc_number').val()) {
+        $('input#cc_number').focus();
+    }
 
     $('input#cc_number').on('focusout', function (e) {
         var valid_value = $.payment.validateCardNumber(this.value);
@@ -59,4 +68,5 @@ $(document).ready(function () {
         $('.acquirer[data-acquirer-id="'+acquirer_id+'"]').removeClass('hidden');
     });
 
+});
 });
