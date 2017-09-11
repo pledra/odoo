@@ -227,8 +227,8 @@
             <field name="tag_ids" eval="[(6,0,[ref('l10n_de.tag_de_45')])]"/>
             <field name="tax_group_id" ref="tax_group_0"/>
         </record>
-        <record id="tax_eu_19_purchase_ust_goods_skr03" model="account.tax.template">
-            <field name="chart_template_id" ref="l10n_de_chart_template"/>
+        <record id="tax_eu_19_purchase_ust_goods_skr04" model="account.tax.template">
+            <field name="chart_template_id" ref="l10n_chart_de_skr04"/>
             <field name="name">19% USt Steuerpflichtige Sonstige Leistungen EU</field>
             <field name="description">19% USt Steurp. EU</field>
             <field name="amount_type">percent</field>
@@ -237,8 +237,8 @@
             <field name="type_tax_use">none</field>
             <field name="tax_group_id" ref="tax_group_0"/>
         </record>
-        <record id="tax_eu_19_purchase_vst_goods_skr03" model="account.tax.template">
-            <field name="chart_template_id" ref="l10n_de_chart_template"/>
+        <record id="tax_eu_19_purchase_vst_goods_skr04" model="account.tax.template">
+            <field name="chart_template_id" ref="l10n_chart_de_skr04"/>
             <field name="name">19% VSt Steuerpflichtige Sonstige Leistungen EU</field>
             <field name="description">19% VSt Steuerp. EU</field>
             <field name="amount_type">percent</field>
@@ -247,20 +247,20 @@
             <field name="type_tax_use">none</field>
             <field name="tax_group_id" ref="tax_group_0"/>
         </record>
-        <record id="tax_eu_19_purchase_goods_skr03" model="account.tax.template">
-            <field name="chart_template_id" ref="l10n_de_chart_template"/>
+        <record id="tax_eu_19_purchase_goods_skr04" model="account.tax.template">
+            <field name="chart_template_id" ref="l10n_chart_de_skr04"/>
             <field name="name">Steuerpflichtige sonstige Leistungen EU 19%USt/19%VSt</field>
             <field name="description">Leistungen EU 19%Ust/19%VSt</field>
             <field name="amount_type">group</field>
             <field name="amount">0</field>
             <field name="tag_ids" eval="[(6, 0, [ref('l10n_de.tag_de_46')])]"/>
             <field name="type_tax_use">purchase</field>
-            <field name="children_tax_ids" eval="[(6,0,[ref('tax_eu_19_purchase_ust_goods_skr03'), ref('tax_eu_19_purchase_vst_goods_skr03')])]"/>
+            <field name="children_tax_ids" eval="[(6,0,[ref('tax_eu_19_purchase_ust_goods_skr04'), ref('tax_eu_19_purchase_vst_goods_skr04')])]"/>
             <field name="tax_group_id" ref="tax_group_0"/>
         </record>
 
-        <record id="tax_eu_19_purchase_ust_dritland_skr03" model="account.tax.template">
-            <field name="chart_template_id" ref="l10n_de_chart_template"/>
+        <record id="tax_eu_19_purchase_ust_dritland_skr04" model="account.tax.template">
+            <field name="chart_template_id" ref="l10n_chart_de_skr04"/>
             <field name="name">19% USt Steuerpflichtige Sonstige Leistungen Drittland</field>
             <field name="description">19% USt Steurp. Drittland</field>
             <field name="amount_type">percent</field>
@@ -269,8 +269,8 @@
             <field name="type_tax_use">none</field>
             <field name="tax_group_id" ref="tax_group_0"/>
         </record>
-        <record id="tax_eu_19_purchase_vst_dritland_skr03" model="account.tax.template">
-            <field name="chart_template_id" ref="l10n_de_chart_template"/>
+        <record id="tax_eu_19_purchase_vst_dritland_skr04" model="account.tax.template">
+            <field name="chart_template_id" ref="l10n_chart_de_skr04"/>
             <field name="name">19% VSt Steuerpflichtige Sonstige Leistungen Drittland</field>
             <field name="description">19% VSt Steuerp. Drittland</field>
             <field name="amount_type">percent</field>
@@ -279,15 +279,15 @@
             <field name="type_tax_use">none</field>
             <field name="tax_group_id" ref="tax_group_0"/>
         </record>
-        <record id="tax_eu_19_purchase_dritland_skr03" model="account.tax.template">
-            <field name="chart_template_id" ref="l10n_de_chart_template"/>
+        <record id="tax_eu_19_purchase_dritland_skr04" model="account.tax.template">
+            <field name="chart_template_id" ref="l10n_chart_de_skr04"/>
             <field name="name">Steuerpflichtige sonstige Leistungen Drittland 19%USt/19%VSt</field>
             <field name="description">Leistungen Drittland 19%Ust/19%VSt</field>
             <field name="amount_type">group</field>
             <field name="amount">0</field>
             <field name="tag_ids" eval="[(6, 0, [ref('l10n_de.tag_de_52')])]"/>
             <field name="type_tax_use">purchase</field>
-            <field name="children_tax_ids" eval="[(6,0,[ref('tax_eu_19_purchase_ust_dritland_skr03'), ref('tax_eu_19_purchase_vst_dritland_skr03')])]"/>
+            <field name="children_tax_ids" eval="[(6,0,[ref('tax_eu_19_purchase_ust_dritland_skr04'), ref('tax_eu_19_purchase_vst_dritland_skr04')])]"/>
             <field name="tax_group_id" ref="tax_group_0"/>
         </record>
 
