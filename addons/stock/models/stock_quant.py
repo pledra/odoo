@@ -130,8 +130,7 @@ class StockQuant(models.Model):
         """ Return the available quantity, i.e. the sum of `quantity` minus the sum of
         `reserved_quantity`, for the set of quants sharing the combination of `product_id,
         location_id` if `strict` is set to False or sharing the *exact same characteristics*
-        otherwise. If `strict` is set to False, we have to consider the tracked products: a
-        negative quant should not be reconciled with a positive of another one
+        otherwise.
         This method is called in the following usecases:
             - when a stock move checks its availability
             - when a stock move actually assign
@@ -143,7 +142,7 @@ class StockQuant(models.Model):
         In the last ones, `strict` should be set to `True`, as we work on a specific set of
         characteristics.
 
-        :return: available (reservable) quantity as a float
+        :return: available quantity as a float
         """
         self = self.sudo()
         quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict)
@@ -179,7 +178,7 @@ class StockQuant(models.Model):
         :param datetime in_date: Should only be passed when calls to this method are done in
                                  order to move a quant. When creating a tracked quant, the
                                  current datetime will be used.
-        :return: tuple (available_quantity including negative, in_date as a datetime)
+        :return: tuple (available_quantity, in_date as a datetime)
         """
         self = self.sudo()
         quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=True)
@@ -239,8 +238,8 @@ class StockQuant(models.Model):
             was done and how much the system was able to reserve on it
         """
         self = self.sudo()
-        available_quantity = self._get_available_quantity(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict)
         quants = self._gather(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict)
+        available_quantity = self._get_available_quantity(product_id, location_id, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=strict)
         if quantity > 0 and quantity > available_quantity:
             raise UserError(_('It is not possible to reserve more products than you have in stock.'))
         elif quantity < 0 and abs(quantity) > sum(quants.mapped('reserved_quantity')):
