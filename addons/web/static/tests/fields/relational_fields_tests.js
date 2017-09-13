@@ -4682,15 +4682,17 @@ QUnit.module('relational_fields', {
                 '</form>',
         });
 
+        // add new line (first, xpad)
         form.$('.o_field_x2many_list_row_add a').click();
         form.$('input[name="display_name"]').val('first').trigger('input');
         form.$('div[name="product_id"] input').click();
-        $('li.ui-menu-item a').click();
+        // the onchange won't be generated
+        $('li.ui-menu-item a:contains(xpad)').trigger('mouseenter').click();
 
         assert.strictEqual(form.$('.o_field_many2manytags.o_input').length, 1,
             'should display the line in editable mode');
         assert.strictEqual(form.$('.o_field_many2one input').val(), "xpad",
-            'should display the product');
+            'should display the product xpad');
         assert.strictEqual(form.$('.o_field_many2manytags.o_input .o_badge_text').text(), "first record",
             'should display the tag from the onchange');
 
@@ -4701,6 +4703,7 @@ QUnit.module('relational_fields', {
         assert.strictEqual(form.$('.o_field_many2manytags:not(.o_input) .o_badge_text').text(), "first record",
             'should display the tag in readonly');
 
+        // enable the many2many onchange and generate it
         form.$('input.o_field_integer[name="int_field"]').val('10').trigger('input');
 
         assert.strictEqual(form.$('.o_data_cell.o_required_modifier').text(), "xphonexenomorphe",
@@ -4708,17 +4711,22 @@ QUnit.module('relational_fields', {
         assert.strictEqual(form.$('.o_data_row').text().replace(/\s+/g, ' '), "new linexphone first record firstxenomorphe second record ",
             'should display the name, one2many and many2many value');
 
+        // disable the many2many onchange
         form.$('input.o_field_integer[name="int_field"]').val('0').trigger('input');
 
+        // delete and start over
         form.$('.o_list_record_delete:first span').click();
         form.$('.o_list_record_delete:first span').click();
 
+        // enable the many2many onchange
         form.$('input.o_field_integer[name="int_field"]').val('10').trigger('input');
 
+        // add new line (first, xenomorphe)
         form.$('.o_field_x2many_list_row_add a').click();
         form.$('input[name="display_name"]').val('first').trigger('input');
         form.$('div[name="product_id"] input').click();
-        $('li.ui-menu-item a').click();
+        // generate the onchange
+        $('li.ui-menu-item a:contains(xenomorphe)').trigger('mouseenter').click();
 
         assert.strictEqual(form.$('.o_field_many2manytags.o_input').length, 1,
             'should display the line in editable mode');
@@ -4727,6 +4735,7 @@ QUnit.module('relational_fields', {
         assert.strictEqual(form.$('.o_field_many2manytags.o_input .o_badge_text').text(), "second record",
             'should display the tag from the onchange');
 
+        // put list in readonly mode
         form.$('input.o_field_integer[name="int_field"]').click();
 
         assert.strictEqual(form.$('.o_data_cell.o_required_modifier').text(), "xphonexenomorphe",

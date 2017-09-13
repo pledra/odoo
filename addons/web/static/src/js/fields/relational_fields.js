@@ -684,10 +684,14 @@ var FieldX2Many = AbstractField.extend({
             // whole subview.
             if (command.operation === 'UPDATE' && command.data) {
                 var state = record.data[this.name];
-                var fieldNames = state.getFieldNames();
-                this._reset(record, ev);
-                this.renderer.confirmChange(state, command.id, fieldNames, ev.initialEvent);
-                return $.when();
+                var oldIDs = _.map(state.data, function (rec) { return rec.id; });
+                var newIDs = _.map(this.renderer.state.data, function (rec) { return rec.id; });
+                if (_.isEqual(oldIDs, newIDs)) {
+                    var fieldNames = state.getFieldNames();
+                    this._reset(record, ev);
+                    this.renderer.confirmChange(state, command.id, fieldNames, ev.initialEvent);
+                    return $.when();
+                }
             }
         }
         return this._super.apply(this, arguments);
