@@ -686,6 +686,9 @@ var FieldX2Many = AbstractField.extend({
                 var state = record.data[this.name];
                 var oldIDs = _.map(state.data, function (rec) { return rec.id; });
                 var newIDs = _.map(this.renderer.state.data, function (rec) { return rec.id; });
+
+                // doesn't work if a line is edited and the onchange returns two
+                // [0, 'virtual_...']
                 if (_.isEqual(oldIDs, newIDs)) {
                     var fieldNames = state.getFieldNames();
                     this._reset(record, ev);
