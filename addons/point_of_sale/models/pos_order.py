@@ -295,7 +295,7 @@ class PosOrder(models.Model):
                 if not taxes:
                     continue
                 price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
-                for tax in taxes.compute_all(price, cur, line.qty)['taxes']:
+                for tax in taxes.with_context(round=True).compute_all(price, cur, line.qty)['taxes']:
                     insert_data('tax', {
                         'name': _('Tax') + ' ' + tax['name'],
                         'product_id': line.product_id.id,

@@ -721,11 +721,8 @@ class AccountTax(models.Model):
         # amounts. For example, in SO/PO line, we don't want to round the price unit at the
         # precision of the currency.
         # The context key 'round' allows to force the standard behavior.
-        round_tax = False if company_id.tax_calculation_rounding_method == 'round_globally' else True
-        round_total = True
-        if 'round' in self.env.context:
-            round_tax = bool(self.env.context['round'])
-            round_total = bool(self.env.context['round'])
+        round_tax = 'round' in self.env.context and bool(self.env.context['round'])\
+                    or company_id.tax_calculation_rounding_method == 'round_globally'
 
         if not round_tax:
             prec += 5
@@ -782,8 +779,8 @@ class AccountTax(models.Model):
 
         return {
             'taxes': sorted(taxes, key=lambda k: k['sequence']),
-            'total_excluded': currency.round(total_excluded) if round_total else total_excluded,
-            'total_included': currency.round(total_included) if round_total else total_included,
+            'total_excluded': currency.round(total_excluded) if round_tax else total_excluded,
+            'total_included': currency.round(total_included) if round_tax else total_included,
             'base': base,
         }
 
