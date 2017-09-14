@@ -232,10 +232,10 @@ var FormViewDialog = ViewDialog.extend({
         this._super.apply(this, arguments);
         var readonly = _.isNumber(self.options.res_id) && self.options.readonly;
         if (!self.options.disable_multiple_selection && self.activeActions.delete && !readonly && self.isMobile) {
-            var $trash = $('<i class="fa fa-trash o_btn_remove ml8" aria-hidden="true"/>').on('click', function() {
+            var $trash = $('<i class="fa fa-trash o_btn_remove ml8 pull-right" aria-hidden="true"/>').on('click', function() {
                 self._remove();
             })
-            self.$header.find('.modal-title').after($trash);
+            self.$header.find('.modal-title').append($trash);
         }
     },
 

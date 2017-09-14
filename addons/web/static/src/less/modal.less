@@ -79,70 +79,26 @@
     @media (max-width: @screen-xs-max) {
         &.o_modal_full {
             .modal-dialog {
-                position: fixed;
-                width: 100%;
+                margin: 0px;
                 height: 100%;
                 margin: 0;
 
                 .modal-content {
                     height: 100%;
-                    border: 0;
+                    border: none;
+                    .o-flex-display();
+                    .o-flex-flow(column, nowrap);
 
                     .modal-header {
-                        border: 0;
                         background: @odoo-brand-primary;
-                        color: #fff;
-                        .fa {
-                            position: absolute;
-                            padding: 16px;
-                            top: 0;
-                            line-height: @modal-title-line-height;
-                            font-size: 1.2em;
-                            &:hover {
-                                background-color: @odoo-navbar-inverse-link-hover-bg;
-                            }
-                            &.o_btn_back {
-                                left: 0;
-                            }
-                            &.o_btn_remove {
-                                right: 0;
-                            }
-                        }
                         .modal-title {
-                            padding-left: 35px;
-                            color: inherit;
+                            color: white;
                         }
                     }
 
                     .modal-body {
-                        position: absolute;
-                        overflow: auto;
-                        width: 100%;
-                    }
-
-                    .modal-footer {
-                        position: absolute;
-                        .o-flex-display();
-                        .o-flex-flow(row, wrap);
-                        width: 100%;
-                        padding: 8px;
-                        bottom: 0;
-                        border: 0;
-                        background: #fff;
-                        .box-shadow(0px -1px 1px @odoo-main-color-muted);
-                        .btn {
-                            .o-flex(0, 0, 47%);
-                            width: 100%;
-                            margin: 4px;
-                            &.o_btn_ghost {
-                                margin: 0;
-                                padding: 0;
-                                background: #fff;
-                                &:hover {
-                                    .box-shadow(none);
-                                }
-                            }
-                        }
+                        height: 100%;
+                        overflow-y: auto;
                     }
 
                 }

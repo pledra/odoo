@@ -3,17 +3,19 @@
 
 <!-- These templates are accessible in backend and frontend -->
 
-<div t-name="Dialog" t-attf-class="modal#{technical ? ' o_technical_modal' : ''} #{isMobile ? 'o_modal_full': ''}" tabindex="-1" data-backdrop="static" role="dialog" aria-hidden="true" t-att-id="_.uniqueId('modal_')">
+<div t-name="Dialog" t-attf-class="modal#{technical ? ' o_technical_modal' : ''}#{isMobile ? ' o_modal_full': ''}" tabindex="-1" data-backdrop="static" role="dialog" aria-hidden="true" t-att-id="_.uniqueId('modal_')">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <t t-if="isMobile">
-                    <i class="fa fa-arrow-left o_btn_back mr8" data-dismiss="modal" aria-hidden="true"/>
-                </t>
-                <t t-else="">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                </t>
-                <h4 class="modal-title"><t t-raw="title"/><span class="o_subtitle text-muted small"><t t-esc="subtitle"/></span></h4>
+                <h4 class="modal-title">
+                    <t t-if="isMobile">
+                        <i class="fa fa-arrow-left o_btn_back mr8" data-dismiss="modal" aria-hidden="true"/>
+                    </t>
+                    <t t-else="">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </t>
+                    <t t-raw="title"/><span class="o_subtitle text-muted small"><t t-esc="subtitle"/></span>
+                </h4>
             </div>
             <div class="modal-body"/>
             <div class="modal-footer"/>
