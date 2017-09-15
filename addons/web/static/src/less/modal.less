@@ -91,8 +91,26 @@
 
                     .modal-header {
                         background: @odoo-brand-primary;
-                        .modal-title {
+                        .modal-title, .o_subtitle {
                             color: white;
+                        }
+                        .modal-title {
+                            padding-left: 35px;
+                            width: 90%;
+                        }
+                        .fa {
+                            position: absolute;
+                            color: white;
+                            padding: 16px;
+                            top: 0;
+                            line-height: @modal-title-line-height;
+                            font-size: 1.2em;
+                            &.o_btn_back {
+                                left: 0;
+                            }
+                            &.o_btn_right {
+                                right: 0;
+                            }
                         }
                     }
 
