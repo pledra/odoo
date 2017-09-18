@@ -2,23 +2,29 @@
 
 from email.utils import formataddr
 
-from .common import TestMail
-from odoo import api
+from odoo.addons.mail.tests import common
 from odoo.exceptions import AccessError, except_orm
 from odoo.tools import mute_logger
 
 
-class TestMailGroup(TestMail):
+class TestChannelAccessRights(common.BaseFunctionalTest, common.MockEmails):
 
     @classmethod
     def setUpClass(cls):
-        super(TestMailGroup, cls).setUpClass()
-        # for specific tests of mail channel, get back to its expected behavior
-        # cls.registry('mail.channel')._revert_method('message_get_recipient_values')
-        Channel = cls.env['mail.channel'].with_context({
-            'mail_create_nolog': True,
-            'mail_create_nosubscribe': True
-        })
+        super(TestChannelAccessRights, cls).setUpClass()
+        Channel = cls.env['mail.channel'].with_context(cls._quick_create_ctx)
+
+        Users = cls.env['res.users'].with_context(cls._quick_create_ctx)
+        cls.user_public = Users.create({
+            'name': 'Bert Tartignole',
+            'login': 'bert',
+            'email': 'b.t@example.com',
+            'groups_id': [(6, 0, [cls.env.ref('base.group_public').id])]})
+        cls.user_portal = Users.create({
+            'name': 'Chell Gladys',
+            'login': 'chell',
+            'email': 'chell@gladys.portal',
+            'groups_id': [(6, 0, [cls.env.ref('base.group_portal').id])]})
 
         # Pigs: base group for tests
         cls.group_pigs = Channel.create({
@@ -34,15 +40,6 @@ class TestMailGroup(TestMail):
         cls.group_private = Channel.create({
             'name': 'Private',
             'public': 'private'})
-
-    @classmethod
-    def tearDownClass(cls):
-        # set master class behavior back
-        @api.multi
-        def mail_group_message_get_recipient_values(self, notif_message=None, recipient_ids=None):
-            return self.env['mail.thread'].message_get_recipient_values(notif_message=notif_message, recipient_ids=recipient_ids)
-        cls.env['mail.channel']._patch_method('message_get_recipient_values', mail_group_message_get_recipient_values)
-        super(TestMail, cls).tearDownClass()
 
     @mute_logger('odoo.addons.base.ir.ir_model', 'odoo.models')
     def test_access_rights_public(self):
@@ -72,7 +69,7 @@ class TestMailGroup(TestMail):
         with self.assertRaises(AccessError):
             self.group_public.sudo(self.user_public).unlink()
 
-    @mute_logger('odoo.addons.base.ir.ir_model', 'odoo.models')
+    @mute_logger('odoo.addons.base.ir.ir_model', 'odoo.models', 'odoo.models.unlink')
     def test_access_rights_groups(self):
         # Employee read employee-based group: ok
         # TODO Change the except_orm to Warning
@@ -95,6 +92,7 @@ class TestMailGroup(TestMail):
         with self.assertRaises(AccessError):
             self.group_private.sudo(self.user_employee).write({'name': 're-modified'})
 
+    @mute_logger('odoo.addons.base.ir.ir_model', 'odoo.models')
     def test_access_rights_followers_ko(self):
         with self.assertRaises(AccessError):
             self.group_private.sudo(self.user_portal).name
@@ -114,29 +112,46 @@ class TestMailGroup(TestMail):
             with self.assertRaises(except_orm):
                 trigger_read = partner.name
 
-    def test_mail_group_notification_recipients_grouped(self):
+
+class TestChannelFeatures(common.BaseFunctionalTest, common.MockEmails):
+
+    @classmethod
+    def setUpClass(cls):
+        super(TestChannelFeatures, cls).setUpClass()
+        cls.test_channel = cls.env['mail.channel'].with_context(cls._quick_create_ctx).create({
+            'name': 'Test',
+            'description': 'Description',
+            'alias_name': 'test',
+            'public': 'public',
+        })
+        cls.test_partner = cls.env['res.partner'].with_context(cls._quick_create_ctx).create({
+            'name': 'Test Partner',
+            'email': 'test@example.com',
+        })
+
+    @mute_logger('odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
+    def test_channel_mailing_list_recipients(self):
         # Data: set alias_domain to see emails with alias
         self.env['ir.config_parameter'].set_param('mail.catchall.domain', 'schlouby.fr')
-        self.group_private.write({'alias_name': 'Test'})
-        self.group_private.message_subscribe_users([self.user_employee.id, self.user_portal.id])
+        self.test_channel.message_subscribe([self.user_employee.partner_id.id, self.test_partner.id])
+        self.test_channel.message_post(body="Test", message_type='comment', subtype='mt_comment')
 
-        self.group_private.message_post(body="Test", message_type='comment', subtype='mt_comment')
-        sent_emails = self._mails
-        self.assertEqual(len(sent_emails), 1)
-        for email in sent_emails:
+        self.assertEqual(len(self._mails), 1)
+        for email in self._mails:
             self.assertEqual(
                 set(email['email_to']),
-                set([formataddr((self.user_employee.name, self.user_employee.email)), formataddr((self.user_portal.name, self.user_portal.email))]))
+                set([formataddr((self.user_employee.name, self.user_employee.email)), formataddr((self.test_partner.name, self.test_partner.email))]))
 
-    def test_mail_group_notification_recipients_separated(self):
+    @mute_logger('odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
+    def test_channel_classic_recipients(self):
         # Remove alias, should trigger classic behavior of mail group
-        self.group_private.write({'alias_name': False})
-        self.group_private.message_subscribe_users([self.user_employee.id, self.user_portal.id])
+        self.test_channel.write({'alias_name': False})
+        self.test_channel.message_subscribe([self.user_employee.partner_id.id, self.test_partner.id])
+        self.test_channel.message_post(body="Test", message_type='comment', subtype='mt_comment')
 
-        self.group_private.message_post(body="Test", message_type='comment', subtype='mt_comment')
         sent_emails = self._mails
         self.assertEqual(len(sent_emails), 2)
         for email in sent_emails:
             self.assertIn(
                 email['email_to'][0],
-                [formataddr((self.user_employee.name, self.user_employee.email)), formataddr((self.user_portal.name, self.user_portal.email))])
+                [formataddr((self.user_employee.name, self.user_employee.email)), formataddr((self.test_partner.name, self.test_partner.email))])
