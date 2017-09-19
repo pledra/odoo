@@ -313,7 +313,6 @@ class ProductTemplate(models.Model):
 class ProcurementRule(models.Model):
     _inherit = 'procurement.rule'
 
-    @api.multi
     def _run_buy(self, product_id, product_qty, product_uom, location_id, name, origin, values):
         if product_id.purchase_requisition != 'tenders':
             return super(ProcurementRule, self)._run_buy(product_id, product_qty, product_uom, location_id, name, origin, values)

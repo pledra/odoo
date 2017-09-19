@@ -939,7 +939,6 @@ class ProcurementRule(models.Model):
 
         return schedule_date - relativedelta(days=int(seller.delay))
 
-    @api.multi
     def _prepare_purchase_order_line(self, product_id, product_qty, product_uom, values, po, supplier):
         procurement_uom_po_qty = product_uom._compute_quantity(product_qty, product_id.uom_po_id)
         seller = product_id._select_seller(
