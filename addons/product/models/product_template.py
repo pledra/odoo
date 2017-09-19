@@ -382,33 +382,54 @@ class ProductTemplate(models.Model):
             existing_variants = [set(variant.attribute_value_ids.filtered(lambda r: r.attribute_id.create_variant).ids) for variant in tmpl_id.product_variant_ids]
             variant_matrix = itertools.product(*(line.value_ids for line in tmpl_id.attribute_line_ids if line.value_ids and line.value_ids[0].attribute_id.create_variant))
             variant_matrix = map(lambda record_list: reduce(lambda x, y: x+y, record_list, self.env['product.attribute.value']), variant_matrix)
-            to_create_variants = filter(lambda rec_set: set(rec_set.ids) not in existing_variants, variant_matrix)
 
-            # check product
-            variants_to_activate = self.env['product.product']
-            variants_to_unlink = self.env['product.product']
-            for product_id in tmpl_id.product_variant_ids:
-                if not product_id.active and product_id.attribute_value_ids.filtered(lambda r: r.attribute_id.create_variant) in variant_matrix:
-                    variants_to_activate |= product_id
-                elif product_id.attribute_value_ids.filtered(lambda r: r.attribute_id.create_variant) not in variant_matrix:
-                    variants_to_unlink |= product_id
-            if variants_to_activate:
-                variants_to_activate.write({'active': True})
+            new_values_set = set([v.id for value in variant_matrix for v in value])
+            old_values_set = set()
+            for old_val in existing_variants:
+                old_values_set |= old_val
 
-            # create new product
-            for variant_ids in to_create_variants:
-                new_variant = Product.create({
-                    'product_tmpl_id': tmpl_id.id,
-                    'attribute_value_ids': [(6, 0, variant_ids.ids)]
-                })
+            # We start by removing product variants for each corresponding attribute removed from the template
+            values_to_remove = old_values_set - new_values_set
+            refined_matrix = set()
+            for product in tmpl_id.product_variant_ids:
+                orm_commands = []
+                do_write = True
+                for value in values_to_remove:
+                    if frozenset(set(product.attribute_value_ids.ids) - set([value])) in refined_matrix:
+                        self._unlink_or_inactivate_variant(product)
+                        do_write = False
+                    elif value in product.attribute_value_ids.ids:
+                        orm_commands.append((3, value, False))
+                        refined_matrix.add(frozenset(set(product.attribute_value_ids.ids) - set([value])))
+                if do_write and orm_commands:
+                    product.write({'attribute_value_ids': orm_commands})
 
-            # unlink or inactive product
-            for variant in variants_to_unlink:
-                try:
-                    with self._cr.savepoint(), tools.mute_logger('odoo.sql_db'):
-                        variant.unlink()
-                # We catch all kind of exception to be sure that the operation doesn't fail.
-                except (psycopg2.Error, except_orm):
-                    variant.write({'active': False})
-                    pass
+            # We then add new values to the resulting product.product record set
+            values_to_add = new_values_set - old_values_set
+            product_attribute_ids = tmpl_id.env['product.attribute'].search([('value_ids', 'in', list(values_to_add))])
+            new_variants = tmpl_id.env['product.product']
+            for product in tmpl_id.product_variant_ids:
+                orm_commands = []
+                for attr in product_attribute_ids:
+                    intersect_values = set(attr.value_ids.ids) | set(values_to_add)
+                    if len(intersect_values) > 1:
+                        for value in intersect_values:
+                            new_variants |= product.copy({'product_tmpl_id': tmpl_id.id})
+                    first_done = False
+                    for value in intersect_values:
+                        if not first_done:
+                            product.write({'attribute_value_ids': [(4, value)]})
+                            first_done = True
+                        else:
+                            for variant in new_variants:
+                                variant.write({'attribute_value_ids': [(4, value)]})
+
         return True
+
+    def _unlink_or_inactivate_variant(self, variant):
+        try:
+            with self._cr.savepoint(), tools.mute_logger('odoo.sql_db'):
+                variant.unlink()
+        # We catch all kind of exception to be sure that the operation doesn't fail.
+        except (psycopg2.Error, except_orm):
+            variant.write({'active': False})
