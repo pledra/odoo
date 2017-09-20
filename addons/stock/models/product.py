@@ -493,6 +493,12 @@ class ProductTemplate(models.Model):
     def onchange_tracking(self):
         return self.mapped('product_variant_ids').onchange_tracking()
 
+    @api.constrains('type')
+    def _check_existing_move_line(self):
+        if self.type == 'product' and self.env['stock.move.line'].search([('product_id', 'in', self.product_variant_ids.ids), ('state', 'not in', ('cancel', 'done'))]):
+            raise UserError(_('You cannot change the product type because there are still some transfers for this product waiting to\
+                               be processed. Please process these transfers before changing the product type. '))
+
     def write(self, vals):
         if 'uom_id' in vals:
             new_uom = self.env['product.uom'].browse(vals['uom_id'])
