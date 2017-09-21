@@ -654,6 +654,12 @@ var ActionManager = Widget.extend({
 
         core.bus.trigger('action', action);
 
+        // allow server actions from specifying a few options.
+        options.clear_breadcrumbs = action.clear_breadcrumbs || options.clear_breadcrumbs;
+        options.replace_last_action = action.replace_last_action || options.replace_last_action;
+        options.hide_breadcrumb = action.hide_breadcrumb || options.hide_breadcrumb;
+
+
         // Force clear breadcrumbs if action's target is main
         options.clear_breadcrumbs = (action.target === 'main') || options.clear_breadcrumbs;
 
