@@ -78,6 +78,7 @@ var KanbanModel = BasicModel.extend({
                     orderedBy: parent.orderedBy,
                     value: result,
                     viewType: parent.viewType,
+                    progressBar: parent.progressBar
                 });
 
                 // newGroup.is_open = true;
@@ -98,8 +99,8 @@ var KanbanModel = BasicModel.extend({
         if (dp && dp.tooltipData) {
             result.tooltipData = $.extend(true, {}, dp.tooltipData);
         }
-        if (dp && dp.progressBarValues) {
-            result.progressBarValues = $.extend(true, {}, dp.progressBarValues);
+        if (dp && dp.progressBar) {
+            result.progressBar = $.extend(true, {counts:{}}, dp.progressBar);
         }
         return result;
     },
@@ -275,7 +276,7 @@ var KanbanModel = BasicModel.extend({
         return $.when(groupsDef, progressBarDef).then(function (a, data) {
             _.each(list.data, function (groupID) {
                 var group = self.localData[groupID];
-                group.progressBarValues = _.extend({
+                group.progressBar = _.extend({
                     counts: data[group.value] || {},
                 }, list.progressBar);
             });

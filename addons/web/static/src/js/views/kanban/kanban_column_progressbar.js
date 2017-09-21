@@ -26,9 +26,9 @@ var KanbanColumnProgressBar = Widget.extend({
         this.columnID = options.columnID;
 
         // <progressbar/> attributes
-        this.fieldName = columnState.progressBarValues.field;
-        this.colors = columnState.progressBarValues.colors;
-        this.sumField = columnState.progressBarValues.sum;
+        this.fieldName = columnState.progressBar.field;
+        this.colors = columnState.progressBar.colors;
+        this.sumField = columnState.progressBar.sum;
 
         // Previous progressBar state
         var state = options.progressBarStates[this.columnID];
@@ -81,7 +81,7 @@ var KanbanColumnProgressBar = Widget.extend({
 
         var subgroupCounts = {};
         _.each(self.colors, function (val, key) {
-            var subgroupCount = columnState.progressBarValues.counts[key] || 0;
+            var subgroupCount = columnState.progressBar.counts[key] || 0;
             if (self.activeFilter === val && subgroupCount === 0) {
                 self.activeFilter = false;
             }
