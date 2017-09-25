@@ -287,15 +287,20 @@ class ResPartner(models.Model):
 
         # price_total is in the company currency
         query = """
-                  SELECT SUM(price_total) as total, partner_id
-                    FROM account_invoice_report account_invoice_report
-                   WHERE %s
-                   GROUP BY partner_id
+                  SELECT
+                    SUM(CASE WHEN type = 'out_invoice' THEN price_total ELSE 0 END) as total_invoiced,
+                    SUM(CASE WHEN type = 'out_refund' THEN price_total ELSE 0 END) as total_refund,
+                    partner_id
+                  FROM account_invoice_report account_invoice_report
+                  WHERE %s
+                  GROUP BY partner_id
                 """ % where_clause
         self.env.cr.execute(query, where_clause_params)
         price_totals = self.env.cr.dictfetchall()
         for partner, child_ids in all_partners_and_children.items():
-            partner.total_invoiced = sum(price['total'] for price in price_totals if price['partner_id'] in child_ids)
+            partner.total_invoiced = \
+                sum(price['total_invoiced'] for price in price_totals if price['partner_id'] in child_ids)\
+                - sum(price['total_refund'] for price in price_totals if price['partner_id'] in child_ids)
 
     @api.multi
     def _journal_item_count(self):
