@@ -1768,6 +1768,7 @@ var FieldMany2ManyCheckBoxes = AbstractField.extend({
      * @private
      */
     _onChange: function () {
+        debugger;
         var ids = _.map(this.$('input:checked'), function (input) {
             return $(input).data("record-id");
         });

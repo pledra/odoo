@@ -1518,11 +1518,11 @@ var BasicModel = AbstractModel.extend({
                 });
                 break;
             case 'REPLACE_WITH':
+            debugger;
                 // this is certainly not optimal... and not sure that it is
                 // correct if some ids are added and some other are removed
                 list._changes = [];
                 var newIds = _.difference(command.ids, list.res_ids);
-                var removedIds = _.difference(list.res_ids, command.ids);
                 var addDef, removedDef, values;
                 if (newIds.length) {
                     values = _.map(newIds, function (id) {
@@ -1533,6 +1533,14 @@ var BasicModel = AbstractModel.extend({
                         ids: values
                     });
                 }
+
+                var actual_list = []
+                debugger;
+                for (var ind in list.res_ids) {
+                    actual_list.push(self.get(list.res_ids[ind], {raw: true}).data);
+                }
+
+                var removedIds = _.difference(actual_list.res_ids, command.ids);
                 if (removedIds.length) {
                     var listData = _.map(list.data, function (localId) {
                         return self.localData[localId];

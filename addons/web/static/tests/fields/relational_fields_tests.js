@@ -7853,7 +7853,7 @@ QUnit.module('relational_fields', {
     QUnit.module('FieldMany2ManyCheckBoxes');
 
     QUnit.test('widget many2many_checkboxes', function (assert) {
-        assert.expect(10);
+        assert.expect(11);
 
         this.data.partner.records[0].timmy = [12];
         var form = createView({
@@ -7871,6 +7871,7 @@ QUnit.module('relational_fields', {
 
         assert.ok(form.$('div.o_field_widget div.o_checkbox input').eq(0).prop('checked'),
             "first checkbox should be checked");
+
         assert.notOk(form.$('div.o_field_widget div.o_checkbox input').eq(1).prop('checked'),
             "second checkbox should not be checked");
 
@@ -7881,6 +7882,19 @@ QUnit.module('relational_fields', {
 
         assert.notOk(form.$('div.o_field_widget div.o_checkbox input').prop('disabled'),
             "the checkboxes should not be disabled");
+
+        // Start 
+        // This part of the test aims at verifying that the M2M is well computed
+        form.$('div.o_field_widget div.o_checkbox input').eq(0).click()
+        form.$('div.o_field_widget div.o_checkbox input').eq(0).click()
+        form.$('div.o_field_widget div.o_checkbox input').eq(0).click()
+        
+        assert.notOk(form.$('div.o_field_widget div.o_checkbox input').eq(0).prop('checked'),
+            "first checkbox should not be checked");
+
+        // Back to expected state
+        form.$('div.o_field_widget div.o_checkbox input').eq(0).click()
+        // End
 
         // add a m2m value by clicking on input
         form.$('div.o_field_widget div.o_checkbox input').eq(1).click();
