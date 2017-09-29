@@ -55,47 +55,25 @@ def float_round(value, precision_digits=None, precision_rounding=None, rounding_
     """
     rounding_factor = _float_check_precision(precision_digits=precision_digits,
                                              precision_rounding=precision_rounding)
-    if rounding_factor == 0 or value == 0: return 0.0
 
-    # NORMALIZE - ROUND - DENORMALIZE
-    # In order to easily support rounding to arbitrary 'steps' (e.g. coin values),
-    # we normalize the value before rounding it as an integer, and de-normalize
-    # after rounding: e.g. float_round(1.3, precision_rounding=.5) == 1.5
+    if rounding_factor == 0 or value == 0:
+        return 0.0
 
-    # TIE-BREAKING: HALF-UP (for normal rounding)
-    # We want to apply HALF-UP tie-breaking rules, i.e. 0.5 rounds away from 0.
-    # Due to IEE754 float/double representation limits, the approximation of the
-    # real value may be slightly below the tie limit, resulting in an error of
-    # 1 unit in the last place (ulp) after rounding.
-    # For example 2.675 == 2.6749999999999998.
-    # To correct this, we add a very small epsilon value, scaled to the
-    # the order of magnitude of the value, to tip the tie-break in the right
-    # direction.
-    # Credit: discussion with OpenERP community members on bug 882036
+    # The number of expected digits at the end
+    rounding_digits = precision_digits or round(-math.log(precision_rounding, 10))
 
-    normalized_value = value / rounding_factor # normalize
-    epsilon_magnitude = math.log(abs(normalized_value), 2)
-    epsilon = 2**(epsilon_magnitude-53)
+    # The rounding method to use
     if rounding_method == 'HALF-UP':
-        normalized_value += math.copysign(epsilon, normalized_value)
-        rounded_value = round(normalized_value)     # round to integer
-
-    # TIE-BREAKING: UP (for ceiling[resp. flooring] operations)
-    # When rounding the value up[resp. down], we instead subtract the epsilon value
-    # as the the approximation of the real value may be slightly *above* the
-    # tie limit, this would result in incorrectly rounding up[resp. down] to the next number
-    # The math.ceil[resp. math.floor] operation is applied on the absolute value in order to
-    # round "away from zero" and not "towards infinity", then the sign is
-    # restored.
-
+        rounding_method = round
+    elif rounding_method == 'DOWN':
+        rounding_method = math.floor
     else:
-        func = math.floor if rounding_method == 'DOWN' else math.ceil
-        sign = math.copysign(1.0, normalized_value)
-        normalized_value -= sign*epsilon
-        rounded_value = func(abs(normalized_value)) * sign
+        rounding_method = math.ceil
 
-    result = rounded_value * rounding_factor # de-normalize
-    return result
+    normalized_value = value / rounding_factor
+    rounded_normalized_value = rounding_method(normalized_value)
+    rounded_value = round(rounded_normalized_value * rounding_factor, rounding_digits)
+    return rounded_value
 
 def float_is_zero(value, precision_digits=None, precision_rounding=None):
     """Returns true if ``value`` is small enough to be treated as
