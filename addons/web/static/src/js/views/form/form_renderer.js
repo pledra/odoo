@@ -278,7 +278,9 @@ var FormRenderer = BasicRenderer.extend({
 
             var $ul = $("<ul>", {'class': "dropdown-menu o_dropdown_more", role: "menu"});
             _.each(folded_buttons, function ($button) {
-                $('<li>').appendTo($ul).append($button);
+                if ($button.length) {
+                    $('<li>').appendTo($ul).append($button);
+                }
             });
             $ul.appendTo($result);
         }
