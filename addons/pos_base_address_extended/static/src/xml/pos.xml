@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="ClientDetailsEditAddressExtended" t-extend="ClientDetailsEdit">
+        <div t-jquery=".client-details-left > .client-detail:first" t-operation="replace" class="client-detail">
+            <span class='label'>Street Name</span>
+                <input class='detail client-address-street' name='street_name'       t-att-value='partner.street_name || ""' placeholder='Street Name'></input>
+            <span class='label'>Number</span>
+                <input class='detail client-address-street' name='street_number'       t-att-value='partner.street_number || ""' placeholder='Number'></input>
+
+            <span class='label'>Floor</span>
+                <input class='detail client-address-street' name='street_number2'       t-att-value='partner.street_number2 || ""' placeholder='Floor'></input>
+        </div>
+    </t>
+
+</templates>
