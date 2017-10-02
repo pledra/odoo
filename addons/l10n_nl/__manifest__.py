@@ -26,6 +26,7 @@
         'data/account_fiscal_position_account_template.xml',
         'data/account_chart_template.yml',
         'data/menuitem.xml',
+        'data/res_country.xml',
     ],
     'demo': [],
     'auto_install': False,
