@@ -2,6 +2,7 @@ odoo.define('web.KanbanRenderer', function (require) {
 "use strict";
 
 var BasicRenderer = require('web.BasicRenderer');
+var config = require('web.config');
 var core = require('web.core');
 var KanbanColumn = require('web.KanbanColumn');
 var KanbanRecord = require('web.KanbanRecord');
@@ -93,6 +94,7 @@ var KanbanRenderer = BasicRenderer.extend({
     init: function (parent, state, params) {
         this._super.apply(this, arguments);
 
+        var self = this;
         this.widgets = [];
         this.qweb = new QWeb(session.debug, {_s: session.origin});
         var templates = findInNode(this.arch, function (n) { return n.tag === 'templates';});
@@ -109,6 +111,21 @@ var KanbanRenderer = BasicRenderer.extend({
         }
 
         this._setState(state);
+
+        this.recordCount = 0;
+        if (config.isMobile) {
+            $(window).on('scroll', function () {
+                if (state.viewType === 'kanban' && $(this).scrollTop() + $(this).height() >= $(document).height() && state.count !== self.recordCount) {
+                    self.trigger_up('kanban_load_more_infinite_scroll');
+                }
+            });
+        } else {
+            $('.o_content').on('scroll', function () {
+                if (state.viewType === 'kanban' && $(this).scrollTop() + $(this).height() >= $(this)[0].scrollHeight && state.count !== self.recordCount) {
+                    self.trigger_up('kanban_load_more_infinite_scroll');
+                }
+            });
+        }
     },
 
     //--------------------------------------------------------------------------
@@ -175,6 +192,14 @@ var KanbanRenderer = BasicRenderer.extend({
         if (record) {
             record.update(recordState);
         }
+    },
+    /**
+     * @param {Object} state
+     */
+    updateRenderView: function (state) {
+        this.state = state;
+        this.recordCount = state.data.length;
+        this._renderView();
     },
     /**
      * @override

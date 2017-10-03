@@ -30,6 +30,7 @@ var KanbanController = BasicController.extend({
         kanban_load_more: '_onLoadMore',
         kanban_load_records: '_onLoadColumnRecords',
         column_toggle_fold: '_onToggleColumn',
+        kanban_load_more_infinite_scroll: '_onLoadMoreInfiniteScroll',
     }),
     /**
      * @override
@@ -312,6 +313,18 @@ var KanbanController = BasicController.extend({
         this.model.loadMore(column.db_id).then(function (db_id) {
             var data = self.model.get(db_id);
             self.renderer.updateColumn(db_id, data);
+            self._updateEnv();
+        });
+    },
+    /**
+     * @private
+     * @param {OdooEvent} event
+     */
+    _onLoadMoreInfiniteScroll: function (event) {
+        var self = this;
+        this.model.loadMore(event.target.state.id).then(function (id) {
+            var data = self.model.get(id);
+            self.renderer.updateRenderView(data);
             self._updateEnv();
         });
     },
