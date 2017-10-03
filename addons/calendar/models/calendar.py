@@ -1032,9 +1032,9 @@ class Meeting(models.Model):
         sort_fields = {}
         for field in order_fields:
             if field == 'id' and r_date:
-                sort_fields[field] = real_id2calendar_id(self.id, r_date)
+                sort_fields[field] = str(real_id2calendar_id(self.id, r_date))
             else:
-                sort_fields[field] = self[field]
+                sort_fields[field] = self[field] if field != 'id' else str(self[field])
                 if isinstance(self[field], models.BaseModel):
                     name_get = self[field].name_get()
                     if len(name_get) and len(name_get[0]) >= 2:
@@ -1130,11 +1130,13 @@ class Meeting(models.Model):
             (sort_remap(key.split()[0]), key.lower().endswith(' desc'))
             for key in (order or self._order).split(',')
         ))
+
         def key(record):
             return [
                 tools.Reverse(record[name]) if desc else record[name]
                 for name, desc in sort_spec
             ]
+
         return [r['id'] for r in sorted(result_data, key=key)]
 
     @api.multi
