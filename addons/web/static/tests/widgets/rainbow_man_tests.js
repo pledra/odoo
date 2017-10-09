@@ -15,22 +15,25 @@ QUnit.module('RainbowMan', {
 }, function () {
 
     QUnit.test("rendering a rainbowman", function (assert) {
+        var done = assert.async();
         assert.expect(2);
 
         var $target = $("#qunit-fixture");
 
         // Create and display rainbowman
         var rainbowman = new RainbowMan(this.data);
-        rainbowman.appendTo($target);
+        rainbowman.appendTo($target).then(function () {
+            var $rainbow = rainbowman.$(".o_reward_rainbow");
+            assert.strictEqual($rainbow.length, 1,
+                "Should have displayed rainbow effect");
 
-        var $rainbow = rainbowman.$(".o_reward_rainbow");
-        assert.strictEqual($rainbow.length, 1,
-            "Should have displayed rainbow effect");
+            assert.ok(rainbowman.$('.o_reward_msg_content').html() === 'Congrats!',
+                "Card on the rainbowman should display 'Congrats!' message");
 
-        assert.ok(rainbowman.$('.o_reward_msg_content').html() === 'Congrats!',
-            "Card on the rainbowman should display 'Congrats!' message");
+            rainbowman.destroy();
+            done();
+        });
 
-        rainbowman.destroy();
     });
 });
 });
