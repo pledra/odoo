@@ -644,6 +644,9 @@ class StockMove(models.Model):
             if not picking:
                 recompute = True
                 picking = Picking.create(move._get_new_picking_values())
+            else:
+                if move.origin and move.origin not in picking.origin:
+                    picking.origin += '/' + move.origin
             move.write({'picking_id': picking.id})
 
             # If this method is called in batch by a write on a one2many and
