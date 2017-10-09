@@ -800,6 +800,12 @@ var FormRenderer = BasicRenderer.extend({
         this.$el.toggleClass('o_form_editable', this.mode === 'edit');
         this.$el.toggleClass('o_form_readonly', this.mode === 'readonly');
 
+        // Enable swipe for mobile when formview is in readonly mode
+        // and there are multiple records
+        if (config.device.isMobile && this.mode === 'readonly' && this.state.count > 1) {
+            this._enableSwipe();
+        }
+
         // Attach the tooltips on the fields' label
         _.each(this.allFieldWidgets[this.state.id], function (widget) {
             var idForLabel = self.idsForLabels[widget.name];
@@ -820,6 +826,22 @@ var FormRenderer = BasicRenderer.extend({
                 // rendered
                 widget.renderWithLabel($label);
             }
+        });
+    },
+    /**
+     * Enable swipe event
+     *
+     * @private
+     */
+    _enableSwipe: function () {
+        var self = this;
+        this.$('.o_form_sheet').swipe({
+            swipeLeft: function () {
+                self.trigger_up('swipe_left');
+            },
+            swipeRight: function () {
+                self.trigger_up('swipe_right');
+            },
         });
     },
     /**
