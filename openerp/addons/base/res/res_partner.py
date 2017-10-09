@@ -195,7 +195,7 @@ class res_partner(osv.Model, format_address):
                  "It is important to set a value for this field. You should use the same timezone "
                  "that is otherwise used to pick and render date and time values: your computer's timezone."),
         'tz_offset': fields.function(_get_tz_offset, type='char', size=5, string='Timezone offset', invisible=True),
-        'user_id': fields.many2one('res.users', 'Salesperson', help='The internal user that is in charge of communicating with this contact if any.'),
+        'user_id': fields.many2one('res.users', 'Salesperson', domain=[('share', '=', False)], help='The internal user that is in charge of communicating with this contact if any.'),
         'vat': fields.char('TIN', help="Tax Identification Number. Fill it if the company is subjected to taxes. Used by the some of the legal statements."),
         'bank_ids': fields.one2many('res.partner.bank', 'partner_id', 'Banks'),
         'website': fields.char('Website', help="Website of Partner or Company"),
