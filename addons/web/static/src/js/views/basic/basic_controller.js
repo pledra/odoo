@@ -469,16 +469,12 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
      * to date.
      */
     _updatePager: function () {
-        console.log("called");
         if (this.pager) {
             var data = this.model.get(this.handle, {raw: true});
             this.pager.updateState({
                 current_min: data.offset + 1,
                 size: data.count,
             });
-            console.log(this.pager);
-            console.log(this.pager.state.current_min);
-            console.log(this.pager.state.size);
             var isRecord = data.type === 'record';
             var hasData = !!data.count;
             var isGrouped = data.groupedBy ? !!data.groupedBy.length : false;

@@ -32,7 +32,7 @@ var KanbanView = BasicView.extend({
 
         var arch = viewInfo.arch;
 
-        this.loadParams.limit = 10 || this.loadParams.limit || 40;
+        this.loadParams.limit = this.loadParams.limit || 40;
         // in mobile, columns are lazy-loaded, so set 'openGroupByDefault' to
         // false so that they will won't be loaded by the initial load
         this.loadParams.openGroupByDefault = config.isMobile ? false : true;

@@ -115,13 +115,19 @@ var KanbanRenderer = BasicRenderer.extend({
         this.recordCount = 0;
         if (config.isMobile) {
             $(window).on('scroll', function () {
-                if (state.viewType === 'kanban' && $(this).scrollTop() + $(this).height() >= $(document).height() && state.count !== self.recordCount) {
+                if (state.viewType === 'kanban'
+                    && $(this).scrollTop() + $(this).height() >= $(document).height()
+                    && state.count > state.data.length
+                    && state.count !== self.recordCount) {
                     self.trigger_up('kanban_load_more_infinite_scroll');
                 }
             });
         } else {
             $('.o_content').on('scroll', function () {
-                if (state.viewType === 'kanban' && $(this).scrollTop() + $(this).height() >= $(this)[0].scrollHeight && state.count !== self.recordCount) {
+                if (state.viewType === 'kanban'
+                    && $(this).scrollTop() + $(this).height() >= $(this)[0].scrollHeight
+                    && state.count > state.data.length
+                    && state.count !== self.recordCount) {
                     self.trigger_up('kanban_load_more_infinite_scroll');
                 }
             });

@@ -321,21 +321,12 @@ var KanbanController = BasicController.extend({
      * @param {OdooEvent} event
      */
     _onLoadMoreInfiniteScroll: function (event) {
-        console.log(this);
-        // this.pager.state.current_min = 0;
-        this.pager.updateState({
-            current_min: 0,
-            current_max: this.pager.state.current_max + 10,
-        });
-        // this.pager.state.current_min = 0;
-        this.pager.next();
         var self = this;
-        console.log();
-        // this.model.loadMore(event.target.state.id).then(function (id) {
-        //     var data = self.model.get(id);
-        //     self.renderer.updateRenderView(data);
-        //     self._updateEnv();
-        // });
+        this.model.loadMore(event.target.state.id).then(function (id) {
+            var data = self.model.get(id);
+            self.renderer.updateRenderView(data);
+            self._updateEnv();
+        });
     },
     /**
      * @private
