@@ -3098,6 +3098,36 @@ QUnit.module('Views', {
         list.destroy();
         delete widgetRegistry.map.test;
     });
+
+    QUnit.test('absence of delete action', function (assert) {
+        assert.expect(1);
+
+        var list = createView({
+            View: ListView,
+            model: 'foo',
+            data: this.data,
+            arch: '<tree delete="false"></tree>',
+        });
+
+        assert.ok(!list.activeActions.delete);
+
+        list.destroy();
+    });
+
+    QUnit.test('presence of delete action', function (assert) {
+        assert.expect(1);
+
+        var list = createView({
+            View: ListView,
+            model: 'foo',
+            data: this.data,
+            arch: '<tree></tree>',
+        });
+        
+        assert.ok(list.activeActions.delete);
+
+        list.destroy();
+    });
 });
 
 });
