@@ -26,6 +26,7 @@ var ListController = BasicController.extend({
         selection_changed: '_onSelectionChanged',
         toggle_column_order: '_onToggleColumnOrder',
         toggle_group: '_onToggleGroup',
+        load_more_infinite_scroll: '_onLoadMoreInfiniteScroll',
     }),
     /**
      * @constructor
@@ -500,6 +501,19 @@ var ListController = BasicController.extend({
         this.model
             .toggleGroup(event.data.group.id)
             .then(this.update.bind(this, {}, {reload: false}));
+    },
+    /**
+     * @private
+     * @param {OdooEvent} event
+     */
+    _onLoadMoreInfiniteScroll: function (event) {
+        var self = this;
+        // TODO: Remove loadMoreListRecords from basicModel
+        this.model.loadMoreListRecords(event.target.state.id).then(function (id) {
+            var data = self.model.get(id);
+            self.renderer.updateRenderView(data);
+            self._updateEnv();
+        });
     },
 });
 

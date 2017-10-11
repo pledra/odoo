@@ -66,6 +66,27 @@ var ListRenderer = BasicRenderer.extend({
         this.hasSelectors = params.hasSelectors;
         this.selection = [];
         this.pagers = []; // instantiated pagers (only for grouped lists)
+
+        this.recordCount = 0;
+        if (config.isMobile) {
+            $(window).on('scroll', function () {
+                if (state.viewType === 'list'
+                    && $(this).scrollTop() + $(this).height() >= $(document).height()
+                    && state.count > state.data.length
+                    && state.count !== self.recordCount) {
+                    self.trigger_up('load_more_infinite_scroll');
+                }
+            });
+        } else {
+            $('.o_content').on('scroll', function () {
+                if (state.viewType === 'list'
+                    && $(this).scrollTop() + $(this).height() >= $(this)[0].scrollHeight
+                    && state.count > state.data.length
+                    && state.count !== self.recordCount) {
+                    self.trigger_up('load_more_infinite_scroll');
+                }
+            });
+        }
     },
 
     //--------------------------------------------------------------------------
@@ -573,6 +594,11 @@ var ListRenderer = BasicRenderer.extend({
         return $('<' + tag + ' width="1">')
                     .addClass('o_list_record_selector')
                     .append($content);
+    },
+    updateRenderView: function (state) {
+        this.state = state;
+        this.recordCount = state.data.length;
+        this._renderView();
     },
     /**
      * Main render function for the list.  It is rendered as a table. For now,

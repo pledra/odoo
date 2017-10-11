@@ -569,6 +569,14 @@ var BasicModel = AbstractModel.extend({
             return dataPoint.id;
         });
     },
+    // TODO: Remove it and move to new inherited list model from basic model
+    loadMoreListRecords: function (groupID) {
+        var group = this.localData[groupID];
+        var offset = group.loadMoreOffset + group.limit;
+        return this.reload(group.id, {
+            loadMoreOffset: offset,
+        });
+    },
     /**
      * This helper method is designed to help developpers that want to use a
      * field widget outside of a view.  In that case, we want a way to create
