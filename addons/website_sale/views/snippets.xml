@@ -59,4 +59,27 @@
         <t t-snippet="website_sale.s_product_catalog" t-thumbnail="/website/static/src/img/blocks/product_catalog.png"/>
     </xpath>
 </template>
+
+<template id="s_product_catalog_snippet_options" inherit_id="website.snippet_options">
+    <xpath expr="//div" position="after">
+        <div data-selector=".s_product_catalog" data-js="product_catalog">
+            <li class="dropdown-submenu">
+                <a tabindex="-1" href="#"><i class="fa fa-th"></i>Catalog Size</a>
+                <ul class="dropdown-menu" name="size">
+                    <li data-grid-size="true">
+                        <a href="#">
+                            <table>
+                                <tr><td class="selected"></td><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td><td></td></tr>
+                                <tr><td></td><td></td><td></td><td></td></tr>
+                            </table>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </div>
+    </xpath>
+</template>
+
 </odoo>
