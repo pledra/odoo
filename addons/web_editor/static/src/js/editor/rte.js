@@ -413,7 +413,7 @@ var RTEWidget = Widget.extend({
             // TODO: Add a queue with concurrency limit in webclient
             // https://github.com/medikoo/deferred/blob/master/lib/ext/function/gate.js
             return self.saving_mutex.exec(function () {
-                return self._saveElement($el, context || weContext.get())
+                return self._saveElement($el, context || weContext.get(), true)
                 .then(function () {
                     $el.removeClass('o_dirty');
                 }, function (response) {
