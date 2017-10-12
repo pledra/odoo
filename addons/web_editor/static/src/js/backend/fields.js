@@ -5,6 +5,8 @@ var AbstractField = require('web.AbstractField');
 var basic_fields = require('web.basic_fields');
 var config = require('web.config');
 var core = require('web.core');
+var Dialog = require('web.Dialog');
+var Widget = require('web.Widget');
 var session = require('web.session');
 var field_registry = require('web.field_registry');
 var SummernoteManager = require('web_editor.rte.summernote');
@@ -25,6 +27,9 @@ var _t = core._t;
 var FieldTextHtmlSimple = basic_fields.DebouncedField.extend(TranslatableFieldMixin, {
     className: 'oe_form_field oe_form_field_html_text',
     supportedFieldTypes: ['html'],
+    custom_events: {
+        tansform_t_tag: '_onTransformTag',
+    },
 
     /**
      * @override
@@ -121,6 +126,24 @@ var FieldTextHtmlSimple = basic_fields.DebouncedField.extend(TranslatableFieldMi
         return this.$content.html();
     },
     /**
+     * @private
+     * @param {OdooEvent} ev
+     */
+    _onTransformTag: function (ev) {
+        var self = this;
+        // find all the t-tags
+        var t_tags = this.$content.find("[t-esc], [t-field], [t-raw], [t-set], [t-if], [t-elif], [t-else]");
+        _.each(t_tags, function (tag) {
+            var expEditor = new QWebExpEditor(ev.data);
+            // attach all the t-tags to the expEditor
+            expEditor.attachTo($(tag));
+        });
+        // set dirty flag to true if mode is edit for save the changes.
+        if (this.mode === 'edit') {
+            this._isDirty = true;
+        }
+    },
+    /**
      * @override
      * @private
      */
@@ -130,6 +153,10 @@ var FieldTextHtmlSimple = basic_fields.DebouncedField.extend(TranslatableFieldMi
         this.$textarea.summernote(this._getSummernoteConfig());
         this.$content = this.$('.note-editable:first');
         this.$content.html(this._textToHtml(this.value));
+        // remove all t-tags before rendering from edit mode
+        this.$content.find('.o_t_expression').remove();
+        // open dialog for edit expression only in edit mode
+        this.trigger_up('tansform_t_tag', {readonly: false});
         // trigger a mouseup to refresh the editor toolbar
         this.$content.trigger('mouseup');
         if (this.nodeOptions['style-inline']) {
@@ -155,15 +182,20 @@ var FieldTextHtmlSimple = basic_fields.DebouncedField.extend(TranslatableFieldMi
             $iframe.on('load', function () {
                 self.$content = $($iframe.contents()[0]).find("body");
                 self.$content.html(self._textToHtml(self.value));
+                self.$content.find('.o_t_expression').remove();
+                self.trigger_up('tansform_t_tag', {readonly: true});
                 self._resize();
             });
             $iframe.appendTo(this.$el);
         } else {
             this.$content = $('<div class="o_readonly"/>');
             this.$content.html(this._textToHtml(this.value));
+            this.$content.find('.o_t_expression').remove();
+            self.trigger_up('tansform_t_tag', {readonly: true});
             this.$content.appendTo(this.$el);
         }
     },
+
     /**
      * Sets the height of the iframe.
      *
@@ -209,6 +241,86 @@ var FieldTextHtmlSimple = basic_fields.DebouncedField.extend(TranslatableFieldMi
         return $();
     },
 
+});
+
+/**
+ * QWeb Expression Editor Widget
+ * Intended to edit qweb expressions / tags from templates.
+ */
+var QWebExpEditor = Widget.extend({
+    events: {'click .o_t_expression': '_onEditExpression'},
+    /**
+     * @override
+     * @param {options} object
+     */
+    init: function (options) {
+        this.readonly = options.readonly;
+        this._super.apply(this, arguments);
+    },
+    /**
+     * @override
+     */
+    start: function () {
+        // find supported qweb attribute from the node
+        var exp_text = this.$el.attr('t-esc') || this.$el.attr('t-field') || this.$el.attr('t-raw')
+                    || this.$el.attr('t-set') || '?';
+        // find text value of used t-tag and append this value to the current object
+        {
+            $('<code/>', {
+                'contenteditable': false,
+                'class': 'o_t_expression',
+                'title': exp_text === '?' ? _t('Click here to change the condition.') : _t('Click here to edit template.'),
+            }).text(exp_text).appendTo(this.$el);
+        }
+        return this._super.apply(this, arguments);
+    },
+    /**
+     * @ Private
+     * For Edit the expression it opens dialog box with t-tag on clicking of field if mode is edit.
+     */
+    _onEditExpression: function () {
+        if (this.readonly) {
+            return;
+        }
+        var self = this;
+        // make empty clone element for getting outerHTML
+        var $t_clone = this.$el.clone().empty();
+        var dialog = new Dialog(this, {
+            title: _t("Change Expression"),
+            $content: $('<div>', {
+                'html': $('<textarea class="t-tag"/>').val($t_clone.get(0).outerHTML)
+            }),
+            buttons: [
+                {
+                    text: _t("Ok"),
+                    classes: 'btn-primary',
+                    close: true,
+                    click: function () {
+                        self.save(this.$content);
+                    }
+                },
+                {
+                    text: _t("Discard"),
+                    close: true
+                },
+            ],
+        }).open();
+    },
+    /**
+     * attach new text value to the current object.
+     * @param {$content} object
+     */
+    save: function ($content) {
+        // find new text value of t-tag.
+        var t_tag_text = $content.find('.t-tag').val();
+        var $t_tag = $(t_tag_text);
+        if ($t_tag.length) {
+            // if new text value is found then replace it with old text value
+            this.$el.replaceWith($t_tag); //for DOM
+            this.$el = $t_tag ;  // for widget
+            this.attachTo(this.$el);
+        }
+    },
 });
 
 var FieldTextHtml = AbstractField.extend({
