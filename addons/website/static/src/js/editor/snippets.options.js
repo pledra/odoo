@@ -611,7 +611,6 @@ options.registry.gallery = options.Class.extend({
      */
     columns: function (previewMode, value) {
         this.$target.attr('data-columns', value);
-
         var $activeMode = this.$el.find('.active[data-mode]');
         this.mode(null, $activeMode.data('mode'), $activeMode);
     },

@@ -46,7 +46,7 @@
 
 <!-- Snippets -->
 <template id="s_product_catalog" name="Product Catalog">
-    <section class="s_product_catalog">
+    <section class="s_product_catalog" data-catalog-type="grid" data-x="3" data-y="1">
         <div class="container">
             <h1 class="text-center">Our New Products</h1>
             <h3 class="text-center text-muted">Shop with us now!</h3>
@@ -64,9 +64,22 @@
     <xpath expr="//div" position="after">
         <div data-selector=".s_product_catalog" data-js="product_catalog">
             <li class="dropdown-submenu">
-                <a tabindex="-1" href="#"><i class="fa fa-th"></i>Catalog Size</a>
+                <a tabindex="-1" href="#"><i class="fa fa-bars" aria-hidden="true"/>Catalog Type</a>
+                <ul class="dropdown-menu">
+                    <li data-catalog-type="grid">
+                        <a href="#">
+                            Grid
+                        </a>
+                    </li>
+                    <li data-catalog-type="carousel">
+                        <a href="#">Carousel</a>
+                    </li>
+                </ul>
+            </li>
+            <li class="dropdown-submenu">
+                <a tabindex="-1" href="#"><i class="fa fa-th"></i>Size</a>
                 <ul class="dropdown-menu" name="size">
-                    <li data-grid-size="true">
+                    <li data-grid="">
                         <a href="#">
                             <table>
                                 <tr><td class="selected"></td><td></td><td></td><td></td></tr>
@@ -76,6 +89,17 @@
                             </table>
                         </a>
                     </li>
+                </ul>
+            </li>
+            <li class="dropdown-submenu">
+                <a tabindex="-1" href="#"><i class="fa fa-th"></i>Size</a>
+                <ul class="dropdown-menu">
+                    <li data-carousel="3"><a href="#">3</a></li>
+                    <li data-carousel="4"><a href="#">4</a></li>
+                    <li data-carousel="5"><a href="#">5</a></li>
+                    <li data-carousel="6"><a href="#">6</a></li>
+                    <li data-carousel="7"><a href="#">7</a></li>
+                    <li data-carousel="8"><a href="#">8</a></li>
                 </ul>
             </li>
         </div>
