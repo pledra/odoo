@@ -10,18 +10,24 @@ var _t = core._t;
 var QWeb = core.qweb;
 
 options.registry.product_catalog = options.Class.extend({
-	start: function() {
-		this._super.apply(this, arguments);
-		if (this.$target.data('catalog-type') === 'grid') {
-	        this._setGrid();
-	        this._bindGridEvents();
-		}
-		this.$el.find('[data-carousel]:first').parent().parent().toggle(this.$target.data('catalog-type') === 'carousel');
-		this.$el.find('[data-grid]:first').parent().parent().toggle(this.$target.data('catalog-type') === 'grid');
-	},
-	_setGrid: function() {
-		var x = this.$target.data('x');
-        var y = this.$target.data('y');
+    start: function () {
+        this._super.apply(this, arguments);
+        if (this.$target.data('catalog-type') === 'grid') {
+            this._setGrid();
+            this._bindGridEvents();
+        }
+        this.$el.find('[data-catalog-type='+this.$target.data('catalog-type')+']').addClass('active');
+        this.$el.find('[data-carousel]:first').parent().parent().toggle(this.$target.data('catalog-type') === 'carousel');
+        this.$el.find('[data-grid]:first').parent().parent().toggle(this.$target.data('catalog-type') === 'grid');
+    },
+    _setGrid: function () {
+        var $td = this.$el.find('.select:last');
+        if ($td.length) {
+            this.$target.attr('data-x', $td.index() + 1);
+            this.$target.attr('data-y', $td.parent().index() + 1);
+        }
+        var x = this.$target.attr('data-x');
+        var y = this.$target.attr('data-y');
         var $grid = this.$el.find('ul[name="size"]');
         var $selected = $grid.find('tr:eq(0) td:lt(' + x + ')');
         if (y >= 2) {
@@ -33,21 +39,22 @@ options.registry.product_catalog = options.Class.extend({
         if (y >= 4) {
             $selected = $selected.add($grid.find('tr:eq(3) td:lt(' + x + ')'));
         }
+        $grid.find('td').removeClass('selected');
         $selected.addClass('selected');
-	},
-	grid: function (previewMode, value, $li) {
-		if (!this.__click) {
-            return;
-        }
-        var self = this;
-        var $td = this.$el.find('.select:last');
-        if ($td.length) {
-            var x = $td.index() + 1;
-            var y = $td.parent().index() + 1;
-            this.$target.attr('data-x', x);
-            this.$target.attr('data-y', y);
-        }
-	},
+    },
+    grid: function (previewMode, value, $li) {
+        if (!this.__click || previewMode == 'reset') return;
+        this._setGrid();
+    },
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * Bind events of grid option.
+     *
+     * @private
+     */
 	_bindGridEvents: function () {
         var self = this;
         this.$el.on('mouseenter', 'ul[name="size"] table', function (event) {
@@ -77,20 +84,14 @@ options.registry.product_catalog = options.Class.extend({
         });
     },
 	catalogType: function (previewMode, value, $li) {
-        if (!this.__click && previewMode == 'reset') {
-            return;
-        }
+        if (!this.__click || previewMode == 'reset') return;
+
         this.$target.attr('data-catalog-type', value);
-        var self = this;
-        var $td = this.$el.find('.select:last');
-        if ($td.length) {
-            var x = $td.index() + 1;
-            var y = $td.parent().index() + 1;
-            this.$target.attr('data-x', x);
-            this.$target.attr('data-y', y);
-        }
+        this.$el.find('[data-catalog-type]').removeClass('active');
+        $li.toggleClass('active',this.$target.attr('data-catalog-type') === value);
         this.$el.find('[data-carousel]:first').parent().parent().toggle(value === 'carousel');
         this.$el.find('[data-grid]:first').parent().parent().toggle(value === 'grid');
+        this._setGrid();
     },
 });
 });

@@ -66,14 +66,8 @@
             <li class="dropdown-submenu">
                 <a tabindex="-1" href="#"><i class="fa fa-bars" aria-hidden="true"/>Catalog Type</a>
                 <ul class="dropdown-menu">
-                    <li data-catalog-type="grid">
-                        <a href="#">
-                            Grid
-                        </a>
-                    </li>
-                    <li data-catalog-type="carousel">
-                        <a href="#">Carousel</a>
-                    </li>
+                    <li data-catalog-type="grid"><a href="#">Grid</a></li>
+                    <li data-catalog-type="carousel"><a href="#">Carousel</a></li>
                 </ul>
             </li>
             <li class="dropdown-submenu">
