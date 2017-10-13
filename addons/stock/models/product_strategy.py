@@ -25,8 +25,7 @@ class PutAwayStrategy(models.Model):
 
     fixed_location_ids = fields.One2many(
         'stock.fixed.putaway.strat', 'putaway_id',
-        'Fixed Locations Per Product Category', domain=[('category_id', '!=', False)], copy=True,
-        help="When the method is fixed, this location will be used to store the products")
+        'Fixed Locations Per Product Category', domain=[('category_id', '!=', False)], copy=True)
     product_location_ids = fields.One2many(
         'stock.fixed.putaway.strat', 'putaway_id',
         'Fixed Locations Per Product', domain=[('product_id', '!=', False)], copy=True)
