@@ -3,3 +3,5 @@
 
 from . import account_journal
 from . import account_chart_template
+from . import account_invoice
+from . import cbs_export
