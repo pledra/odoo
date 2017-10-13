@@ -619,6 +619,7 @@ class StockMove(TransactionCase):
         })
         putaway = self.env['product.putaway'].create({
             'name': 'putaway stock->shelf1',
+            'based_on': 'category',
             'fixed_location_ids': [(0, 0, {
                 'category_id': self.env.ref('product.product_category_all').id,
                 'fixed_location_id': shelf1_location.id,
@@ -634,6 +635,49 @@ class StockMove(TransactionCase):
             'location_id': self.supplier_location.id,
             'location_dest_id': self.stock_location.id,
             'product_id': self.product1.id,
+            'product_uom': self.uom_unit.id,
+            'product_uom_qty': 100.0,
+        })
+        move1._action_confirm()
+        self.assertEqual(move1.state, 'confirmed')
+
+        # assignment
+        move1._action_assign()
+        self.assertEqual(move1.state, 'assigned')
+        self.assertEqual(len(move1.move_line_ids), 1)
+
+        # check if the putaway was rightly applied
+        self.assertEqual(move1.move_line_ids.location_dest_id.id, shelf1_location.id)
+
+    def test_putaway_2(self):
+        """ Receive products from a supplier. Check that putaway rules are rightly applied on
+        the receipt move line.
+        """
+        # This test will apply a putaway strategy by product on the stock location to put everything
+        # incoming in the sublocation shelf1.
+        shelf1_location = self.env['stock.location'].create({
+            'name': 'shelf1',
+            'usage': 'internal',
+            'location_id': self.stock_location.id,
+        })
+        putaway = self.env['product.putaway'].create({
+            'name': 'putaway stock->shelf1',
+            'based_on': 'product',
+            'product_location_ids': [(0, 0, {
+                'product_id': self.env.ref('product.product_product_5').id,
+                'fixed_location_id': shelf1_location.id,
+            })]
+        })
+        self.stock_location.write({
+            'putaway_strategy_id': putaway.id,
+        })
+
+        # creation
+        move1 = self.env['stock.move'].create({
+            'name': 'test_putaway_2',
+            'location_id': self.supplier_location.id,
+            'location_dest_id': self.stock_location.id,
+            'product_id': self.env.ref('product.product_product_5').id,
             'product_uom': self.uom_unit.id,
             'product_uom_qty': 100.0,
         })
