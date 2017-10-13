@@ -4,6 +4,7 @@ odoo.define('web_editor.web_editor_tests', function (require) {
 var FormView = require('web.FormView');
 var testUtils = require('web.test_utils');
 var core = require('web.core');
+var concurrency = require('web.concurrency');
 
 var _t = core._t;
 
@@ -21,6 +22,17 @@ QUnit.module('web_editor', {
                     body: "<div class='field_body'>yep</div>",
                 }],
                 onchanges: {},
+            },
+            'mail.template': {
+                fields: {
+                    partner_name: { string: "record.name", type: "char" },
+                    body_html: { string: "body", type: "html" }
+                },
+                records: [{
+                    id: 1,
+                    partner_name: "record.partner_id.name",
+                    body_html: "<span t-field='record.partner_id.name'/>",
+                }],
             },
         };
     }
@@ -218,4 +230,59 @@ QUnit.test('html_frame does not crash when saving in readonly', function (assert
     form.destroy();
 });
 
+QUnit.test('Qweb Expression editor test for template', function (assert) {
+    var done = assert.async();
+    assert.expect(5);
+
+    var form = testUtils.createView({
+        View: FormView,
+        model: 'mail.template',
+        data: this.data,
+        arch: '<form string="Partners">' +
+                '<field name="body_html" widget="html" />' +
+            '</form>',
+        res_id: 1,
+    });
+
+    form.$buttons.find('.o_form_button_edit').click();
+
+    assert.ok($('.modal').length, 'a modal should be opened');
+
+    // checking tag value in form before edit
+    assert.strictEqual(form.$('.o_t_expression').text(), 'record.partner_id.name',
+            "value of t-tag in form before edit should be record.partner_id.name");
+
+    form.$('.o_t_expression').click();
+
+    // edit tag value
+    $('.modal-dialog .t-tag').val('<span t-field="record.partner_id.firstname"></span>');
+
+    $('.modal button.btn-primary').click();
+
+    // checking tag value in form after click on ok
+    assert.strictEqual(form.$('.o_t_expression').text(), 'record.partner_id.firstname',
+            "value of t-tag in form should be record.partner_id.firstname after click on ok");
+
+    // checking for discard after edit tag value
+    form.$buttons.find('.o_form_button_edit').click();
+    form.$('.o_t_expression').click();
+
+    $('.modal-dialog .t-tag').val('<span t-field="record.partner_id.firstname"></span>');
+    $('.modal button.btn-default').click();
+
+    // checking tag value in form after click on discard
+    assert.strictEqual(form.$('.o_t_expression').text(), 'record.partner_id.name',
+            "value of t-tag in form should be record.partner_id.name after click on discard");
+
+    form.$buttons.find('.o_form_button_cancel').click()
+
+    // checking tag value after click on cancel button of form
+    assert.strictEqual(form.$('.o_t_expression').text(), 'record.partner_id.name',
+            "value of t-tag should be record.partner_id.name when click on discard button of form after edit");
+
+    return concurrency.delay(0).then(function () {
+        form.destroy();
+        done();
+    });
+});
 });
