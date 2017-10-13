@@ -17,6 +17,8 @@ options.registry.product_catalog = options.Class.extend({
             this._bindGridEvents();
         }
         this.$el.find('[data-catalog-type='+this.$target.data('catalog-type')+']').addClass('active');
+        this.$el.find('[data-product-selection='+this.$target.data('product-selection')+']').addClass('active');
+        this.$el.find('[data-shortby='+this.$target.data('shortby')+']').addClass('active');
         this.$el.find('[data-carousel]:first').parent().parent().toggle(this.$target.data('catalog-type') === 'carousel');
         this.$el.find('[data-grid]:first').parent().parent().toggle(this.$target.data('catalog-type') === 'grid');
     },
@@ -93,5 +95,17 @@ options.registry.product_catalog = options.Class.extend({
         this.$el.find('[data-grid]:first').parent().parent().toggle(value === 'grid');
         this._setGrid();
     },
+    productSelection: function (previewMode, value, $li) {
+        if (!this.__click || previewMode == 'reset') return;
+        this.$target.attr('data-product-selection', value);
+        this.$el.find('[data-product-selection]').removeClass('active');
+        $li.toggleClass('active',this.$target.attr('data-product-selection') === value);
+    },
+    sortby: function (previewMode, value, $li) {
+        if (!this.__click || previewMode == 'reset') return;
+        this.$target.attr('data-sortby', value);
+        this.$el.find('[data-sortby]').removeClass('active');
+        $li.toggleClass('active',this.$target.attr('data-sortby') === value);
+    }
 });
 });
