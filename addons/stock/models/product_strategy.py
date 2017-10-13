@@ -17,17 +17,34 @@ class PutAwayStrategy(models.Model):
     _description = 'Put Away Strategy'
 
     name = fields.Char('Name', required=True)
+    based_on = fields.Selection([
+        ('category', 'Product Category'),
+        ('product', 'Product'),
+        ('product_category', 'Product Category & Product'),
+    ], default='category', required=True)
+
     fixed_location_ids = fields.One2many(
-        'stock.fixed.putaway.strat', 'putaway_id', 'Fixed Locations Per Product Category', copy=True,
+        'stock.fixed.putaway.strat', 'putaway_id',
+        'Fixed Locations Per Product Category', domain=[('category_id', '!=', False)], copy=True,
         help="When the method is fixed, this location will be used to store the products")
+    product_location_ids = fields.One2many(
+        'stock.fixed.putaway.strat', 'putaway_id',
+        'Fixed Locations Per Product', domain=[('product_id', '!=', False)], copy=True)
 
     def putaway_apply(self, product):
-        for strat in self.fixed_location_ids:
-            categ = product.categ_id
-            while categ:
-                if strat.category_id.id == categ.id:
-                    return strat.fixed_location_id
-                categ = categ.parent_id
+        if self.based_on in ['product', 'product_category']:
+            if self.product_location_ids:
+                put_away = self.product_location_ids.filtered(lambda x: x.product_id == product)
+                if put_away:
+                    return put_away[0].fixed_location_id
+        elif self.based_on in ['category', 'product_category']:
+            if self.fixed_location_ids:
+                categ = product.categ_id
+                while categ:
+                    put_away = self.fixed_location_ids.filtered(lambda x: x.category_id == categ)
+                    if put_away:
+                        return put_away[0].fixed_location_id
+                    categ = categ.parent_id
         return self.env['stock.location']
 
 
@@ -35,7 +52,8 @@ class FixedPutAwayStrategy(models.Model):
     _name = 'stock.fixed.putaway.strat'
     _order = 'sequence'
 
+    product_id = fields.Many2one('product.product', 'Product')
     putaway_id = fields.Many2one('product.putaway', 'Put Away Method', required=True)
-    category_id = fields.Many2one('product.category', 'Product Category', required=True)
+    category_id = fields.Many2one('product.category', 'Product Category')
     fixed_location_id = fields.Many2one('stock.location', 'Location', required=True)
     sequence = fields.Integer('Priority', help="Give to the more specialized category, a higher priority to have them in top of the list.")
