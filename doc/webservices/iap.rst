@@ -31,6 +31,10 @@ In that context, Odoo acts mostly as a *broker* between the service user
 .. contents::
     :local:
 
+
+
+
+
 JSON-RPC2_ Transaction API
 ==========================
 
@@ -63,13 +67,16 @@ JSON-RPC2_ Transaction API
     Transaction identifier, returned by the authorization process and consumed
     by either capturing or cancelling the transaction
 
-.. exception:: odoo.addons.iap.models.iap.NoCreditError
+.. exception:: odoo.addons.iap.models.iap.InsufficientCreditError
 
     Raised during transaction authorization if the credits requested are not
     currently available on the account (either not enough credits or too many
     pending transactions/existing holds).
 
-.. exception:: odoo.addons.iap.models.iap.BadAuthError
+    This error, when raised to the client side, is captured by Odoo to display
+    a customizable dialog (see CREDIT-DIALOG_).
+
+.. exception:: odoo.addons.iap.models.iap.AccessError
 
     Raised by any operation to which a service token is required, if the
     service token is invalid.
@@ -88,14 +95,16 @@ Authorize
     Returns a :class:`TransactionToken` identifying the pending transaction
     which can be used to capture (confirm) or cancel said transaction.
 
+    Raises 
+
     :param ServiceKey key:
     :param UserToken account_token:
     :param int credit:
     :param str description: optional, helps users identify the reason for
                             charges on their accounts.
     :returns: :class:`TransactionToken` if the authorization succeeded.
-    :raises: :class:`~odoo.addons.iap.models.iap.BadAuthError` if the service token is invalid
-    :raises: :class:`~odoo.addons.iap.models.iap.NoCreditError` if the account does
+    :raises: :class:`~odoo.addons.iap.models.iap.AccessError` if the service token is invalid
+    :raises: :class:`~odoo.addons.iap.models.iap.InsufficientCreditError` if the account does
     :raises: ``TypeError`` if the ``credit`` value is not an integer
 
 .. rst-class:: doc-aside
@@ -132,7 +141,7 @@ Capture
 
     :param TransactionToken token:
     :param ServiceKey key:
-    :raises: :class:`~odoo.addons.iap.models.iap.BadAuthError`
+    :raises: :class:`~odoo.addons.iap.models.iap.AccessError`
 
 .. rst-class:: doc-aside
 
@@ -164,7 +173,7 @@ Cancel
 
     :param TransactionToken token:
     :param ServiceKey key:
-    :raises: :class:`~odoo.addons.iap.models.iap.BadAuthError`
+    :raises: :class:`~odoo.addons.iap.models.iap.InsufficientError`
 
 .. rst-class:: doc-aside
 
@@ -192,7 +201,7 @@ module provides a few helpers to make IAP flow even simpler:
 Charging
 --------
 
-.. class:: odoo.addons.iap.models.iap.charge(env, key, account_token, credit[, description])
+.. class:: odoo.addons.iap.models.iap.charge(env, key, account_token, credit[, description, credit_template])
 
     A *context manager* for authorizing and automatically capturing or
     cancelling transactions for use in the backend/proxy.
@@ -200,16 +209,18 @@ Charging
     Works much like e.g. a cursor context manager:
 
     * immediately authorizes a transaction with the specified parameters
+    * if the authorization fails (:class:`~odoo.addons.iap.models.iap.InsufficientCreditError`), returns 
     * executes the ``with`` body
     * if the body executes in full without error, captures the transaction
     * otherwise cancels it
 
     :param odoo.api.Environment env: used to retrieve the ``iap.endpoint``
                                      configuration key
-    :param ServiceKey key:
-    :param UserToken token:
-    :param int credit:
-    :param str description:
+    :param ServiceKey key: service identifier
+    :param UserToken token: user identifier
+    :param int credit: cost of the body's operation
+    :param str description: description for the operation
+    :param str credit_template: Qweb template external id to be displayed to the user (see TEMPLATE_)
 
 .. rst-class:: doc-aside
 
@@ -232,4 +243,11 @@ Charging
             ]).unlink()
 
 
+Setting up
+==========
+
+
+
+.. _TEMPLATE: #odoo-helpers
+.. _CREDIT-DIALOG: #odoo-helpers
 .. _JSON-RPC2: http://www.jsonrpc.org/specification
