@@ -237,7 +237,7 @@ class Holidays(models.Model):
     @api.depends('employee_id')
     def _compute_can_approve(self):
         """ User can not approve a leave request if it is its own leave request
-            or if he is an Hr Manager.
+             or if he is an Hr Manager.
         """
         if self.user_has_groups('hr_holidays.group_hr_holidays_user'):
             for holiday in self:
@@ -394,7 +394,7 @@ class Holidays(models.Model):
     def _create_resource_leave(self):
         """ This method will create entry in resource calendar leave object at the time of holidays validated """
         for leave in self:
-            self.env['resource.calendar.leaves'].with_context({'tz': self._context.get('tz') or 'UTC'}).create({
+            self.env['resource.calendar.leaves'].create({
                 'name': leave.name,
                 'date_from': leave.date_from,
                 'holiday_id': leave.id,
