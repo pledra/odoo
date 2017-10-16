@@ -18,6 +18,7 @@
             <script type="text/javascript" src="/website_sale/static/src/js/website_sale_validate.js"></script>
             <script type="text/javascript" src="/website_sale/static/src/js/website_sale_tour_buy.js"></script>
             <script type="text/javascript" src="/website_sale/static/src/js/website_sale_tracking.js"></script>
+            <script type="text/javascript" src="/website_sale/static/src/js/website_sale_product_catalog.js"></script>
         </xpath>
     </template>
 
