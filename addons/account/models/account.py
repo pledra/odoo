@@ -649,6 +649,7 @@ class AccountTax(models.Model):
             price_unit * quantity eventually affected by previous taxes (if tax is include_base_amount XOR price_include)
         """
         self.ensure_one()
+        price_include = self._context.get('force_price_include', self.price_include)
         if self.amount_type == 'fixed':
             # Use copysign to take into account the sign of the base amount which includes the sign
             # of the quantity and the sign of the price_unit
@@ -662,11 +663,11 @@ class AccountTax(models.Model):
                 return math.copysign(quantity, base_amount) * self.amount
             else:
                 return quantity * self.amount
-        if (self.amount_type == 'percent' and not self.price_include) or (self.amount_type == 'division' and self.price_include):
+        if (self.amount_type == 'percent' and not price_include) or (self.amount_type == 'division' and self.price_include):
             return base_amount * self.amount / 100
-        if self.amount_type == 'percent' and self.price_include:
+        if self.amount_type == 'percent' and price_include:
             return base_amount - (base_amount / (1 + self.amount / 100))
-        if self.amount_type == 'division' and not self.price_include:
+        if self.amount_type == 'division' and not price_include:
             return base_amount / (1 - self.amount / 100) - base_amount
 
     @api.multi
@@ -758,7 +759,7 @@ class AccountTax(models.Model):
             else:
                 tax_amount = currency.round(tax_amount)
 
-            if tax.price_include:
+            if self._context.get('force_price_include', tax.price_include):
                 total_excluded -= tax_amount
                 base -= tax_amount
             else:
