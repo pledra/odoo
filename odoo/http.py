@@ -523,7 +523,7 @@ def route(route=None, **kw):
                 response.set_default()
                 return response
 
-            _logger.warn("<function %s.%s> returns an invalid response type for an http request" % (f.__module__, f.__name__))
+            _logger.warn("<function %s.%s> returns an invalid response type for an http request: %s" % (f.__module__, f.__name__, type(response)))
             return response
         response_wrap.routing = routing
         response_wrap.original_func = f
