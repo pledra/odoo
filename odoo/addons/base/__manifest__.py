@@ -62,7 +62,7 @@ The kernel of Odoo, needed for all installation.
         'res/ir_property_view.xml',
         'views/res_config_settings_views.xml',
         'res/res_security.xml',
-        'res/report_paperformat_views.xml',
+        'views/report_paperformat_views.xml',
         'security/ir.model.access.csv',
     ],
     'demo': [
