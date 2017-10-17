@@ -286,7 +286,7 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
                 .deleteRecords(ids, self.modelName)
                 .then(self._onDeletedRecords.bind(self, ids));
         }
-        if (this.confirmOnDelete) {
+        if (this.confirmOnDelete && ids.length) {
             Dialog.confirm(this, _t("Are you sure you want to delete this record ?"), {
                 confirm_callback: doIt,
             });

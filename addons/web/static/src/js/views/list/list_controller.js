@@ -368,7 +368,17 @@ var ListController = BasicController.extend({
      * @private
      */
     _onDeleteSelectedRecords: function () {
-        this._deleteRecords(this.selectedRecords);
+        var self = this;
+        var records = _.filter(this.selectedRecords, function (id) {
+            var res_id = self.model.localData[id].res_id;
+            if (_.isString(res_id) && res_id.startsWith('virtual')) {
+                delete self.model.localData[id];
+                return false;
+            }
+            return true;
+        });
+        this._deleteRecords(records);
+        this._updateButtons('readonly');
     },
     /**
      * Handler called when the user clicked on the 'Discard' button.
