@@ -832,6 +832,12 @@ QUnit.test('form activity widget: schedule activity does not discard changes', f
                 assert.deepEqual(args.args[1], {foo: 'new value'},
                     "should correctly save the change");
             }
+            if (args.model === 'res.users') {
+               return $.when([[1, "Administrator"]]);
+            }
+            if (args.method === 'search_read') {
+                return $.when([{id:1}])
+            }
             return this._super.apply(this, arguments);
         },
         intercepts: {

@@ -80,7 +80,13 @@ var AbstractActivityField = AbstractField.extend({
             self.activities = _.sortBy(self.activities, 'date_deadline');
         });
     },
-    _scheduleActivity: function (id, previous_activity_type_id, callback) {
+    _scheduleActivity: function (id, previous_activity_type_id, callback, options) {
+        var contextData = options ? options.data : {};
+        var context = _.extend({
+            default_res_id: this.res_id,
+            default_res_model: this.model,
+            default_previous_activity_type_id: previous_activity_type_id,
+        }, contextData || {});
         var action = {
             type: 'ir.actions.act_window',
             res_model: 'mail.activity',
@@ -88,11 +94,7 @@ var AbstractActivityField = AbstractField.extend({
             view_type: 'form',
             views: [[false, 'form']],
             target: 'new',
-            context: {
-                default_res_id: this.res_id,
-                default_res_model: this.model,
-                default_previous_activity_type_id: previous_activity_type_id,
-            },
+            context: context,
             res_id: id || false,
         };
         return this.do_action(action, { on_close: callback });
@@ -148,9 +150,9 @@ var Activity = AbstractActivityField.extend({
     },
 
     // public
-    scheduleActivity: function (previous_activity_type_id) {
+    scheduleActivity: function (previous_activity_type_id, options) {
         var callback = this._reload.bind(this, {activity: true, thread: true});
-        return this._scheduleActivity(false, previous_activity_type_id, callback);
+        return this._scheduleActivity(false, previous_activity_type_id, callback, options);
     },
     // private
     _reload: function (fieldsToReload) {

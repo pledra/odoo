@@ -205,7 +205,7 @@ var ChatterComposer = composer.BasicComposer.extend({
         var recipient_done = $.Deferred();
         if (this.options.is_log) {
             recipient_done.resolve([]);
-        } else {
+        } else if (this.options.is_message){
             var checked_suggested_partners = this.get_checked_suggested_partners();
             recipient_done = this.check_suggested_partners(checked_suggested_partners);
         }

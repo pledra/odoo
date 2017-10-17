@@ -83,4 +83,58 @@
             </div>
         </div>
     </t>
+    <t t-name="mail.activity_composer_form">
+        <div class="o_chat_composer o_activity_tab_contant">
+            <a class="o_exapand_activity"><i class="fa fa-expand"></i></a>
+            <div class="o_group">
+                <table class="o_group o_inner_group o_group_col_5">
+                    <tbody>
+                        <tr>
+                            <td class="o_td_label"><label class="o_form_label">Activity</label></td>
+                            <td class="activity_type_select_m2o" />
+                        </tr>
+                        <tr>
+                            <td class="o_td_label"><label class="o_form_label">Summary</label></td>
+                            <td><input class="o_input o_activity_summary" type="text" placeholder="e.g. Discuss proposal"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="o_group o_inner_group o_group_col_6">
+                    <tbody>
+                        <tr>
+                            <td class="o_td_label"><label class="o_form_label">Due Date</label></td>
+                            <td class="date_picker_activity_due_date"/>
+                        </tr>
+                        <tr>
+                            <td class="o_td_label"><label class="o_form_label">Assigned to</label></td>
+                            <td class="assigned_user_select_m2o"/>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="o_composer_container">
+                <img t-if="widget.avatarURL" height="36" width="36" class="o_thread_message_sidebar o_chatter_avatar img-circle" t-att-src="widget.avatarURL"/>
+                
+                <div class="o_composer">
+                    <div class="o_composer_input">
+                        <textarea class="o_input o_composer_activity_text_field" placeholder="Write something..." tabindex="2" style="height: 50px;"></textarea>
+                    </div>
+                </div>
+                <div class="o_composer_send">
+                    <button class="btn btn-sm btn-primary o_composer_button_activity" tabindex="3" type="button">
+                        <span class="hidden-xs">Schedule Activity</span>
+                        <span class="visible-xs"><i class="fa fa-clock-o"/></span>
+                    </button>
+                    <button class="btn btn-sm btn-primary o_composer_button_done" tabindex="3" type="button">
+                        <span class="hidden-xs">Mark as Done</span>
+                        <span class="visible-xs"><i class="fa fa-check-square-o"/></span>
+                    </button>
+                    <button class="btn btn-sm btn-default o_composer_button_discard" tabindex="3" type="button">
+                        <span class="hidden-xs">Discard</span>
+                        <span class="visible-xs"><i class="fa fa-times"/></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </t>
 </templates>

@@ -8,7 +8,7 @@
         <!-- Insert information before the composer -->
         <t t-jquery=".o_composer_container" t-operation="before">
             <!-- New message composer -->
-            <t t-if="!widget.options.is_log">
+            <t t-if="widget.options.is_message">
                 <!-- Text for followers -->
                 <small class="o_chatter_composer_info">
                     <b class="text-muted">To: </b>

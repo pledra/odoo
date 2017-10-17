@@ -2,6 +2,7 @@ odoo.define('mail.Chatter', function (require) {
 "use strict";
 
 var Activity = require('mail.Activity');
+var ActivityComposer = require('mail.activity_composer');
 var chat_mixin = require('mail.chat_mixin');
 var ChatterComposer = require('mail.ChatterComposer');
 var Followers = require('mail.Followers');
@@ -26,6 +27,7 @@ var Chatter = Widget.extend(chat_mixin, {
     template: 'mail.Chatter',
     custom_events: {
         reload_mail_fields: '_onReloadMailFields',
+        open_activity_full_composer: '_onFullScheduleActivity'
     },
     events: {
         'click .o_chatter_button_new_message': '_onOpenComposerMessage',
@@ -133,17 +135,25 @@ var Chatter = Widget.extend(chat_mixin, {
         var self = this;
         var old_composer = this.composer;
         // create the new composer
-        this.composer = new ChatterComposer(this, this.record.model, options.suggested_partners || [], {
+        var options = {
             commands_enabled: false,
             context: this.context,
             input_min_height: 50,
             input_max_height: Number.MAX_VALUE, // no max_height limit for the chatter
             input_baseline: 14,
-            is_log: options && options.is_log,
+            is_message: options && options.is_message || false,
+            is_log: options && options.is_log || false,
+            is_activity: options && options.is_activity || false,
             record_name: this.record_name,
             default_body: old_composer && old_composer.$input && old_composer.$input.val(),
             default_mention_selections: old_composer && old_composer.mention_get_listener_selections(),
-        });
+        };
+
+        if (options.is_activity) {
+            this.composer = new ActivityComposer(this, this.record.model, this.record.res_id, options);
+        } else {
+            this.composer = new ChatterComposer(this, this.record.model, options.suggested_partners || [], options);
+        }
         this.composer.on('input_focused', this, function () {
             this.composer.mention_set_prefetched_partners(this.mentionSuggestions || []);
         });
@@ -167,9 +177,10 @@ var Chatter = Widget.extend(chat_mixin, {
             self.composer.on('close_composer', null, self._closeComposer.bind(self, true));
 
             self.$el.addClass('o_chatter_composer_active');
-            self.$('.o_chatter_button_new_message, .o_chatter_button_log_note').removeClass('o_active');
-            self.$('.o_chatter_button_new_message').toggleClass('o_active', !self.composer.options.is_log);
+            self.$('.o_chatter_button_new_message, .o_chatter_button_log_note, .o_chatter_button_schedule_activity').removeClass('o_active');
+            self.$('.o_chatter_button_new_message').toggleClass('o_active', self.composer.options.is_message);
             self.$('.o_chatter_button_log_note').toggleClass('o_active', self.composer.options.is_log);
+            self.$('.o_chatter_button_schedule_activity').toggleClass('o_active', self.composer.options.is_activity);
         });
     },
     _render: function (def) {
@@ -272,7 +283,7 @@ var Chatter = Widget.extend(chat_mixin, {
                 });
         }
         this.suggested_partners_def.then(function (suggested_partners) {
-            self._openComposer({ is_log: false, suggested_partners: suggested_partners });
+            self._openComposer({ is_message:true, suggested_partners: suggested_partners });
         });
     },
     _onOpenComposerNote: function () {
@@ -295,7 +306,11 @@ var Chatter = Widget.extend(chat_mixin, {
         });
     },
     _onScheduleActivity: function () {
-        this.fields.activity.scheduleActivity(false);
+        this._openComposer({is_activity: true});
+    },
+    _onFullScheduleActivity: function (options) {
+        this.fields.activity.scheduleActivity(false, options);
+        this._closeComposer(true);
     },
 });
 

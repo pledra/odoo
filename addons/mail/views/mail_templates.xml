@@ -26,6 +26,7 @@
                 <script type="text/javascript" src="/mail/static/src/js/utils.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/window_manager.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/activity.js"></script>
+                <script type="text/javascript" src="/mail/static/src/js/activity_composer.js"></script>
                 <script type="text/javascript" src="/mail/static/src/js/chat_mixin.js"></script>
 
                 <link rel="stylesheet" href="/mail/static/src/less/announcement.less"/>
