@@ -45,7 +45,7 @@ class PurchaseRequisition(models.Model):
     def _get_type_id(self):
         return self.env['purchase.requisition.type'].search([], limit=1)
 
-    name = fields.Char(string='Agreement Reference', required=True, copy=False, default= lambda self: self.env['ir.sequence'].next_by_code('purchase.order.requisition'))
+    name = fields.Char(string='Agreement Reference', required=True, copy=False, default='New', readonly=True)
     origin = fields.Char(string='Source Document')
     order_count = fields.Integer(compute='_compute_orders_number', string='Number of Orders')
     vendor_id = fields.Many2one('res.partner', string="Vendor")
@@ -66,6 +66,23 @@ class PurchaseRequisition(models.Model):
                               copy=False, default='draft')
     account_analytic_id = fields.Many2one('account.analytic.account', 'Analytic Account')
     picking_type_id = fields.Many2one('stock.picking.type', 'Operation Type', required=True, default=_get_picking_in)
+    is_quantity_copy = fields.Boolean(compute='_is_quantity_copy')
+    supplier_info_ids = fields.One2many('product.supplierinfo', 'purchase_requisition_id')
+
+    @api.model
+    def create(self, vals):
+        rec = super(PurchaseRequisition, self).create(vals)
+        if rec.name == 'New':
+            rec.name = self.env['ir.sequence'].next_by_code('purchase.order.requisition')
+        return rec
+
+    @api.depends('type_id')
+    def _is_quantity_copy(self):
+        for requisition in self:
+            if requisition.type_id.quantity_copy == 'none':
+                requisition.is_quantity_copy = False
+            else:
+                requisition.is_quantity_copy = True
 
     @api.multi
     @api.depends('purchase_ids')
