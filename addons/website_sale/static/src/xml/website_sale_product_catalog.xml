@@ -1,5 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <template>
     <t t-name="website_sale.product_catalog">
+        <div class="row product_grid" contenteditable="false">
+	        <t t-foreach="widget.products" t-as="product">
+	            <div t-attf-class="col-md-#{widget.size}">
+	                <t t-esc="product.name"/>-
+	                <t t-esc="product.website_price"/>
+	            </div>
+	        </t>
+        </div>
+    </t>
+    <t t-name="product_catalog.catagorySelection">
+        <div class="form-group">
+            <div class="alert alert-info hidden">
+                Selected catagory has no saleable products. Please select another category!
+            </div>
+            <label class="col-sm-2 control-label">Select Category</label>
+            <div class="col-sm-10">
+                <input type="hidden" name="selection"/>
+            </div>
+        </div>
     </t>
 </template>

@@ -22,7 +22,9 @@ var ProductCatalog = Widget.extend({
     init: function ($target) {
 		this._super.apply(this, arguments);
 		this.$target = $target;
-		this.sizes = {4: 3, 3: 4, 2: 6, 1: 12};
+		this.catalogType = this.$target.attr('data-catalog-type');
+		var sizes = {4: 3, 3: 4, 2: 6, 1: 12};
+		this.size = sizes[this.$target.attr('data-x')];
     },
     //--------------------------------------------------------------------------
     // Public
@@ -50,31 +52,34 @@ var ProductCatalog = Widget.extend({
     },
     _getDomain: function () {
 		var domain = [];
-		var selection = this.$target.data('product-selection');
+		var selection = this.$target.attr('data-product-selection');
 		return domain;
     },
     _getSortby: function () {
-		var sortby = this.$target.data('sortby');
+		var sortby = this.$target.attr('data-sortby');
 		return sortby;
     },
     _getLimit: function () {
-		var catalogType = this.$target.data('catalog-type');
 		var limit;
-		if (catalogType === 'grid') {
-			limit = this.$target.data('x') * this.$target.data('y');
+		if (this.catalogType === 'grid') {
+			limit = this.$target.attr('data-x') * this.$target.attr('data-y');
 		} else {
-			limit = this.$target.data('carousel');
+			limit = this.$target.attr('data-carousel');
 		}
 		return limit;
-    }
+    },
 
 });
 base.ready().then(function () {
     if ($('.s_product_catalog').length) {
 		$('.s_product_catalog').each(function () {
 			var productCatalog = new ProductCatalog($(this));
+			$(this).find('.product_grid').remove();
 			productCatalog.appendTo($(this).find('.container'));
 		});
     }
 });
+return {
+    ProductCatalog: ProductCatalog
+};
 });

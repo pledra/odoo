@@ -4,6 +4,7 @@ odoo.define('website_sale.product_catalog_options', function (require) {
 var core = require('web.core');
 var Dialog = require('web.Dialog');
 var options = require('web_editor.snippets.options');
+var productCatalog = require('website_sale.product_catalog');
 var rpc = require('web.rpc');
 
 var _t = core._t;
@@ -47,6 +48,7 @@ options.registry.product_catalog = options.Class.extend({
     grid: function (previewMode, value, $li) {
         if (!this.__click || previewMode == 'reset') return;
         this._setGrid();
+        this._renderProducts();
     },
     //--------------------------------------------------------------------------
     // Private
@@ -85,6 +87,11 @@ options.registry.product_catalog = options.Class.extend({
             $select_td.addClass('select');
         });
     },
+    _renderProducts: function () {
+        this.productCatalog = new productCatalog.ProductCatalog(this.$target);
+        this.$target.find('.product_grid').remove();
+        this.productCatalog.appendTo(this.$target.find('.container'));
+    },
 	catalogType: function (previewMode, value, $li) {
         if (!this.__click || previewMode == 'reset') return;
 
@@ -100,12 +107,52 @@ options.registry.product_catalog = options.Class.extend({
         this.$target.attr('data-product-selection', value);
         this.$el.find('[data-product-selection]').removeClass('active');
         $li.toggleClass('active',this.$target.attr('data-product-selection') === value);
+        switch (value) {
+            case 'all':
+                this.$target.attr('data-product-domain', []);
+                break;
+            case 'category':
+                this.categorySelection();
+                break;
+            case 'manual':
+                this.manualSelection();
+                break;
+            }
+
+    },
+    categorySelection: function () {
+        var self = this;
+        rpc.query({
+            model: 'product.public.category',
+            method: 'search_read',
+            fields: ['id', 'name'],
+        }).then(function (result) {
+            var dialog = new Dialog(null, {
+                title: _t('Select Product Category'),
+                $content: $(QWeb.render('product_catalog.catagorySelection')),
+                buttons: [
+                    {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
+                        var categoryID = dialog.$content.find('[name="selection"]').val();
+                        self.$target.attr('data-catagory-id', categoryID);
+
+                        self.productCatalog.options.domain = ['public_categ_ids', '=', parseInt(categoryID)];
+                        self._renderProductCatalog().then(function () {
+                            self.$target.attr('data-reorder-ids', self.productCatalog._getProductIds().join(','));
+                        });
+                    }},
+                    {text: _t('Discard'), close: true}
+                ]
+            }).open();
+        });
+    },
+    manualSelection: function () {
     },
     sortby: function (previewMode, value, $li) {
         if (!this.__click || previewMode == 'reset') return;
         this.$target.attr('data-sortby', value);
         this.$el.find('[data-sortby]').removeClass('active');
         $li.toggleClass('active',this.$target.attr('data-sortby') === value);
+        this._renderProducts();
     }
 });
 });
