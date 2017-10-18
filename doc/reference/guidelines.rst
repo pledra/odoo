@@ -6,9 +6,9 @@
 Odoo Guidelines
 ===============
 
-This page introduces the new Odoo Coding Guidelines. Those aim to improve the quality of the code (e.g. better readability of source) and Odoo Apps. Indeed, proper code eases maintenance, aids debugging, lowers complexity and promotes reliability.
+This page introduces the Odoo Coding Guidelines. Those aim to improve code quality (e.g. better readability of source) and Odoo Apps. Indeed, proper code eases maintenance, aids debugging, lowers complexity and promotes reliability.
 
-These guidelines should be applied to every new module, and new development.
+These guidelines should be applied to every new module, and new developpment.
 
 .. warning::
 
@@ -33,15 +33,14 @@ A module is organised in important directories. Those contain the business logic
 
 Other optional directories compose the module.
 
-- *wizard/* : regroups the transient models (formerly *osv_memory*) and their views.
-- *report/* : contains the reports (RML report **[deprecated]**, models based on SQL views (for reporting) and other complex reports). Python objects and XML views are included in this directory.
-- *tests/* : contains the Python/YML tests
+- *wizard/* : regroups the transient models (``models.TransientModel``) and their views.
+- *report/* : contains the printable reports and models based on SQL views. Python objects and XML views are included in this directory.
+- *tests/* : contains the Python/YML tests.
 
 
 File naming
 -----------
-For *views* declarations, split backend views from (frontend)
-templates in 2 differents files.
+For *views* declarations, distinguish the backend views definition (list, form, kanban, ...), the templates (QWeb pages) and bundle (JS and CSS assets). Bundles are theorically QWeb templates, but should be in their own file :file:`assets.xml`.
 
 For *models*, split the business logic by sets of models, in each set
 select a main model, this model gives its name to the set. If there is
@@ -61,22 +60,20 @@ For instance, *sale* module introduces ``sale_order`` and
 For *data*, split them by purpose : demo or data. The filename will be
 the main_model name, suffixed by *_demo.xml* or *_data.xml*.
 
-For *controllers*, the only file should be named *main.py*. Otherwise, if you need to inherit an existing controller from another module, its name will be *<module_name>.py*. Unlike *models*, each controller class should be contained in a separated file.
+For *controllers*, the only file should be named *<my_module_name>.py*. If you need to inherit an existing controller from another module, its name will be *<module_name>.py*. Unlike *models*, each controller class should be contained in a separated file. For instance, *purchase* module implements its part of the customer portal in :file:`controllers/portal.py` and its own typical routes on :file:`controllers/purchase.py`.
 
-For *static files*, since the resources can be used in different contexts (frontend, backend, both), they will be included in only one bundle. So, CSS/Less, JavaScript and XML files should be suffixed with the name of the bundle type. i.e.: *im_chat_common.css*, *im_chat_common.js* for 'assets_common' bundle, and *im_chat_backend.css*, *im_chat_backend.js* for 'assets_backend' bundle.
-If the module owns only one file, the convention will be *<module_name>.ext* (i.e.: *project.js*).
+For *static files*, since the resources can be used in different contexts, they will have to be cut according to their use (frontend, backend, both). The file name should describe the feature implemented in it. For instance, :file:`chat_window.js` in *mail* module provides the little conversation window used in the webclient, but also in the livechat. It will be in 'assets_backend' bundle, and in 'assets_frontend' bundle (*website_livechat* module).
+
+If the module owns only one file, the convention will be *<module_name>.<ext>* (i.e.: *project.js*).
 Don't link data (image, libraries) outside Odoo: do not use an
 URL to an image but copy it in our codebase instead.
-
-Regarding *data*, split them by purpose: data or demo. The filename will be
-the *main_model* name, suffixed by *_data.xml* or *_demo.xml*.
 
 Regarding *wizards*, naming convention is :
 
 - :file:`{<main_transient>}.py`
 - :file:`{<main_transient>}_views.xml`
 
-Where *<main_transient>* is the name of the dominant transient model, just like for *models*. <main_transient>.py can contains the models 'model.action' and 'model.action.line'.
+Where *<main_transient>* is the name of the dominant transient model, just like for *models*. <main_transient>.py can contains the models 'transient_model.action' and 'transient_model.action.line'.
 
 For *statistics reports*, their names should look like :
 
@@ -99,7 +96,7 @@ The complete tree should look like
     |-- controllers/
     |   |-- __init__.py
     |   |-- <inherited_module_name>.py
-    |   `-- main.py
+    |   `-- <my_module_name>.py
     |-- data/
     |   |-- <main_model>_data.xml
     |   `-- <inherited_main_model>_demo.xml
@@ -124,13 +121,15 @@ The complete tree should look like
     |   |   `-- external_lib/
     |   `-- src/
     |       |-- js/
-    |       |   `-- <my_module_name>.js
+    |       |   |-- <my_module_name>.js
+                `-- <my_widget_A>.js
     |       |-- css/
     |       |   `-- <my_module_name>.css
     |       |-- less/
     |       |   `-- <my_module_name>.less
     |       `-- xml/
-    |           `-- <my_module_name>.xml
+    |           |-- <my_module_name>.xml
+                `-- <my_widget_A>.xml
     |-- views/
     |   |-- <main_model>_templates.xml
     |   |-- <main_model>_views.xml
@@ -199,7 +198,7 @@ Security, View and Action
 
 Use the following pattern :
 
-* For a menu: :samp:`{<model_name>}_menu`
+* For a menu: :samp:`{<model_name>}_menu`, or :samp:`{<model_name>}_menu_{do_stuff}` for submenus.
 * For a view: :samp:`{<model_name>}_view_{<view_type>}`, where *view_type* is
   ``kanban``, ``form``, ``tree``, ``search``, ...
 * For an action: the main action respects :samp:`{<model_name>}_action`.
@@ -272,15 +271,15 @@ Inherited XML
 ~~~~~~~~~~~~~
 
 The naming pattern of inherited view is
-:samp:`{<base_view>}_inherit_{<current_module_name>}`. A module may only
-extend a view once.  Suffix the orginal name with
-:samp:`_inherit_{<current_module_name>}` where *current_module_name* is the
-technical name of the module extending the view.
+:samp:`{<base_view>}`. A module may only extend a view once. Keep the original xml id, since the complete
+name will be prefixed by the module name. For instance, the view :samp:`project.project_view_form` can be extended by :samp:`project_forecast.project_view_form`.
 
 
 .. code-block:: xml
 
-    <record id="inherited_model_view_form_inherit_my_module" model="ir.ui.view">
+    <record id="my_model_view_form" model="ir.ui.view">
+        ...
+        <field name="inherit_id" ref="base_module.my_model_view_form"/>
         ...
     </record>
 
@@ -325,7 +324,7 @@ Inside these 3 groups, the imported lines are alphabetically sorted.
     from odoo import api, fields, models # alphabetically ordered
     from odoo.tools.safe_eval import safe_eval as eval
     from odoo.tools.translate import _
-    # 3 :  imports from odoo modules
+    # 3 :  imports from odoo addons
     from odoo.addons.website.models.website import slug
     from odoo.addons.web.controllers.main import login_redirect
 
@@ -490,8 +489,8 @@ Programming in Odoo
 Make your method work in batch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 When adding a function, make sure it can process multiple records. Typically,
-such methods are decorated with the ``api.multi`` decorator. Then you will have
-to iterate on ``self`` to treat each record.
+
+such method is decorated with ``api.multi`` decorator (which is the applied by default. See :ref:`ORM decorators <reference/orm/decorators>`). Then you will have to iterate on ``self`` to treat each record.
 
 .. code-block:: python
 
@@ -783,29 +782,28 @@ Symbols and Conventions
       and *sale.order* instead of *res.partnerS* and *saleS.orderS*)
     - When defining an Odoo Transient (wizard) : use ``<related_base_model>.<action>``
       where *related_base_model* is the base model (defined in *models/*) related
-      to the transient, and *action* is the short name of what the transient do.
+      to the transient, and *action* is the short name of what the transient do. Avoid the *wizard* word.
       For instance : ``account.invoice.make``, ``project.task.delegate.batch``, ...
     - When defining *report* model (SQL views e.i.) : use
       ``<related_base_model>.report.<action>``, based on the Transient convention.
 
-- Odoo Python Class : use camelcase for code.
-
+- Odoo Python Class : use camelcase (Object-oriented style).
 
 .. code-block:: python
 
     class AccountInvoice(models.Model):
         ...
 
+
 - Variable name :
     - use camelcase for model variable
     - use underscore lowercase notation for common variable.
-    - Odoo works with a record or a recordset, don't suffix variable names with
-      *_id* or *_ids* if they don't contain an id or a list of ids.
+    - prefix your variable name with *_id* or *_ids* if it contains a record id or list of id.
 
 .. code-block:: python
 
-    ResPartner = self.env['res.partner']
-    partners = ResPartner.browse(ids)
+    Partner = self.env['res.partner']
+    partners = Partner.browse(partner_ids)
     partner_id = partners[0].id
 
 - ``One2Many`` and ``Many2Many`` fields should always have *_ids* as suffix (example: sale_order_line_ids)
@@ -906,7 +904,7 @@ Javascript and CSS
   reserved by the module (for website module mainly, i.e. : 'o_forum' for
   *website_forum* module). The only exception for this rule is the
   webclient: it simply uses *o_* prefix.
-- Avoid using id
+- Avoid using *id* tag.
 - Use Bootstrap native classes
 - Use underscore lowercase notation to name class
 
