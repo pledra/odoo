@@ -602,20 +602,21 @@ class IrActionsTodo(models.Model):
     def create(self, vals):
         todo = super(IrActionsTodo, self).create(vals)
         if todo.state == "open":
-            todo.ensure_one_open_todo()
+            self.ensure_one_open_todo()
         return todo
 
+    @api.multi
     def write(self, vals):
         res = super(IrActionsTodo, self).write(vals)
         if vals.get('state', '') == 'open':
-            for todo in self:
-                todo.ensure_one_open_todo()
+            self.ensure_one_open_todo()
         return res
 
+    @api.model
     def ensure_one_open_todo(self):
-        open_todo = self.search(['&', ('state', '=', 'open'), ('id', '!=', self.id)])
+        open_todo = self.search([('state', '=', 'open')], order='sequence asc, id desc')
         if open_todo:
-            open_todo.write({'state': 'done'})
+            open_todo[1:].write({'state': 'done'})
 
     @api.multi
     def name_get(self):
