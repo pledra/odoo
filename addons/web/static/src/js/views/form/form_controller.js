@@ -498,7 +498,6 @@ var FormController = BasicController.extend({
             readonly: event.data.readonly,
             active_actions: event.data.active_actions,
             res_id: record.res_id,
-            recordID: record.id,
             model: this.model,
             res_model: record.model,
             title: _t("Open: ") + event.data.string,
