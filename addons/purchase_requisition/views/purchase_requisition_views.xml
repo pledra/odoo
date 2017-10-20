@@ -323,6 +323,17 @@
         </field>
     </record>
 
+    <record model="ir.ui.view" id="product_template_form_view_inherit">
+        <field name="name">product.template.product.form.inherit</field>
+        <field name="model">product.supplierinfo</field>
+        <field name="inherit_id" ref="product.product_supplierinfo_tree_view"/>
+        <field name="arch" type="xml">
+          <xpath expr="//field[@name='min_qty']" position="before">
+              <field name="purchase_requisition_id"/>
+          </xpath>
+        </field>
+    </record>
+
     <act_window
             domain="[('requisition_id', '=', active_id)]"
             context="{'default_requisition_id': active_id}"

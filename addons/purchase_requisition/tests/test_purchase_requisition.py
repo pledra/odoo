@@ -72,3 +72,42 @@ class TestPurchaseRequisition(common.TransactionCase):
         po_dict = purchase_order._convert_to_write({name: purchase_order[name] for name in purchase_order._cache})
         self.po_requisition = PurchaseOrder.create(po_dict)
         self.assertEqual(len(self.po_requisition.order_line), 1, 'Purchase order should have one line')
+
+    def test_03_purchase_requisition(self):
+        price_product09 = 34
+        price_product13 = 62
+        quantity = 26
+        # Create a pruchase requisition with type blanket order and two product
+        line1 = (0, 0, {'product_id': self.product_09_id, 'product_qty': quantity, 'product_uom_id': self.product_09_uom_id, 'price_unit': price_product09})
+
+        self.product_13_uom_id = self.ref('product.product_uom_unit')
+        line2 = (0, 0, {'product_id': self.product_13_id, 'product_qty': quantity, 'product_uom_id': self.product_13_uom_id, 'price_unit': price_product13})
+
+        requisition_type = self.env['purchase.requisition.type'].create({'name': 'Blanket test', 'quantity_copy': 'none'})
+        self.requisition_blanket = self.env['purchase.requisition'].create({'line_ids': [line1, line2], 'type_id': requisition_type.id, 'vendor_id': self.res_partner_1_id})
+
+        # confirm the requisition
+        self.requisition_blanket.action_in_progress()
+
+        # Check for both product that the new supplier info(purchase.requisition.vendor_id) is added to the puchase tab
+        # and check the quantity
+        seller_partner1 = self.env['res.partner'].browse(self.res_partner_1_id)
+
+        seller09 = self.env['product.product'].browse(self.product_09_id).seller_ids.search([('price', '=', price_product09)]).name
+        id09 = self.env['product.product'].browse(self.product_09_id).seller_ids.search([('price', '=', price_product09)]).id
+        quantity09 = self.env['product.product'].browse(self.product_09_id).seller_ids.search([('price', '=', price_product09)]).min_qty
+        self.assertEqual(seller09, seller_partner1, 'The supplierinfo is not the good one')
+        self.assertEqual(quantity09, quantity, 'The minimum quantity is not good')
+
+        seller13 = self.env['product.product'].browse(self.product_13_id).seller_ids.search([('price', '=', price_product13)]).name
+        id13 = self.env['product.product'].browse(self.product_13_id).seller_ids.search([('price', '=', price_product13)]).id
+        quantity13 = self.env['product.product'].browse(self.product_13_id).seller_ids.search([('price', '=', price_product13)]).min_qty
+        self.assertEqual(seller13, seller_partner1, 'The supplierinfo is not the good one')
+        self.assertEqual(quantity13, quantity, 'The minimum quantity is not the good one')
+
+        # Put the requisition in done Status
+        self.requisition_blanket.action_in_progress()
+        self.requisition_blanket.action_done()
+
+        self.assertFalse(self.env['product.product'].browse(self.product_09_id).seller_ids.search([('id', '=', id09)]), 'The supplier info should be removed')
+        self.assertFalse(self.env['product.product'].browse(self.product_13_id).seller_ids.search([('id', '=', id13)]), 'The supplier info should be removed')

@@ -118,6 +118,7 @@ class PurchaseRequisition(models.Model):
         """
         Generate all purchase order based on selected lines, should only be called on one agreement at a time
         """
+        self.mapped('supplier_info_ids').unlink()
         if any(purchase_order.state in ['draft', 'sent', 'to approve'] for purchase_order in self.mapped('purchase_ids')):
             raise UserError(_('You have to cancel or validate every RfQ before closing the purchase requisition.'))
         self.write({'state': 'done'})
@@ -137,6 +138,11 @@ class PurchaseRequisition(models.Model):
         }
 
 
+class SupplierInfo(models.Model):
+    _inherit = "product.supplierinfo"
+    purchase_requisition_id = fields.Many2one('purchase.requisition', string='Blanket order')
+
+
 class PurchaseRequisitionLine(models.Model):
     _name = "purchase.requisition.line"
     _description = "Purchase Requisition Line"
@@ -152,6 +158,36 @@ class PurchaseRequisitionLine(models.Model):
     account_analytic_id = fields.Many2one('account.analytic.account', string='Analytic Account')
     schedule_date = fields.Date(string='Scheduled Date')
     move_dest_id = fields.Many2one('stock.move', 'Downstream Move')
+
+    @api.model
+    def create(self, vals):
+        purchase_requisition_line = super(PurchaseRequisitionLine, self).create(vals)
+        if self.env['purchase.requisition'].browse(vals['requisition_id']).type_id.quantity_copy == 'none' and any(self.env['purchase.requisition'].browse(vals['requisition_id']).vendor_id):
+            # create a supplier_info only in case of blanket order
+            self.env['product.supplierinfo'].create({
+                'name': self.env['purchase.requisition'].browse(vals['requisition_id']).vendor_id.id,
+                'product_id': vals['product_id'],
+                'product_tmpl_id': self.env['product.product'].browse(vals['product_id']).product_tmpl_id.id,
+                'price': vals['price_unit'],
+                'min_qty': vals['product_qty'],
+                'purchase_requisition_id': purchase_requisition_line.requisition_id.id
+            })
+        return purchase_requisition_line
+
+    @api.model
+    def write(self, vals):
+        purchase_requisition_line = super(PurchaseRequisitionLine, self).write(vals)
+        if self.env['purchase.requisition'].browse(vals['requisition_id']).type_id.quantity_copy == 'none' and any(self.env['purchase.requisition'].browse(vals['requisition_id']).vendor_id):
+            # create a supplier_info only in case of blanket order
+            self.env['product.supplierinfo'].create({
+                'name': self.env['purchase.requisition'].browse(vals['requisition_id']).vendor_id.id,
+                'product_id': vals['product_id'],
+                'product_tmpl_id': self.env['product.product'].browse(vals['product_id']).product_tmpl_id.id,
+                'price': vals['price_unit'],
+                'min_qty': vals['product_qty'],
+                'purchase_requisition_id': purchase_requisition_line.requisition_id.id
+            })
+        return purchase_requisition_line
 
     @api.multi
     @api.depends('requisition_id.purchase_ids.state')
