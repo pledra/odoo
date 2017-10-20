@@ -1326,6 +1326,14 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             resaction = [action
                          for action in bindings['action']
                          if view_type == 'tree' or not action.get('multi')]
+            # alternatively: merge into resaction and remove relate from
+            # client as well? (it's still there cf web/static/src/js/chrome/sidebar.js:110)
+            # nb: client actually only has "print" and "other" keys, action
+            # & relate both get merged into "other"
+            resrelate = [action
+                         for action in bindings['exclusive']
+                         if (view_type == 'tree' and action.get('multi'))
+                         or (view_type == 'form' and not action.get('multi'))]
 
             for res in itertools.chain(resreport, resaction):
                 res['string'] = res['name']
@@ -1333,6 +1341,7 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             result['toolbar'] = {
                 'print': resreport,
                 'action': resaction,
+                'relate': resrelate,
             }
         return result
 

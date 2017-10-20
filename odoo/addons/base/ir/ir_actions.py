@@ -33,6 +33,7 @@ class IrActions(models.Model):
     binding_model_id = fields.Many2one('ir.model', ondelete='cascade',
                                        help="Setting a value makes this action available in the sidebar for the given model.")
     binding_type = fields.Selection([('action', 'Action'),
+                                     ('exclusive', "Action - exclusive"),
                                      ('report', 'Report')],
                                     required=True, default='action')
 
@@ -185,7 +186,18 @@ class IrActionsActWindow(models.Model):
     filter = fields.Boolean()
     auto_search = fields.Boolean(default=True)
     search_view = fields.Text(compute='_compute_search_view')
-    multi = fields.Boolean(string='Restrict to lists', help="If checked and the action is bound to a model, it will only appear in the More menu on list views")
+    multi = fields.Boolean(
+        string='Restrict to lists',
+        help="""If the action is bound to a model (binding_model is set):
+
+* If the binding type is "action", the action appears only on lists when multi is set, otherwise it appears on list and form
+* If the binding type is "exclusive", the action appears only on lists when muti is set and only on forms when multi is unset
+
+So:
+* if you want the action to appear on both lists and forms, use binding_type="action" and multi=False
+* if you want the action to appear only on lists, use binding_type="action" and multi=True
+* if you want the action to appear only on forms, use binding_type="exclusive" and multi=False
+""")
 
     @api.multi
     def read(self, fields=None, load='_classic_read'):

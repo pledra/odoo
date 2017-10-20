@@ -429,11 +429,20 @@ form: module.record_id""" % (xml_id,)
             res['target'] = rec.get('target','')
         if src_model:
             res['binding_model_id'] = self.env['ir.model']._get(src_model).id
-            res['binding_type'] = 'report' if rec.get('key2') == 'client_print_multi' else 'action'
+            binding_type = self.KEY2_TO_TYPE.get(rec.get('key2'))
+            if binding_type is None:
+                _logger.warning("Unknown act_window key2 %s, assuming 'exclusive' (formerly relate)" % rec.get('key2'))
+            res['binding_type'] = binding_type
         if rec.get('multi'):
             res['multi'] = safe_eval(rec.get('multi', 'False'))
         id = self.env['ir.model.data']._update('ir.actions.act_window', self.module, res, xml_id, noupdate=self.isnoupdate(data_node), mode=self.mode)
         self.idref[xml_id] = int(id)
+    KEY2_TO_TYPE = {
+        'client_print_multi': 'report',
+        'client_action_multi': 'action',
+        'client_action_relate': 'exclusive',
+        None: 'exclusive',
+    }
 
     def _tag_menuitem(self, rec, data_node=None, mode=None):
         rec_id = rec.get("id")
