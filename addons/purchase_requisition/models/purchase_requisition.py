@@ -76,6 +76,15 @@ class PurchaseRequisition(models.Model):
             rec.name = self.env['ir.sequence'].next_by_code('purchase.order.requisition')
         return rec
 
+    @api.multi
+    def write(self, vals):
+        rec = super(PurchaseRequisition, self).write(vals)
+        # update the new vendor in supplier info data
+        if 'vendor_id' in vals:
+            for requisition_line in self.line_ids:
+                requisition_line.product_id.seller_ids.write({'name': vals['vendor_id']})
+        return rec
+
     @api.depends('type_id')
     def _is_quantity_copy(self):
         for requisition in self:
@@ -141,6 +150,7 @@ class PurchaseRequisition(models.Model):
 class SupplierInfo(models.Model):
     _inherit = "product.supplierinfo"
     purchase_requisition_id = fields.Many2one('purchase.requisition', string='Blanket order')
+    purchase_requisition_line_id = fields.Many2one('purchase.requisition.line')
 
 
 class PurchaseRequisitionLine(models.Model):
@@ -158,6 +168,7 @@ class PurchaseRequisitionLine(models.Model):
     account_analytic_id = fields.Many2one('account.analytic.account', string='Analytic Account')
     schedule_date = fields.Date(string='Scheduled Date')
     move_dest_id = fields.Many2one('stock.move', 'Downstream Move')
+    supplier_info_ids = fields.One2many('product.supplierinfo', 'purchase_requisition_line_id')
 
     @api.model
     def create(self, vals):
@@ -169,24 +180,16 @@ class PurchaseRequisitionLine(models.Model):
                 'product_id': vals['product_id'],
                 'product_tmpl_id': self.env['product.product'].browse(vals['product_id']).product_tmpl_id.id,
                 'price': vals['price_unit'],
-                'min_qty': vals['product_qty'],
-                'purchase_requisition_id': purchase_requisition_line.requisition_id.id
+                'purchase_requisition_id': purchase_requisition_line.requisition_id.id,
+                'purchase_requisition_line_id': purchase_requisition_line.id
             })
         return purchase_requisition_line
 
     @api.model
     def write(self, vals):
         purchase_requisition_line = super(PurchaseRequisitionLine, self).write(vals)
-        if self.env['purchase.requisition'].browse(vals['requisition_id']).type_id.quantity_copy == 'none' and any(self.env['purchase.requisition'].browse(vals['requisition_id']).vendor_id):
-            # create a supplier_info only in case of blanket order
-            self.env['product.supplierinfo'].create({
-                'name': self.env['purchase.requisition'].browse(vals['requisition_id']).vendor_id.id,
-                'product_id': vals['product_id'],
-                'product_tmpl_id': self.env['product.product'].browse(vals['product_id']).product_tmpl_id.id,
-                'price': vals['price_unit'],
-                'min_qty': vals['product_qty'],
-                'purchase_requisition_id': purchase_requisition_line.requisition_id.id
-            })
+        if 'price_unit' in vals:
+            self.product_id.seller_ids.browse(self.supplier_info_ids.id).write({'price': vals['price_unit']})
         return purchase_requisition_line
 
     @api.multi
