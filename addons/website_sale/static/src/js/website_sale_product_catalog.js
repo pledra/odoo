@@ -23,8 +23,7 @@ var ProductCatalog = Widget.extend({
 		this._super.apply(this, arguments);
 		this.$target = $target;
 		this.catalogType = this.$target.attr('data-catalog-type');
-		var sizes = {4: 3, 3: 4, 2: 6, 1: 12};
-		this.size = sizes[this.$target.attr('data-x')];
+		this.size = 12/this.$target.attr('data-x');
     },
     //--------------------------------------------------------------------------
     // Public
@@ -51,8 +50,20 @@ var ProductCatalog = Widget.extend({
         return $.when(this._super.apply(this, arguments), def);
     },
     _getDomain: function () {
-		var domain = [];
-		var selection = this.$target.attr('data-product-selection');
+        var domain;
+        var selection = this.$target.attr('data-product-selection');
+        switch (selection) {
+            case 'all':
+                domain = [];
+                break;
+            case 'category':
+                domain = ['public_categ_ids', 'child_of', [parseInt(this.$target.attr('data-catagory-id'))]];
+                break;
+            case 'manual':
+                var productIds = this.$target.attr('data-productIds').split(',').map(Number);
+                domain = ['id', 'in', productIds]
+                break;
+        }
 		return domain;
     },
     _getSortby: function () {
@@ -67,6 +78,17 @@ var ProductCatalog = Widget.extend({
 			limit = this.$target.attr('data-carousel');
 		}
 		return limit;
+    },
+    /**
+     * Get product ids.
+     *
+     * @private
+     * @returns {Array} Contains product ids.
+     */
+    _getProductIds: function () {
+        return _.map(this.$target.find('.product-item'), function(el) {
+            return $(el).data('product-id');
+        });
     },
 
 });

@@ -11,12 +11,14 @@ var _t = core._t;
 var QWeb = core.qweb;
 
 options.registry.product_catalog = options.Class.extend({
+    xmlDependencies: ['/website_sale/static/src/xml/website_sale_product_catalog.xml'],
     start: function () {
         this._super.apply(this, arguments);
         if (this.$target.data('catalog-type') === 'grid') {
             this._setGrid();
             this._bindGridEvents();
         }
+        this._renderProducts();
         this.$el.find('[data-catalog-type='+this.$target.data('catalog-type')+']').addClass('active');
         this.$el.find('[data-product-selection='+this.$target.data('product-selection')+']').addClass('active');
         this.$el.find('[data-shortby='+this.$target.data('shortby')+']').addClass('active');
@@ -117,7 +119,7 @@ options.registry.product_catalog = options.Class.extend({
             case 'manual':
                 this.manualSelection();
                 break;
-            }
+        }
 
     },
     categorySelection: function () {
@@ -134,18 +136,68 @@ options.registry.product_catalog = options.Class.extend({
                     {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
                         var categoryID = dialog.$content.find('[name="selection"]').val();
                         self.$target.attr('data-catagory-id', categoryID);
-
-                        self.productCatalog.options.domain = ['public_categ_ids', '=', parseInt(categoryID)];
-                        self._renderProductCatalog().then(function () {
-                            self.$target.attr('data-reorder-ids', self.productCatalog._getProductIds().join(','));
-                        });
+                        self._renderProducts();
                     }},
                     {text: _t('Discard'), close: true}
                 ]
-            }).open();
+            });
+            dialog.$content.find('[name="selection"]').val(self.$target.attr('data-catagory-id'));
+            dialog.$content.find('[name="selection"]').select2({
+                width: '70%',
+                data: _.map(result, function (r) {
+                    return {'id': r.id, 'text': r.name};
+                }),
+            });
+            dialog.$content.find('[name="selection"]').change(function () {
+                rpc.query({
+                    model: 'product.template',
+                    method: 'search_count',
+                    args:[[['public_categ_ids', 'child_of', [parseInt($(this).val())]], ['website_published', '=', true]]]
+                }).then(function (result) {
+                    dialog.$('.alert-info').toggleClass('hidden', result !== 0);
+                    dialog.$footer.find('.btn-primary').prop('disabled', result === 0);
+                });
+            });
+            dialog.open();
         });
     },
     manualSelection: function () {
+        var self = this;
+        rpc.query({
+            model: 'product.template',
+            method: 'search_read',
+            fields: ['id', 'name'],
+            domain: [['website_published', '=', true]]
+        }).then(function (result) {
+            var dialog = new Dialog(null, {
+                title: _t('Select Product Manually'),
+                $content: $(QWeb.render('product_catalog.manualSelection')),
+                buttons: [
+                    {text: _t('Save'), classes: 'btn-primary', close: true, click: function () {
+                        var productIDS = dialog.$content.find('[name="selection"]').val().split(',');
+                        self.$target.attr('data-productIds', dialog.$content.find('[name="selection"]').val());
+                        self._renderProducts();
+                    }},
+                    {text: _t('Discard'), close: true}
+                ]
+            });
+            dialog.$content.find('[name="selection"]').val(self.productCatalog._getProductIds());
+            dialog.$content.find('[name="selection"]').select2({
+                width: '100%',
+                multiple: true,
+                maximumSelectionSize: self.productCatalog._getLimit(),
+                data: _.map(result, function (r) {
+                    return {'id': r.id, 'text': r.name};
+                }),
+            }).change(function () {
+                if (dialog.$content.find('[name="selection"]').val() == "") {
+                    dialog.$footer.find('.btn-primary').prop('disabled', true);
+                } else {
+                    dialog.$footer.find('.btn-primary').prop('disabled', false);
+                }
+            });
+            dialog.open();
+        });
     },
     sortby: function (previewMode, value, $li) {
         if (!this.__click || previewMode == 'reset') return;
