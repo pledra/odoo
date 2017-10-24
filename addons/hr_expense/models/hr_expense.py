@@ -499,33 +499,29 @@ class HrExpenseSheet(models.Model):
         self.address_id = self.employee_id.address_home_id
         self.department_id = self.employee_id.department_id
 
-    @api.multi
-    def check_consistency(self):
-        if any(sheet.employee_id != self[0].employee_id for sheet in self):
-            raise UserError(_("Expenses must belong to the same Employee."))
-
-        expense_lines = self.mapped('expense_line_ids')
-        if expense_lines and any(expense.payment_mode != expense_lines[0].payment_mode for expense in expense_lines):
-            raise UserError(_("Expenses must have been paid by the same entity (Company or employee)"))
-
-    @api.one
     @api.constrains('expense_line_ids')
+    def _check_payment_mode(self):
+        for sheet in self:
+            expense_lines = sheet.mapped('expense_line_ids')
+            if expense_lines and any(expense.payment_mode != expense_lines[0].payment_mode for expense in expense_lines):
+                raise ValidationError(_("Expenses must have been paid by the same entity (Company or employee)"))
+
+    @api.constrains('expense_line_ids', 'employee_id')
     def _check_employee(self):
-        employee_ids = self.expense_line_ids.mapped('employee_id')
-        if len(employee_ids) > 1 or (len(employee_ids) == 1 and employee_ids != self.employee_id):
-            raise ValidationError(_('You cannot add expense lines of another employee.'))
+        for sheet in self:
+            employee_ids = sheet.expense_line_ids.mapped('employee_id')
+            if len(employee_ids) > 1 or (len(employee_ids) == 1 and employee_ids != sheet.employee_id):
+                raise ValidationError(_('You cannot add expense lines of another employee.'))
 
     @api.model
     def create(self, vals):
         self._create_set_followers(vals)
         sheet = super(HrExpenseSheet, self).create(vals)
-        self.check_consistency()
         return sheet
 
     @api.multi
     def write(self, vals):
         res = super(HrExpenseSheet, self).write(vals)
-        self.check_consistency()
         if vals.get('employee_id'):
             self._add_followers()
         return res
