@@ -47,8 +47,7 @@ options.registry.product_catalog = options.Class.extend({
         $grid.find('td').removeClass('selected');
         $selected.addClass('selected');
     },
-    grid: function (previewMode, value, $li) {
-        if (!this.__click || previewMode == 'reset') return;
+    grid: function () {
         this._setGrid();
         this._renderProducts();
     },
@@ -95,8 +94,6 @@ options.registry.product_catalog = options.Class.extend({
         this.productCatalog.appendTo(this.$target.find('.container'));
     },
 	catalogType: function (previewMode, value, $li) {
-        if (!this.__click || previewMode == 'reset') return;
-
         this.$target.attr('data-catalog-type', value);
         this.$el.find('[data-catalog-type]').removeClass('active');
         $li.toggleClass('active',this.$target.attr('data-catalog-type') === value);
@@ -105,7 +102,6 @@ options.registry.product_catalog = options.Class.extend({
         this._setGrid();
     },
     productSelection: function (previewMode, value, $li) {
-        if (!this.__click || previewMode == 'reset') return;
         this.$target.attr('data-product-selection', value);
         this.$el.find('[data-product-selection]').removeClass('active');
         $li.toggleClass('active',this.$target.attr('data-product-selection') === value);
@@ -190,17 +186,12 @@ options.registry.product_catalog = options.Class.extend({
                     return {'id': r.id, 'text': r.name};
                 }),
             }).change(function () {
-                if (dialog.$content.find('[name="selection"]').val() == "") {
-                    dialog.$footer.find('.btn-primary').prop('disabled', true);
-                } else {
-                    dialog.$footer.find('.btn-primary').prop('disabled', false);
-                }
+                dialog.$footer.find('.btn-primary').prop('disabled', dialog.$content.find('[name="selection"]').val() == "");
             });
             dialog.open();
         });
     },
     sortby: function (previewMode, value, $li) {
-        if (!this.__click || previewMode == 'reset') return;
         this.$target.attr('data-sortby', value);
         this.$el.find('[data-sortby]').removeClass('active');
         $li.toggleClass('active',this.$target.attr('data-sortby') === value);
