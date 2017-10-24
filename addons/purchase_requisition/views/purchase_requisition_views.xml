@@ -85,7 +85,7 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="purchase_order_form_inherit">
+    <record model="ir.ui.view" id="supplier_info_form_inherit">
         <field name="name">product.supplierinfo.requisition.view</field>
         <field name="model">product.supplierinfo</field>
         <field name="inherit_id" ref="product.product_supplierinfo_form_view"/>
