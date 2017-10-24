@@ -510,7 +510,7 @@ var BasicComposer = Widget.extend(chat_mixin, {
     // Events
     on_click_add_attachment: function () {
         this.$('input.o_input_file').click();
-        this.$input.focus();
+        this.$input.blur();
     },
 
     setState: function (state) {
