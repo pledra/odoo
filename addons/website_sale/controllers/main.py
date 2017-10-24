@@ -825,7 +825,7 @@ class WebsiteSale(http.Controller):
         tx = tx._check_or_create_sale_tx(order, acquirer, payment_token=payment_token, tx_type=tx_type)
         request.session['sale_transaction_id'] = tx.id
 
-        return tx.render_sale_button(order, '/shop/payment/validate')
+        return tx.render_sale_button(order, '/shop/confirmation')
 
     @http.route('/shop/payment/token', type='http', auth='public', website=True)
     def payment_token(self, pm_id=None, **kwargs):

@@ -25,10 +25,6 @@ class PaypalController(http.Controller):
         return_url = post.pop('return_url', '')
         if not return_url:
             custom = json.loads(urls.url_unquote_plus(post.pop('custom', False) or post.pop('cm', False) or '{}'))
-            if post.get('is_cancel'):
-                return_url = custom.get('return_url', request.env['payment.acquirer']._get_custom_cancel_url())
-            else:
-                return_url = custom.get('return_url', request.env['payment.acquirer']._get_custom_return_url())
         return return_url
 
     def _parse_pdt_response(self, response):
@@ -115,6 +111,5 @@ class PaypalController(http.Controller):
     def paypal_cancel(self, **post):
         """ When the user cancels its Paypal payment: GET on this route """
         _logger.info('Beginning Paypal cancel with post data %s', pprint.pformat(post))  # debug
-        post.update({'is_cancel': True})
         return_url = self._get_return_url(**post)
         return werkzeug.utils.redirect(return_url)
