@@ -95,15 +95,11 @@ class TestPurchaseRequisition(common.TransactionCase):
 
         seller09 = self.env['product.product'].browse(self.product_09_id).seller_ids.search([('price', '=', price_product09)]).name
         id09 = self.env['product.product'].browse(self.product_09_id).seller_ids.search([('price', '=', price_product09)]).id
-        quantity09 = self.env['product.product'].browse(self.product_09_id).seller_ids.search([('price', '=', price_product09)]).min_qty
         self.assertEqual(seller09, seller_partner1, 'The supplierinfo is not the good one')
-        self.assertEqual(quantity09, quantity, 'The minimum quantity is not good')
 
         seller13 = self.env['product.product'].browse(self.product_13_id).seller_ids.search([('price', '=', price_product13)]).name
         id13 = self.env['product.product'].browse(self.product_13_id).seller_ids.search([('price', '=', price_product13)]).id
-        quantity13 = self.env['product.product'].browse(self.product_13_id).seller_ids.search([('price', '=', price_product13)]).min_qty
         self.assertEqual(seller13, seller_partner1, 'The supplierinfo is not the good one')
-        self.assertEqual(quantity13, quantity, 'The minimum quantity is not the good one')
 
         # Put the requisition in done Status
         self.requisition_blanket.action_in_progress()
