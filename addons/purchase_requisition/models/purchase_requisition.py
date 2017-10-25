@@ -59,11 +59,12 @@ class PurchaseRequisition(models.Model):
     purchase_ids = fields.One2many('purchase.order', 'requisition_id', string='Purchase Orders', states={'done': [('readonly', True)]})
     line_ids = fields.One2many('purchase.requisition.line', 'requisition_id', string='Products to Purchase', states={'done': [('readonly', True)]}, copy=True)
     warehouse_id = fields.Many2one('stock.warehouse', string='Warehouse')
-    state = fields.Selection([('draft', 'Draft'), ('in_progress', 'Confirmed'),
-                               ('open', 'Bid Selection'), ('done', 'Done'),
+    state = fields.Selection([('draft', 'Draft'), ('ongoing', 'Ongoing'), ('in_progress', 'Confirmed'),
+                               ('open', 'Bid Selection'), ('closed', 'Closed'),
                                ('cancel', 'Cancelled')],
                               'Status', track_visibility='onchange', required=True,
                               copy=False, default='draft')
+    state_blanket_order = fields.Selection([('draft', 'Draft'), ('ongoing', 'Ongoing'), ('closed', 'Closed'), ('cancel', 'Cancelled')], 'Status', required=True, copy=False, default='draft')
     account_analytic_id = fields.Many2one('account.analytic.account', 'Analytic Account')
     picking_type_id = fields.Many2one('stock.picking.type', 'Operation Type', required=True, default=_get_picking_in)
     is_quantity_copy = fields.Boolean(compute='_is_quantity_copy')
@@ -85,7 +86,7 @@ class PurchaseRequisition(models.Model):
                 requisition_line.product_id.seller_ids.write({'name': vals['vendor_id']})
         return rec
 
-    @api.depends('type_id')
+    @api.onchange('type_id')
     def _is_quantity_copy(self):
         for requisition in self:
             if requisition.type_id.quantity_copy == 'none':
@@ -112,7 +113,12 @@ class PurchaseRequisition(models.Model):
     def action_in_progress(self):
         if not all(obj.line_ids for obj in self):
             raise UserError(_('You cannot confirm call because there is no product line.'))
-        self.write({'state': 'in_progress'})
+        for requisition in self:
+            if requisition.is_quantity_copy:
+                self.write({'state': 'in_progress'})
+            else:
+                self.write({'state': 'ongoing', 'state_blanket_order': 'ongoing'})
+
 
     @api.multi
     def action_open(self):
@@ -123,14 +129,14 @@ class PurchaseRequisition(models.Model):
         self.write({'state': 'draft'})
 
     @api.multi
-    def action_done(self):
+    def action_close(self):
         """
         Generate all purchase order based on selected lines, should only be called on one agreement at a time
         """
         self.mapped('supplier_info_ids').unlink()
         if any(purchase_order.state in ['draft', 'sent', 'to approve'] for purchase_order in self.mapped('purchase_ids')):
             raise UserError(_('You have to cancel or validate every RfQ before closing the purchase requisition.'))
-        self.write({'state': 'done'})
+        self.write({'state': 'closed', 'state_blanket_order': 'closed'})
 
     def _prepare_tender_values(self, product_id, product_qty, product_uom, location_id, name, origin, values):
         return{

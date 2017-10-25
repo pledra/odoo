@@ -102,8 +102,7 @@ class TestPurchaseRequisition(common.TransactionCase):
         self.assertEqual(seller13, seller_partner1, 'The supplierinfo is not the good one')
 
         # Put the requisition in done Status
-        self.requisition_blanket.action_in_progress()
-        self.requisition_blanket.action_done()
+        self.requisition_blanket.action_close()
 
         self.assertFalse(self.env['product.product'].browse(self.product_09_id).seller_ids.search([('id', '=', id09)]), 'The supplier info should be removed')
         self.assertFalse(self.env['product.product'].browse(self.product_13_id).seller_ids.search([('id', '=', id13)]), 'The supplier info should be removed')
