@@ -11,4 +11,3 @@ from . import sale_order
 from . import ir_model_fields
 from . import website
 from . import res_config_settings
-from . import payment_acquirer
