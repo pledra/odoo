@@ -129,11 +129,41 @@ class TestChannelFeatures(common.BaseFunctionalTest, common.MockEmails):
             'email': 'test@example.com',
         })
 
+    def _join_channel(self, channel, partners):
+        for partner in partners:
+            channel.write({'channel_last_seen_partner_ids': [(0, 0, {'partner_id': partner.id})]})
+        channel.invalidate_cache()
+
+    def _leave_channel(self, channel, partners):
+        for partner in partners:
+            channel._action_unfollow(partner)
+
+    def test_channel_listeners(self):
+        self.assertEqual(self.test_channel.message_channel_ids, self.test_channel)
+        self.assertEqual(self.test_channel.message_partner_ids, self.env['res.partner'])
+        self.assertEqual(self.test_channel.channel_partner_ids, self.env['res.partner'])
+
+        self._join_channel(self.test_channel, self.test_partner)
+        self.assertEqual(self.test_channel.message_channel_ids, self.test_channel)
+        self.assertEqual(self.test_channel.message_partner_ids, self.env['res.partner'])
+        self.assertEqual(self.test_channel.channel_partner_ids, self.test_partner)
+
+        self._leave_channel(self.test_channel, self.test_partner)
+        self.assertEqual(self.test_channel.message_channel_ids, self.test_channel)
+        self.assertEqual(self.test_channel.message_partner_ids, self.env['res.partner'])
+        self.assertEqual(self.test_channel.channel_partner_ids, self.env['res.partner'])
+
+    def test_channel_post_nofollow(self):
+        self.test_channel.message_post(body='Test', message_type='comment', subtype='mt_comment')
+        self.assertEqual(self.test_channel.message_channel_ids, self.test_channel)
+        self.assertEqual(self.test_channel.message_partner_ids, self.env['res.partner'])
+
     @mute_logger('odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
     def test_channel_mailing_list_recipients(self):
-        # Data: set alias_domain to see emails with alias
+        """ Posting a message on a mailing list should send one email to all recipients """
         self.env['ir.config_parameter'].set_param('mail.catchall.domain', 'schlouby.fr')
-        self.test_channel.message_subscribe([self.user_employee.partner_id.id, self.test_partner.id])
+        self.test_channel.write({'email_send': True})
+        self._join_channel(self.test_channel, self.user_employee.partner_id | self.test_partner)
         self.test_channel.message_post(body="Test", message_type='comment', subtype='mt_comment')
 
         self.assertEqual(len(self._mails), 1)
@@ -143,8 +173,18 @@ class TestChannelFeatures(common.BaseFunctionalTest, common.MockEmails):
                 set([formataddr((self.user_employee.name, self.user_employee.email)), formataddr((self.test_partner.name, self.test_partner.email))]))
 
     @mute_logger('odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
+    def test_channel_chat_recipients(self):
+        """ Posting a message on a chat should not send emails """
+        self.env['ir.config_parameter'].set_param('mail.catchall.domain', 'schlouby.fr')
+        self.test_channel.write({'email_send': False})
+        self._join_channel(self.test_channel, self.user_employee.partner_id | self.test_partner)
+        self.test_channel.message_post(body="Test", message_type='comment', subtype='mt_comment')
+
+        self.assertEqual(len(self._mails), 0)
+
+    @mute_logger('odoo.addons.mail.models.mail_mail', 'odoo.models.unlink')
     def test_channel_classic_recipients(self):
-        # Remove alias, should trigger classic behavior of mail group
+        """ Posting a message on a classic channel should work like classic post """
         self.test_channel.write({'alias_name': False})
         self.test_channel.message_subscribe([self.user_employee.partner_id.id, self.test_partner.id])
         self.test_channel.message_post(body="Test", message_type='comment', subtype='mt_comment')
