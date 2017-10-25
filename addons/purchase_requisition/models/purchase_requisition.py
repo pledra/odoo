@@ -103,6 +103,7 @@ class PurchaseRequisition(models.Model):
     @api.multi
     def action_cancel(self):
         # try to set all associated quotations to cancel state
+        self.mapped('supplier_info_ids').unlink()
         for requisition in self:
             requisition.purchase_ids.button_cancel()
             for po in requisition.purchase_ids:
