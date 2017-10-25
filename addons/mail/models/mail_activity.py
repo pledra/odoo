@@ -241,6 +241,7 @@ class MailActivity(models.Model):
     def action_done_schedule_next(self):
         wizard_ctx = dict(
             self.env.context,
+            default_previous_activity_type_id=self.activity_type_id.id,
             default_res_id=self.res_id,
             default_res_model=self.res_model,
         )
