@@ -4,7 +4,7 @@
 import re
 
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError, AccessError
 from odoo.tools import email_split, float_is_zero
 
 import odoo.addons.decimal_precision as dp
@@ -516,6 +516,8 @@ class HrExpenseSheet(models.Model):
 
     @api.multi
     def refuse_expenses(self, reason):
+        if not self.env.user.has_group('hr_expense.group_hr_expense_user'):
+            raise AccessError(_("You must be Expense Officer to refuse expenses."))
         self.write({'state': 'cancel'})
         for sheet in self:
             body = (_("Your Expense %s has been refused.<br/><ul class=o_timeline_tracking_value_list><li>Reason<span> : </span><span class=o_timeline_tracking_value>%s</span></li></ul>") % (sheet.name, reason))
@@ -523,6 +525,8 @@ class HrExpenseSheet(models.Model):
 
     @api.multi
     def approve_expense_sheets(self):
+        if not self.env.user.has_group('hr_expense.group_hr_expense_user'):
+            raise AccessError(_("You must be Expense Officer to approve expenses."))
         self.write({'state': 'approve', 'responsible_id': self.env.user.id})
 
     @api.multi
