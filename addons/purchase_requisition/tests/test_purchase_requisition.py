@@ -106,3 +106,80 @@ class TestPurchaseRequisition(common.TransactionCase):
 
         self.assertFalse(self.env['product.product'].browse(self.product_09_id).seller_ids.search([('id', '=', id09)]), 'The supplier info should be removed')
         self.assertFalse(self.env['product.product'].browse(self.product_13_id).seller_ids.search([('id', '=', id13)]), 'The supplier info should be removed')
+
+    def test_04_purchase_requisition(self):
+        # Does a blanket order impact price on a quotation ?
+
+        # Product creation
+        unit = self.ref("product.product_uom_unit")
+        self.warehouse = self.env.ref('stock.warehouse0')
+        route_buy = self.ref('purchase.route_warehouse0_buy')
+        route_mto = self.warehouse.mto_pull_id.route_id.id
+        self.company1 = self.env['res.partner'].create({'name': 'AAA', 'email': 'from.test@example.com'})
+        self.supplierinfo = self.env['product.supplierinfo'].create({
+            'name': self.company1.id,
+            'price': 50,
+        })
+        self.product_test = self.env['product.product'].create({
+            'name': 'Usb Keyboard',
+            'type': 'product',
+            'uom_id': unit,
+            'uom_po_id': unit,
+            'seller_ids': [(6, 0, [self.supplierinfo.id])],
+            'route_ids': [(6, 0, [route_buy, route_mto])]
+        })
+
+        # Stock picking
+        self.stock_location = self.env.ref('stock.stock_location_stock')
+        self.customer_location = self.env.ref('stock.stock_location_customers')
+        receipt = self.env['stock.picking'].create({
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'partner_id': self.company1.id,
+            'picking_type_id': self.env.ref('stock.picking_type_in').id,
+        })
+
+        move1 = self.env['stock.move'].create({
+            'picking_id': receipt.id,
+            'name': '10 in',
+            'procure_method': 'make_to_order',
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'product_id': self.product_test.id,
+            'product_uom': unit,
+            'product_uom_qty': 10.0,
+            'price_unit': 10,
+        })
+        move1._action_confirm()
+
+        # Verification : there should be a purchase order created with the good price
+        self.assertEqual(self.env['purchase.order'].search([('partner_id', '=', self.company1.id)]).order_line.price_unit, 50, 'The price on the purchase order is not the supplierinfo one')
+
+        # Blanket order creation
+        line1 = (0, 0, {'product_id': self.product_test.id, 'product_qty': 18, 'product_uom_id': self.product_test.uom_po_id.id, 'price_unit': 42})
+        requisition_type = self.env['purchase.requisition.type'].create({'name': 'Blanket test', 'quantity_copy': 'none'})
+        self.requisition_blanket = self.env['purchase.requisition'].create({'line_ids': [line1], 'type_id': requisition_type.id, 'vendor_id': self.company1.id})
+
+        # Second stock move
+        receipt2 = self.env['stock.picking'].create({
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'partner_id': self.company1.id,
+            'picking_type_id': self.env.ref('stock.picking_type_in').id,
+        })
+
+        move2 = self.env['stock.move'].create({
+            'picking_id': receipt2.id,
+            'name': '10 in',
+            'procure_method': 'make_to_order',
+            'location_id': self.stock_location.id,
+            'location_dest_id': self.customer_location.id,
+            'product_id': self.product_test.id,
+            'product_uom': unit,
+            'product_uom_qty': 10.0,
+            'price_unit': 10
+        })
+        move2._action_confirm()
+
+        # Verifications
+        self.assertEqual(self.env['purchase.order'].search([('partner_id', '=', self.company1.id)]).order_line.price_unit, 42, 'The price on the purchase order is not the blanquet order one')
