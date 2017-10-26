@@ -513,11 +513,13 @@ class Task(models.Model):
         default_partner_id = self.env.context.get('default_partner_id')
         default_partner = self.env['res.partner'].browse(default_partner_id) if default_partner_id else self.env['res.partner']
         if self.project_id:
-            self.partner_id = self.project_id.partner_id or default_partner
+            if not self.parent_id:
+                self.partner_id = self.project_id.partner_id or default_partner
             if self.project_id not in self.stage_id.project_ids:
                 self.stage_id = self.stage_find(self.project_id.id, [('fold', '=', False)])
         else:
-            self.partner_id = default_partner
+            if not self.parent_id:
+                self.partner_id = default_partner
             self.stage_id = False
 
     @api.onchange('user_id')
@@ -539,12 +541,6 @@ class Task(models.Model):
     def _compute_subtask_count(self):
         for task in self:
             task.subtask_count = self.search_count([('id', 'child_of', task.id), ('id', '!=', task.id)])
-
-    @api.constrains('parent_id')
-    def _check_subtask_project(self):
-        for task in self:
-            if task.parent_id.project_id and task.project_id != task.parent_id.project_id.subtask_project_id:
-                raise UserError(_("You can't define a parent task if its project is not correctly configured. The sub-task's project of the parent task's project should be this task's project"))
 
     # Override view according to the company definition
     @api.model
@@ -657,6 +653,11 @@ class Task(models.Model):
             vals['date_assign'] = now
 
         result = super(Task, self).write(vals)
+        # Update subtask partner according to parent partner
+        if 'partner_id' in vals:
+            child_ids = self.filtered(lambda task: not task.parent_id).mapped('child_ids')
+            if child_ids:
+                child_ids.write({'partner_id': vals['partner_id']})
 
         return result
 
