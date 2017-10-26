@@ -4,8 +4,45 @@
         <div class="row product_grid" contenteditable="false">
 	        <t t-foreach="widget.products" t-as="product">
 	            <div t-attf-class="col-md-#{widget.size} product-item" t-att-data-product-id="product.id">
-	                <t t-esc="product.name"/>-
-	                <t t-esc="product.website_price"/>
+                    <div class="col-item">
+                        <div class="product-image">
+                            <a href="#">
+                                <img t-attf-src="/web/image/product.template/#{product.id}/image/300x300" class="img img-responsive o_not_editable"/>
+                            </a>
+                        </div>
+                        <hr/>
+                        <div class="product-details">
+                            <div class="product-description" t-if="product.description_sale">
+                                <a>
+                                    <t t-raw="widget._formatDescriptionValue(product.description_sale)"/>
+                                </a>
+                            </div>
+                            <div>
+                                <strong>
+                                    <p>
+                                        <t t-esc="product.name"/>
+                                        <span class="pull-right">
+                                            <t t-esc="product.website_price"/>
+                                        </span>
+                                    </p>
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="button-container">
+                            <span class="text-center text-primary item o_add_to_cart">
+                                <i class="fa fa-shopping-cart fa-lg" aria-hidden="true"></i>
+                            </span>
+                            <span class="text-center item o_rating">
+                                <i class="fa fa-star fa-lg" aria-hidden="true"></i>
+                            </span>
+                            <span class="text-center item o_wish_list">
+                                <i class="fa fa-heart fa-lg" aria-hidden="true"></i>
+                            </span>
+                            <span class="text-center item o_compare">
+                                <i class="fa fa-exchange fa-lg" aria-hidden="true"></i>
+                            </span>
+                        </div>
+                    </div>
 	            </div>
 	        </t>
         </div>

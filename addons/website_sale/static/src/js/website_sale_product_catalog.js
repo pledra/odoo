@@ -49,6 +49,16 @@ var ProductCatalog = Widget.extend({
         });
         return $.when(this._super.apply(this, arguments), def);
     },
+    /**
+     * formating description for the website sale display
+     *
+     * @private
+     * @param {string} get description.
+     * @returns {string} Contains string with replace '\n' to '<br>'.
+     */
+    _formatDescriptionValue: function (description_sale) {
+        return description_sale.split("\n").join("<br>");
+    },
     _getDomain: function () {
         var domain;
         var selection = this.$target.attr('data-product-selection');
