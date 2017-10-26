@@ -156,6 +156,8 @@ class PurchaseRequisition(models.Model):
 
 class SupplierInfo(models.Model):
     _inherit = "product.supplierinfo"
+    _order = 'sequence, purchase_requisition_id desc, min_qty desc, price'
+
     purchase_requisition_id = fields.Many2one('purchase.requisition', string='Blanket order')
     purchase_requisition_line_id = fields.Many2one('purchase.requisition.line')
 
