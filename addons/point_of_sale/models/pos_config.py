@@ -359,6 +359,7 @@ class PosConfig(models.Model):
         pos_config = super(PosConfig, self).create(values)
         pos_config.sudo()._check_modules_to_install()
         pos_config.sudo()._check_groups_implied()
+        pos_config.sudo()._set_global_value(values)
         # If you plan to add something after this, use a new environment. The one above is no longer valid after the modules install.
         return pos_config
 
@@ -372,7 +373,20 @@ class PosConfig(models.Model):
         self.sudo()._set_fiscal_position()
         self.sudo()._check_modules_to_install()
         self.sudo()._check_groups_implied()
+        if not self.env.context.get('set_global', False):
+            self.sudo()._set_global_value(vals)
         return result
+
+    def _set_global_value(self, vals):
+        global_fields = ['use_pricelist', 'module_pos_mercury', 'module_pos_restaurant', 'module_pos_discount', 'module_pos_reprint', 'module_pos_loyalty']
+        result = {}
+        for global_field in global_fields:
+            if global_field in vals.keys():
+                result[global_field] = vals[global_field]
+        if result:
+            records = self.search([])
+            for record in records:
+                record.with_context(set_global=True).write(result)
 
     @api.multi
     def unlink(self):
