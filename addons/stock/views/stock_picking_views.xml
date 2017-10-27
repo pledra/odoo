@@ -667,34 +667,28 @@
                                                 </div>
 
                                                 <div t-if="record.count_picking_waiting.raw_value > 0" class="row">
-                                                    <div class="col-xs-9">
+                                                    <div class="pull-right mr16">
                                                         <a name="get_action_picking_tree_waiting" type="object">
                                                             Waiting
                                                         </a>
-                                                    </div>
-                                                    <div class="col-xs-3">
-                                                        <field name="count_picking_waiting"/>
+                                                        <span class="ml8"><field name="count_picking_waiting"/></span>
                                                     </div>
                                                 </div>
                                                 <div t-if="record.count_picking_ready.raw_value > 0" class="row">
-                                                    <div class="col-xs-9">
+                                                    <div class="pull-right mr16">
                                                         <a class="oe_kanban_stock_picking_type_list" name="get_action_picking_tree_ready" type="object">
                                                             Ready
                                                         </a>
-                                                    </div>
-                                                    <div class="col-xs-3">
-                                                        <field name="count_picking_ready"/>
+                                                        <span class="ml8"><field name="count_picking_ready"/></span>
                                                     </div>
                                                 </div>
 
                                                 <div t-if="record.count_picking_backorders.raw_value > 0" class="row">
-                                                    <div class="col-xs-9">
+                                                    <div class="pull-right mr16">
                                                         <a class="oe_kanban_stock_picking_type_list" name="get_action_picking_tree_backorder" type="object">
                                                             Back Orders
                                                         </a>
-                                                    </div>
-                                                    <div class="col-xs-3">
-                                                        <field name="count_picking_backorders"/>
+                                                        <span class="ml8"><field name="count_picking_backorders"/></span>
                                                     </div>
                                                 </div>
                                             </div>
