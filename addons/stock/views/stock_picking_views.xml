@@ -676,15 +676,14 @@
                                                         <field name="count_picking_waiting"/>
                                                     </div>
                                                 </div>
-
-                                                <div t-if="record.count_picking_late.raw_value > 0" class="row">
+                                                <div t-if="record.count_picking_ready.raw_value > 0" class="row">
                                                     <div class="col-xs-9">
-                                                        <a class="oe_kanban_stock_picking_type_list" name="get_action_picking_tree_late" type="object">
-                                                            Late
+                                                        <a class="oe_kanban_stock_picking_type_list" name="get_action_picking_tree_ready" type="object">
+                                                            Ready
                                                         </a>
                                                     </div>
                                                     <div class="col-xs-3">
-                                                        <field name="count_picking_late"/>
+                                                        <field name="count_picking_ready"/>
                                                     </div>
                                                 </div>
 
