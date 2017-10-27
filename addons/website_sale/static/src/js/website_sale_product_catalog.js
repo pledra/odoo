@@ -11,8 +11,8 @@ var utils = require('web.utils');
 
 var QWeb = core.qweb;
 var ProductCatalog = Widget.extend({
-	template: 'website_sale.product_catalog',
-	xmlDependencies: ['/website_sale/static/src/xml/website_sale_product_catalog.xml'],
+    template: 'website_sale.product_catalog',
+    xmlDependencies: ['/website_sale/static/src/xml/website_sale_product_catalog.xml'],
     /**
      * Initialize all options which are need to render widget.
      * @constructor
@@ -20,10 +20,10 @@ var ProductCatalog = Widget.extend({
      * @param {jQuery} $target
      */
     init: function ($target) {
-		this._super.apply(this, arguments);
-		this.$target = $target;
-		this.catalogType = this.$target.attr('data-catalog-type');
-		this.size = 12/this.$target.attr('data-x');
+        this._super.apply(this, arguments);
+        this.$target = $target;
+        this.catalogType = this.$target.attr('data-catalog-type');
+        this.size = 12/this.$target.attr('data-x');
     },
     //--------------------------------------------------------------------------
     // Public
@@ -49,6 +49,35 @@ var ProductCatalog = Widget.extend({
         });
         return $.when(this._super.apply(this, arguments), def);
     },
+
+    //--------------------------------------------------------------------------
+    // Private
+    //--------------------------------------------------------------------------
+
+    /**
+     * formating currency for the website sale display
+     *
+     * @private
+     * @param {float|false} value that should be formatted.
+     * @param {string} currency symbol.
+     * @param {string} position should be either before or after.
+     * @param {integer} the number of digits that should be used,
+     *   instead of the default digits precision in the field.
+     * @returns {string} Returns a string representing a float and currency symbol.
+     */
+    _formatCurrencyValue: function (value, currency_symbol, position, currency_decimal_places) {
+        var l10n = core._t.database.parameters;
+        value = _.str.sprintf('%.' + currency_decimal_places + 'f', value || 0).split('.');
+        value[0] = utils.insert_thousand_seps(value[0]);
+        value = value.join(l10n.decimal_point);
+        if (position === "after") {
+            value += currency_symbol;
+        } else {
+            value = currency_symbol + value;
+        }
+        return value;
+    },
+
     /**
      * formating description for the website sale display
      *
@@ -74,20 +103,20 @@ var ProductCatalog = Widget.extend({
                 domain = ['id', 'in', productIds]
                 break;
         }
-		return domain;
+        return domain;
     },
     _getSortby: function () {
-		var sortby = this.$target.attr('data-sortby');
-		return sortby;
+        var sortby = this.$target.attr('data-sortby');
+        return sortby;
     },
     _getLimit: function () {
-		var limit;
-		if (this.catalogType === 'grid') {
-			limit = this.$target.attr('data-x') * this.$target.attr('data-y');
-		} else {
-			limit = this.$target.attr('data-carousel');
-		}
-		return limit;
+        var limit;
+        if (this.catalogType === 'grid') {
+            limit = this.$target.attr('data-x') * this.$target.attr('data-y');
+        } else {
+            limit = this.$target.attr('data-carousel');
+        }
+        return limit;
     },
     /**
      * Get product ids.
@@ -104,11 +133,11 @@ var ProductCatalog = Widget.extend({
 });
 base.ready().then(function () {
     if ($('.s_product_catalog').length) {
-		$('.s_product_catalog').each(function () {
-			var productCatalog = new ProductCatalog($(this));
-			$(this).find('.product_grid').remove();
-			productCatalog.appendTo($(this).find('.container'));
-		});
+        $('.s_product_catalog').each(function () {
+            var productCatalog = new ProductCatalog($(this));
+            $(this).find('.product_grid').remove();
+            productCatalog.appendTo($(this).find('.container'));
+        });
     }
 });
 return {

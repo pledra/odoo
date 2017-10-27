@@ -60,7 +60,7 @@ options.registry.product_catalog = options.Class.extend({
      *
      * @private
      */
-	_bindGridEvents: function () {
+    _bindGridEvents: function () {
         var self = this;
         this.$el.on('mouseenter', 'ul[name="size"] table', function (event) {
             $(event.currentTarget).addClass('oe_hover');
@@ -89,11 +89,14 @@ options.registry.product_catalog = options.Class.extend({
         });
     },
     _renderProducts: function () {
+        var self = this;
         this.productCatalog = new productCatalog.ProductCatalog(this.$target);
         this.$target.find('.product_grid').remove();
-        this.productCatalog.appendTo(this.$target.find('.container'));
+        this.productCatalog.appendTo(this.$target.find('.container')).then(function () {
+            self.trigger_up('cover_update');
+        });
     },
-	catalogType: function (previewMode, value, $li) {
+    catalogType: function (previewMode, value, $li) {
         this.$target.attr('data-catalog-type', value);
         this.$el.find('[data-catalog-type]').removeClass('active');
         $li.toggleClass('active',this.$target.attr('data-catalog-type') === value);
