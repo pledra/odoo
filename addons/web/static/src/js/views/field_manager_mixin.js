@@ -16,6 +16,7 @@ var FieldManagerMixin = {
         field_changed: '_onFieldChanged',
         load: '_onLoad',
         mutexify: '_onMutexify',
+        open_form_view: '_onOpenFormView',
     },
     /**
      * A FieldManagerMixin can be initialized with an instance of a basicModel.
@@ -142,6 +143,25 @@ var FieldManagerMixin = {
     _onMutexify: function (ev) {
         ev.stopPropagation(); // prevent other field managers from handling this request
         this.mutex.exec(ev.data.action);
+    },
+    /**
+     * @private
+     * @param {OdooEvent} ev
+     * @param {string} ev.data.model
+     * @param {integer} ev.data.res_id
+     * @param {Object} ev.data.context
+     */
+    _onOpenFormView: function (ev) {
+        var self = this;
+        this._rpc({
+            model: ev.data.model,
+            method: 'get_formview_action',
+            args: [[ev.data.res_id]],
+            context: ev.data.context,
+        })
+        .then(function (action) {
+            self.trigger_up('do_action', {action: action});
+        });
     },
 };
 

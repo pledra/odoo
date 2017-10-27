@@ -436,19 +436,15 @@ var FieldMany2One = AbstractField.extend({
      * @param {MouseEvent} event
      */
     _onClick: function (event) {
-        var self = this;
         if (this.mode === 'readonly' && !this.nodeOptions.no_open) {
             event.preventDefault();
             event.stopPropagation();
-            this._rpc({
-                    model: this.field.relation,
-                    method: 'get_formview_action',
-                    args: [[this.value.res_id]],
-                    context: this.record.getContext(this.recordParams),
-                })
-                .then(function (action) {
-                    self.trigger_up('do_action', {action: action});
-                });
+
+            this.trigger_up('open_form_view', {
+                model: this.field.relation,
+                res_id: this.value.res_id,
+                context: this.record.getContext(this.recordParams),
+            });
         }
     },
     /**
