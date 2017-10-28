@@ -145,12 +145,12 @@ function createAsyncView(params) {
 
     _.extend(viewOptions, params.viewOptions);
 
-
+    var view;
     if (viewInfo.arch.attrs.js_class) {
         var jsClsssView = view_registry.get(viewInfo.arch.attrs.js_class);
-        var view = new jsClsssView(viewInfo, viewOptions);
+        view = new jsClsssView(viewInfo, viewOptions);
     } else{
-        var view = new params.View(viewInfo, viewOptions);
+        view = new params.View(viewInfo, viewOptions);
     }
 
     // make sure images do not trigger a GET on the server
@@ -163,13 +163,6 @@ function createAsyncView(params) {
     var $control_panel = $('<div>').addClass('o_control_panel').appendTo($web_client);
     var $content = $('<div>').addClass('o_content').appendTo($web_client);
     var $view_manager = $('<div>').addClass('o_view_manager_content').appendTo($content);
-
-    // make sure all Odoo events bubbling up are intercepted
-    if (params.intercepts) {
-        _.each(params.intercepts, function (cb, name) {
-            intercept(widget, name, cb);
-        });
-    }
 
     return view.getController(widget).then(function (view) {
         // override the view's 'destroy' so that it calls 'destroy' on the widget
@@ -284,6 +277,12 @@ function addMockEnvironment(widget, params) {
     if ('translateParameters' in params) {
         initialParameters = _.extend({}, core._t.database.parameters);
         _.extend(core._t.database.parameters, params.translateParameters);
+    }
+    // make sure all Odoo events bubbling up are intercepted
+    if (params.intercepts) {
+        _.each(params.intercepts, function (cb, name) {
+            intercept(widget, name, cb);
+        });
     }
 
     var widgetDestroy = widget.destroy;
