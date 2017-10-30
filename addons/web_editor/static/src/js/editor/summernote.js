@@ -1820,60 +1820,6 @@ $.summernote.pluginEvents.removeFormat = function (event, editor, layoutInfo, va
     event.preventDefault();
     return false;
 };
-var fn_boutton_updateRecentColor = eventHandler.modules.toolbar.button.updateRecentColor;
-eventHandler.modules.toolbar.button.updateRecentColor = function (elBtn, sEvent, sValue) {
-    fn_boutton_updateRecentColor.call(this, elBtn, sEvent, sValue);
-    var $recentcolor = $.find('.note-recent-color i');
-    var $recentcolorbtn = $.find('.note-recent-color');
-
-    //find last used color for fonts or for icons
-    //set this color into recentcolor button of both font and icon
-    for (var i in $recentcolor) {
-        var $font = $recentcolor[i];
-        var $button = $($recentcolorbtn[i]);
-        var className = $font.className.split(/\s+/);
-        var k;
-        if (sEvent === "foreColor") {
-            //set class for forecolor to recentcolor button font-icon
-            for (k=2; k<className.length; k++) {
-                if (className[k].length && className[k].slice(0,5) === "text-") {
-                  className.splice(k,1);
-                  k--;
-                }
-            }
-            if (sValue.indexOf('text-') !== -1) {
-                $font.className = className.join(' ') + ' ' + sValue;
-                $font.style.color = '';
-            } else {
-                $font.className = $font.className.replace(/(^|\s+)text-\S+/, '');
-                $font.style.color = sValue !== 'inherit' ? sValue : "";
-            }
-        } else {
-            //set class for backcolor to recentcolor button font-icon
-            for (k=2; k<className.length; k++) {
-                if (className[k].length && className[k].slice(0,3) === "bg-") {
-                  className.splice(k,1);
-                  k--;
-                }
-            }
-            if (sValue.indexOf('bg-') !== -1) {
-                $font.className =className.join(' ') + ' ' + sValue;
-                $font.style.backgroundColor = "";
-            } else {
-                $font.className = $font.className.replace(/(^|\s+)bg-\S+/, '');
-                $font.style.backgroundColor = sValue !== 'inherit' ? sValue : "";
-            }
-        }
-        if (sValue !== 'inherit') {
-            //set attribute for color to the recentcolor button
-            var colorInfo = JSON.parse($button.attr('data-value'));
-            colorInfo[sEvent] = sValue;
-            $button.attr('data-value', JSON.stringify(colorInfo));
-        }
-    }
-    return false;
-};
-
 $(document).on('click keyup', function () {
     var $popover = $((range.create()||{}).sc).closest('[contenteditable]');
     var popover_history = ($popover.data()||{}).NoteHistory;

@@ -61,6 +61,9 @@ renderer.createPalette = function ($container, options) {
     }).join("") + "<h6>" + _t("Common colors") + "</h6>";
     var $palettes = $container.find(".note-color .note-color-palette");
     $palettes.prepend(html);
+    var icon = $container.find('#colors_preview').css('background', 'none');
+    $container.find('button[data-original-title="More Color"]').prepend(icon);
+    $container.find('.note-recent-color').addClass('hidden');
 
     var $bg = $palettes.filter(":even").find("button:not(.note-color-btn)").addClass("note-color-btn");
     var $fore = $palettes.filter(":odd").find("button:not(.note-color-btn)").addClass("note-color-btn");
@@ -958,9 +961,7 @@ $.summernote.lang.odoo = {
       justify: _t('Justify full')
     },
     color: {
-      recent: _t('Recent Color'),
       more: _t('More Color'),
-      background: _t('Background Color'),
       foreground: _t('Font Color'),
       transparent: _t('Transparent'),
       setTransparent: _t('Set transparent'),
