@@ -99,7 +99,7 @@
                         </tr>
                     </tbody>
                 </table>
-                <table class="o_group o_inner_group o_group_col_6">
+                <table class="o_group o_inner_group o_group_col_6 o_meeting_group">
                     <tbody>
                         <tr>
                             <td class="o_td_label"><label class="o_form_label">Due Date</label></td>
@@ -121,6 +121,10 @@
                     </div>
                 </div>
                 <div class="o_composer_send">
+                    <button class="btn btn-sm btn-primary o_composer_button_meeting o_hidden" tabindex="3" type="button">
+                        <span class="hidden-xs">Schedule Meeting</span>
+                        <span class="visible-xs"><i class="fa fa-clock-o"/></span>
+                    </button>
                     <button class="btn btn-sm btn-primary o_composer_button_activity" tabindex="3" type="button">
                         <span class="hidden-xs">Schedule Activity</span>
                         <span class="visible-xs"><i class="fa fa-clock-o"/></span>

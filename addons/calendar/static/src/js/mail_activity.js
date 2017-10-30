@@ -2,6 +2,7 @@ odoo.define('calendar.Activity', function (require) {
 "use strict";
 
 var Activity = require('mail.Activity');
+var ActivityComposer = require('mail.activity_composer');
 var Dialog = require('web.Dialog');
 var core = require('web.core');
 var _t = core._t;
@@ -55,6 +56,48 @@ Activity.include({
             return self._super(event, options);
         }
     },
+});
+
+ActivityComposer.include({
+    events: _.extend({
+        'click .o_composer_button_meeting': '_onClickMeetingActivity'
+    },ActivityComposer.prototype.events),
+
+    _resetActivityField: function (result) {
+        this._super.apply(this, arguments);
+        var self = this;
+        this._rpc({
+            model: 'mail.activity.type',
+            method: 'search_read',
+            domain: [['id','=',this.selectedActivityTypeId]],
+            fields: ['category']
+        }).then(function (result) {
+            if ( result[0].category === "meeting" ) {
+                self.$('.o_meeting_group').hide();
+                self.$('.o_composer_send button').addClass('o_hidden');
+                self.$('.o_composer_button_meeting').removeClass('o_hidden');
+            } else {
+                self.$('.o_meeting_group').show();
+                self.$('.o_composer_send button').removeClass('o_hidden');
+                self.$('.o_composer_button_meeting').addClass('o_hidden');
+            }
+        });
+    },
+
+    _onClickMeetingActivity: function () {
+        var self = this;
+        this._createActivity().then(function (id) {
+            self._rpc({
+                model: self.activityModel,
+                method: 'action_create_calendar_event',
+                args: [id]
+            }).then(function (action) {
+                self.do_action(action);
+                self._updateChatter();
+            });
+        });
+    }
+
 });
 
 });

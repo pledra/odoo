@@ -857,8 +857,10 @@ QUnit.test('form activity widget: schedule activity does not discard changes', f
     // update value of foo field
     form.$('.o_field_widget[name=foo]').val('new value').trigger('input');
 
-    // schedule an activity (this triggers a do_action)
     form.$('.o_chatter_button_schedule_activity').click();
+
+    // schedule an activity (this triggers a do_action)
+    form.$('.o_exapand_activity').click();
 
     // save the record
     form.$buttons.find('.o_form_button_save').click();

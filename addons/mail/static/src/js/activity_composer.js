@@ -44,6 +44,7 @@ var ActivityComposer = composer.BasicComposer.extend(FieldManagerMixin, {
 
         this.datewidget = new datepicker.DateWidget(this, {defaultDate: moment()});
         this.datewidget.appendTo(this.$('.date_picker_activity_due_date'));
+        this.datewidget.$el.addClass('o_required_modifier');
 
         this._initM2oFields();
 
@@ -64,6 +65,7 @@ var ActivityComposer = composer.BasicComposer.extend(FieldManagerMixin, {
                             attrs: m2oField.attrs || {},
                        });
                     m2oField.el.appendTo(m2oField.$container);
+                    m2oField.el.$('> div').addClass('o_required_modifier');
                 });
             });
         });
@@ -80,6 +82,11 @@ var ActivityComposer = composer.BasicComposer.extend(FieldManagerMixin, {
                 fieldName: 'user_id',
                 relation: 'res.users',
                 value: self.user_id,
+                attrs: {
+                    can_create: false,
+                    can_write: false,
+                    options: { no_open: true }
+                },
                 $container: self.$('.assigned_user_select_m2o')
             },
             activity_type_id: {
@@ -172,6 +179,15 @@ var ActivityComposer = composer.BasicComposer.extend(FieldManagerMixin, {
         this.trigger.call(this, 'close_composer');
     },
     /**
+     * set values when on_change called
+     *
+     * @private
+     */
+    _resetActivityField: function (result) {
+        this.datewidget.setValue(moment(result.value.date_deadline));
+        result.value.summary ? this.activitySummaryInput.val(result.value.summary) : this.activitySummaryInput.val('');
+    },
+    /**
      * activity_type onchange method
      *
      * @private
@@ -183,8 +199,7 @@ var ActivityComposer = composer.BasicComposer.extend(FieldManagerMixin, {
             method: 'onchange',
             args: [[],this._getData(), _.keys(this._getData()) , {'activity_type_id': '1'}],
         }).then(function (result) {
-            self.datewidget.setValue(moment(result.value.date_deadline));
-            result.value.summary ? self.activitySummaryInput.val(result.value.summary) : self.activitySummaryInput.val('');
+            self._resetActivityField(result);
         });
     },
     /**
