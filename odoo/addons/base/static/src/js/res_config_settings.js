@@ -143,6 +143,23 @@ var BaseSettingRenderer = FormRenderer.extend({
         return index;
     },
     /**
+     * Enable swipe event
+     *
+     * @private
+     * @param {jQueryElement} $view
+     */
+    _enableSwipe: function ($view) {
+        var self = this;
+        $view.swipe({
+            swipeLeft: function () {
+                self._moveToTab(++self.currentIndex);
+            },
+            swipeRight: function () {
+                self._moveToTab(--self.currentIndex);
+            }
+        });
+    },
+    /**
      *
      * @private
      * @param {string} module
@@ -257,6 +274,9 @@ var BaseSettingRenderer = FormRenderer.extend({
         }
         this._renderLeftPanel();
         this._initSearch();
+        if (config.device.isMobile) {
+            this._enableSwipe(this.$('.settings'));
+        }
         return res;
     },
 
@@ -342,10 +362,23 @@ var BaseSettingController = FormController.extend({
 });
 
 var BaseSettingView = FormView.extend({
+    jsLibs: [],
+
     config: _.extend({}, FormView.prototype.config, {
         Renderer: BaseSettingRenderer,
         Controller: BaseSettingController,
     }),
+    /**
+     * Adding touchSwipe library for mobile
+     *
+     * @override
+    */
+    init: function () {
+        if (config.device.isMobile) {
+            this.jsLibs.push('/web/static/lib/jquery.touchSwipe/jquery.touchSwipe.js');
+        }
+        this._super.apply(this, arguments);
+    },
 
     getRenderer: function (parent, state) {
         return new BaseSettingRenderer(parent, state, this.rendererParams);
