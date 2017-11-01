@@ -2,6 +2,7 @@ odoo.define('web.FormRenderer', function (require) {
 "use strict";
 
 var BasicRenderer = require('web.BasicRenderer');
+var AttachDocument = require('web.Attachment');
 var config = require('web.config');
 var core = require('web.core');
 var dom = require('web.dom');
@@ -336,13 +337,17 @@ var FormRenderer = BasicRenderer.extend({
      * @returns {jQueryElement}
      */
     _renderHeaderButton: function (node) {
-        var $button = $('<button>')
+        var $button;
+        if (node.attrs.special === 'attachdocument') {
+            $button = this._renderAttachDocument(node, this.state);
+        } else {
+            $button = $('<button>')
                         .text(node.attrs.string)
                         .addClass('btn btn-sm btn-default');
-        this._addOnClickAction($button, node);
+            this._addOnClickAction($button, node);
+        }
         this._handleAttributes($button, node);
         this._registerModifiers(node, this.state, $button);
-
         // Display tooltip
         if (config.debug || node.attrs.help) {
             this._addButtonTooltip(node, $button);
@@ -844,6 +849,19 @@ var FormRenderer = BasicRenderer.extend({
     _setIDForLabel: function (widget, idForLabel) {
         widget.getFocusableElement().attr('id', idForLabel);
     },
+    /**
+     * The method will be automatically called to replace the button with widget <AttachDocument>.
+     * @private
+     */
+    _renderAttachDocument: function (node, record) {
+        // Initialize the widget
+        var attachDocument = new AttachDocument(this, {
+            'node': node,
+            'state': record,
+        });
+        attachDocument.appendTo($('<span>'));
+        return attachDocument.$el;
+     },
 
     //--------------------------------------------------------------------------
     // Handlers

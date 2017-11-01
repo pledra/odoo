@@ -17,6 +17,7 @@ var FormController = BasicController.extend({
         button_clicked: '_onButtonClicked',
         open_record: '_onOpenRecord',
         toggle_column_order: '_onToggleColumnOrder',
+        attachment_clicked: '_onAttachClicked',
     }),
     /**
      * @override
@@ -522,6 +523,22 @@ var FormController = BasicController.extend({
         var field = event.data.field;
         var state = this.model.get(this.handle);
         this.renderer.confirmChange(state, state.id, [field]);
+    },
+    /**
+     * @private
+     * @param {OdooEvent} ev
+     */
+    _onAttachClicked: function (ev) {
+        ev.stopPropagation();
+        var self = this,
+            attrs = ev.data.attrs;
+        if (attrs.special === 'attachdocument') {
+            var canBeSaved = self.canBeSaved(ev.data.record.id);
+            if (canBeSaved && !ev.data.record.res_id) {
+                self.do_warn(_t('Warning : You have to save record before attachment'));
+            }
+            return canBeSaved;
+        }
     },
 });
 
