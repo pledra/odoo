@@ -4,6 +4,9 @@
         <template id="assets_backend_expense" name="hr_expense assets" inherit_id="web.assets_backend">
             <xpath expr="." position="inside">
                 <script type="text/javascript" src="/hr_expense/static/src/js/tour.js"></script>
+                <script type="text/javascript" src="/hr_expense/static/src/js/attachment.js"></script>
+                <script type="text/javascript" src="/hr_expense/static/src/js/form_renderer.js"></script>
+                <script type="text/javascript" src="/hr_expense/static/src/js/form_controller.js"></script>
             </xpath>
         </template>
         <template id="hr_expense_template_refuse_reason">
