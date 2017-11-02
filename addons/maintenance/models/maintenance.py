@@ -269,7 +269,7 @@ class MaintenanceRequest(models.Model):
         return super(MaintenanceRequest, self)._track_subtype(init_values)
 
     def _get_default_team_id(self):
-        return self.env.ref('maintenance.equipment_team_maintenance', raise_if_not_found=False)
+        return self.env['maintenance.team'].search([], limit=1)
 
     name = fields.Char('Subjects', required=True)
     description = fields.Text('Description')
