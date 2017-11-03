@@ -119,7 +119,8 @@ ZoomOdoo.prototype.show = function (e, testMouseOver) {
     }
     $attach.parent().append(this.$flyout);
     if (this.opts.preventOverflow && this.$target.parents('.zoomodoo-next').length) {
-        this.$flyout.css('max-width', ( window.outerWidth - this.$flyout.offset().left - 20));
+        this.$flyout.css('max-width', ( $(window).width() - this.$flyout.offset().left - 50));
+        this.$flyout.css('height', ( $(window).height() - this.$flyout.offset().top - 50));
     }
 
     w1 = this.$target.width();
