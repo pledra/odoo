@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import base64
+import time
 import datetime
 import io
 import itertools
@@ -642,14 +643,26 @@ class Import(models.TransientModel):
                 index = import_fields.index(name)
                 self._parse_float_from_data(data, index, name, options)
 
-            elif field['type'] == 'binary' and field.get('attachment'):
+            elif field['type'] == 'binary' and field.get('attachment') and name in import_fields:
+                index = import_fields.index(name)
                 for num, line in enumerate(data):
                     if re.match("^(http|https)://", line[index], re.IGNORECASE):
                         try:
-                            bin_file = requests.get(line[index])
-                            Image.open(io.StringIO(bin_file.content))
-                            bin_file.raise_for_status()
-                            line[index] = base64.encodestring(bin_file.content)
+                            with requests.get(line[index], stream=True) as response:
+                                maxsize = 2097152 #( IN BYTES 2MB )
+                                set_timeout = 120
+                                chunk_size = 0
+                                start = time.time()
+                                content = bytearray()
+                                response.raise_for_status()
+                                for chunk in response.iter_content(1024):
+                                    chunk_size += len(chunk)
+                                    if time.time() - start > set_timeout:
+                                        raise ValueError(_('timeout reached'))
+                                    if chunk_size > maxsize:
+                                        raise ValueError(_('response too large'))
+                                    content += chunk
+                                line[index] = base64.b64encode(content)
                         except requests.exceptions.ConnectionError:
                             raise ValueError(_("Could not fetch the specified url: %s. Please check your internet connection.") % (line[index]))
                         except Exception as e:
