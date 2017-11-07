@@ -27,7 +27,7 @@ var defaults = {
     linkAttribute: 'data-zoom-image',
 
     // event to trigger zoom
-    event: 'mouseenter', //or click
+    event: 'click', //or mousenter
 
     // Prevent clicks on the zoom image link.
     preventClicks: true,
@@ -86,7 +86,7 @@ ZoomOdoo.prototype._init = function () {
         }
         $attach.parent().on('mousemove.zoomodoo touchmove.zoomodoo', $.proxy(this._onMove, this));
         $attach.parent().on('mouseleave.zoomodoo touchend.zoomodoo', $.proxy(this._onLeave, this));
-        this.$target.on(this.opts.event + '.zoomodoo touchstart.zoomodoo', $.proxy(this._onEnter, this));
+        $attach.parent().on(this.opts.event + '.zoomodoo touchstart.zoomodoo', $.proxy(this._onEnter, this));
 
         if (this.opts.preventClicks) {
             this.$target.on('click.zoomodoo', function (e) { e.preventDefault(); });
@@ -102,7 +102,6 @@ ZoomOdoo.prototype._init = function () {
 ZoomOdoo.prototype.show = function (e, testMouseOver) {
     var w1, h1, w2, h2;
     var self = this;
-
     if (this.opts.beforeShow.call(this) === false) return;
 
     if (!this.isReady) {
@@ -134,12 +133,15 @@ ZoomOdoo.prototype.show = function (e, testMouseOver) {
 
     // For the case where the zoom image is actually smaller than
     // the flyout.
+    if(dw <= 0 && dh <= 0){
+        this.$flyout.hide();
+        this.unbind();
+    }
     if (dw < 0) dw = 0;
     if (dh < 0) dh = 0;
 
     rw = dw / w1;
     rh = dh / h1;
-
     this.isOpen = true;
 
     this.opts.onShow.call(this);
@@ -270,18 +272,18 @@ ZoomOdoo.prototype.hide = function () {
 
     this.opts.onHide.call(this);
 };
-    /**
-     * Unbind
-     */
-    ZoomOdoo.prototype.unbind = function() {
-        var $attach = this.$target;
-        if (this.opts.attach !== undefined && this.$target.parents(this.opts.attach).length) {
-            $attach = this.$target.parents(this.opts.attach);
-        }
-        this.$target.removeAttr('data-zoom data-zoom-image');
-        $attach.parent().off('mousemove mouseleave');
-        this.$target.off(this.opts.event);
-    };
+/**
+ * Unbind
+ */
+ZoomOdoo.prototype.unbind = function() {
+    var $attach = this.$target;
+    if (this.opts.attach !== undefined && this.$target.parents(this.opts.attach).length) {
+        $attach = this.$target.parents(this.opts.attach);
+    }
+    this.$target.removeAttr('data-zoom data-zoom-image');
+    $attach.parent().off('mousemove mouseleave');
+    this.$target.off(this.opts.event);
+};
 
 // jQuery plugin wrapper
 $.fn.zoomOdoo = function (options) {
