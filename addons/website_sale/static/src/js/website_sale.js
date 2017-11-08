@@ -473,7 +473,7 @@ odoo.define('website_sale.website_sale', function (require) {
     });
 
     // Deactivate image zoom for mobile devices, since it might prevent users to scroll
-    if ( !config.isMobile ) {
-        $('.ecom-zoomable img[data-zoom]').zoomOdoo({attach: '#o-carousel-product', preventOverflow: true});
+    if (config.device.size_class > config.device.SIZES.XS) {
+        $('.ecom-zoomable img[data-zoom]').zoomOdoo({ attach: '#o-carousel-product'});
     }
 });

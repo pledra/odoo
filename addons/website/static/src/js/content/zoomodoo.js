@@ -35,9 +35,6 @@ var defaults = {
     // disable on mobile
     disabledOnMobile: true,
 
-    // Prevent scrolling if image is too large
-    preventOverflow: false,
-
     // Callback function to execute before the flyout is displayed.
     beforeShow: $.noop,
 
@@ -86,10 +83,16 @@ ZoomOdoo.prototype._init = function () {
         }
         $attach.parent().on('mousemove.zoomodoo touchmove.zoomodoo', $.proxy(this._onMove, this));
         $attach.parent().on('mouseleave.zoomodoo touchend.zoomodoo', $.proxy(this._onLeave, this));
-        $attach.parent().on(this.opts.event + '.zoomodoo touchstart.zoomodoo', $.proxy(this._onEnter, this));
+        this.$target.parent().on(this.opts.event + '.zoomodoo touchstart.zoomodoo', $.proxy(this._onEnter, this));
 
         if (this.opts.preventClicks) {
             this.$target.on('click.zoomodoo', function (e) { e.preventDefault(); });
+        }
+        // check if image is smaller then flyout (container of zoomed image)
+        // here if image is smaller then 683 X 501 we should not zoom the image
+        // The maximum size of flyout (container of zoomed image) is 683 X 501
+        if (this.$image[0].naturalWidth < 684 && this.$image[0].naturalHeight < 501) {
+            this.unbind();
         }
     }
 };
@@ -102,6 +105,7 @@ ZoomOdoo.prototype._init = function () {
 ZoomOdoo.prototype.show = function (e, testMouseOver) {
     var w1, h1, w2, h2;
     var self = this;
+
     if (this.opts.beforeShow.call(this) === false) return;
 
     if (!this.isReady) {
@@ -117,10 +121,6 @@ ZoomOdoo.prototype.show = function (e, testMouseOver) {
         $attach = this.$target.parents(this.opts.attach);
     }
     $attach.parent().append(this.$flyout);
-    if (this.opts.preventOverflow && this.$target.parents('.zoomodoo-next').length) {
-        this.$flyout.css('max-width', ( $(window).width() - this.$flyout.offset().left - 50));
-        this.$flyout.css('height', ( $(window).height() - this.$flyout.offset().top - 50));
-    }
 
     w1 = this.$target.width();
     h1 = this.$target.height();
@@ -133,15 +133,12 @@ ZoomOdoo.prototype.show = function (e, testMouseOver) {
 
     // For the case where the zoom image is actually smaller than
     // the flyout.
-    if(dw <= 0 && dh <= 0){
-        this.$flyout.hide();
-        this.unbind();
-    }
     if (dw < 0) dw = 0;
     if (dh < 0) dh = 0;
 
     rw = dw / w1;
     rh = dh / h1;
+
     this.isOpen = true;
 
     this.opts.onShow.call(this);
@@ -275,7 +272,7 @@ ZoomOdoo.prototype.hide = function () {
 /**
  * Unbind
  */
-ZoomOdoo.prototype.unbind = function() {
+ZoomOdoo.prototype.unbind = function () {
     var $attach = this.$target;
     if (this.opts.attach !== undefined && this.$target.parents(this.opts.attach).length) {
         $attach = this.$target.parents(this.opts.attach);
