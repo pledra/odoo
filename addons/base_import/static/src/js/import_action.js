@@ -475,7 +475,7 @@ var DataImport = Widget.extend(ControlPanelMixin, {
                 // In case of unexpected exception, convert
                 // "JSON-RPC error" to an import failure, and
                 // prevent default handling (warning dialog)
-                if (event) { event.preventDefault(); }
+                self.$(".o_import_button").attr("disabled", "true");
                 return $.when([{
                     type: 'error',
                     record: false,
