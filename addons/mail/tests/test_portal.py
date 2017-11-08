@@ -7,35 +7,6 @@ from odoo.tools.misc import mute_logger
 
 class TestPortal(TestMail):
 
-    def test_mail_compose_access_rights(self):
-        test_channel = self.env['mail.channel'].create({
-            'name': 'Pigs',
-            'public': 'groups',
-            'group_public_id': self.env.ref('base.group_portal').id})
-        port_msg = test_channel.message_post(body='Message')
-
-        # Do: Chell comments Pigs, ok because can write on it (public group)
-        test_channel.sudo(self.user_portal).message_post(body='I love Pigs', message_type='comment', subtype='mail.mt_comment')
-        # Do: Chell creates a mail.compose.message record on Pigs, because he uses the wizard
-        compose = self.env['mail.compose.message'].with_context({
-            'default_composition_mode': 'comment',
-            'default_model': 'mail.channel',
-            'default_res_id': test_channel.id
-        }).sudo(self.user_portal).create({
-            'subject': 'Subject',
-            'body': 'Body text',
-            'partner_ids': []})
-        compose.send_mail()
-
-        # Do: Chell replies to a Pigs message using the composer
-        compose = self.env['mail.compose.message'].with_context({
-            'default_composition_mode': 'comment',
-            'default_parent_id': port_msg.id
-        }).sudo(self.user_portal).create({
-            'subject': 'Subject',
-            'body': 'Body text'})
-        compose.send_mail()
-
     @mute_logger('odoo.addons.mail.models.mail_mail')
     def test_invite_email_portal(self):
         test_record = self.env['mail.test'].create({'name': 'Pigs'})
