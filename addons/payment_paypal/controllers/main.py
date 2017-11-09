@@ -78,7 +78,7 @@ class PaypalController(http.Controller):
         validate_url = paypal_urls['paypal_form_url']
         urequest = requests.post(validate_url, new_post)
         urequest.raise_for_status()
-        resp = urequest.content
+        resp = urequest.content.decode('utf-8')
         if pdt_request:
             resp, post = self._parse_pdt_response(resp)
         if resp in ['VERIFIED', 'SUCCESS']:
