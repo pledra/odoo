@@ -1091,7 +1091,7 @@
                 </t>
                 <input type='submit'/>
             </form>
-            <a class='btn btn-link pull-right fa fa-edit js_edit_address no-decoration' title="Edit this address"></a>
+            <a class='btn btn-link pull-right fa fa-edit js_edit_address no-decoration' title="Edit this address" t-if='not hide_edit'></a>
             <div t-att-class="'panel panel-default %s' % (selected and 'border_primary' or 'js_change_shipping')">
                 <div class='panel-body' style='min-height: 130px;'>
                     <t t-esc="contact" t-options="dict(widget='contact', fields=['name', 'address'], no_marker=True)"/>
@@ -1217,6 +1217,13 @@
                                         </select>
                                     </div>
 
+                                    <div class="clearfix" />
+                                    <t t-if="mode == ('new', 'billing') and not only_services">
+                                        <div class="well checkbox">
+                                          <label><input type="checkbox" name='use_same' value="1" checked='checked'/>Ship to the same address</label>
+                                        </div>
+                                    </t>
+
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()" />
                                     <input type="hidden" name="submitted" value="1" />
                                     <input type="hidden" name="partner_id" t-att-value="partner_id or '0'" />
@@ -1310,6 +1317,30 @@
                                     <t t-set='extra_class' t-value='"col-xs-12 col-sm-5 col-sm-push-7"'/>
                                     <t t-set='redirect'>/shop/payment</t>
                                 </t>
+                            </div>
+
+                            <div class="clearfix" />
+                            <div class='col-md-12 o_website_sale_rightfit'>
+                                <div class='row'>
+                                    <div class='col-md-6'>
+                                        <p class='h4'>Billing address</p>
+                                        <t t-call="website_sale.address_kanban">
+                                            <t t-set='contact' t-value="order.partner_id"/>
+                                            <t t-set='readonly' t-value="1"/>
+                                            <t t-set='hide_edit' t-value="1"/>
+                                            <t t-set='selected' t-value="1"/>
+                                        </t>
+                                    </div>
+                                    <div class='col-md-6' t-if="not order.only_services">
+                                        <p class='h4'>Shipping address</p>
+                                        <t t-call="website_sale.address_kanban">
+                                            <t t-set='contact' t-value="order.partner_shipping_id"/>
+                                            <t t-set='readonly' t-value="1"/>
+                                            <t t-set='hide_edit' t-value="1"/>
+                                            <t t-set='selected' t-value="1"/>
+                                        </t>
+                                    </div>
+                                </div>
                             </div>
                             <div class="clearfix" />
                             <div class="oe_structure" />
