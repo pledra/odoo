@@ -88,10 +88,14 @@ ZoomOdoo.prototype._init = function () {
         if (this.opts.preventClicks) {
             this.$target.on('click.zoomodoo', function (e) { e.preventDefault(); });
         }
-        // check if image is smaller then flyout (container of zoomed image)
-        // here if image is smaller then 683 X 501 we should not zoom the image
-        // The maximum size of flyout (container of zoomed image) is 683 X 501
-        if (this.$image[0].naturalWidth < 684 && this.$image[0].naturalHeight < 501) {
+        // At the time of zoom we are displaying image with actual width and height
+        // so, if difference between naturalWidth and imagewidth or naturalHeight and imageheight
+        // is less or equal to zero then don't needd to zoom the image
+        // naturalWidth and naturalHeight (actual width and height of image)
+        // imagewidth and imageheight (width and height of image displayed on product page)
+        var w = this.$image[0].naturalWidth - this.$image.width();
+        var h = this.$image[0].naturalHeight - this.$image.height();
+        if (w <= 0 && h <= 0) {
             this.unbind();
         }
     }
