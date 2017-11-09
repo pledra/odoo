@@ -59,6 +59,7 @@ class PaypalForm(PaypalCommon):
             'address1': 'Huge Street 2/543',
             'city': 'Sin City',
             'zip': '1000',
+            'rm': '2',
             'country': 'BE',
             'email': 'norbert.buyer@example.com',
             'return': urls.url_join(base_url, PaypalController._return_url),
