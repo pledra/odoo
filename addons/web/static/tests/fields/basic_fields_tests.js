@@ -876,6 +876,43 @@ QUnit.module('basic_fields', {
         form.destroy();
     });
 
+    QUnit.test('char field trim (or not) characters', function (assert) {
+        assert.expect(2);
+
+        this.data.partner.fields.foo2 = {string: "Foo2", type: "char"};
+
+        var form = createView({
+            View: FormView,
+            model: 'partner',
+            data: this.data,
+            arch: '<form string="Partners">' +
+                        '<group>' +
+                            '<field name="foo"/>' +
+                            '<field name="foo2" trim="false"/>' +
+                        '</group>' +
+                '</form>',
+            res_id: 1,
+            viewOptions: {
+                mode: 'edit',
+            },
+            mockRPC: function (route, args) {
+                if (args.method === 'write') {
+                    assert.strictEqual(args.args[1].foo, 'abc',
+                        'Foo value should have been trimmed');
+                    assert.strictEqual(args.args[1].foo2, '  def  ',
+                        'Foo2 value should not have been trimmed');
+                }
+                return this._super.apply(this, arguments);
+            },
+        });
+
+        form.$('input[name="foo"]').val('  abc  ').trigger('input');
+        form.$('input[name="foo2"]').val('  def  ').trigger('input');
+        form.$buttons.find('.o_form_button_save').click();
+
+        form.destroy();
+    });
+
     QUnit.test('input field: change value before pending onchange returns', function (assert) {
         assert.expect(3);
 

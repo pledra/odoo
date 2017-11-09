@@ -438,6 +438,9 @@ system. Available semantic components are:
   ``password``
     indicates that a :class:`~odoo.fields.Char` field stores a password and
     that its data shouldn't be displayed
+  ``trim``
+    indicates that a :class:`~odoo.fields.Char` field should trim its value
+    when saving. The default is ``true``.
 
 .. todo:: classes for forms
 

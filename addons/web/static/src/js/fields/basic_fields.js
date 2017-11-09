@@ -17,6 +17,7 @@ var Domain = require('web.Domain');
 var DomainSelector = require('web.DomainSelector');
 var DomainSelectorDialog = require('web.DomainSelectorDialog');
 var framework = require('web.framework');
+var pyeval = require('web.pyeval');
 var session = require('web.session');
 var utils = require('web.utils');
 var view_dialogs = require('web.view_dialogs');
@@ -328,7 +329,13 @@ var FieldChar = InputField.extend(TranslatableFieldMixin, {
     className: 'o_field_char',
     tagName: 'span',
     supportedFieldTypes: ['char'],
-
+/**
+ * @override
+ */
+init: function () {
+        this._super.apply(this, arguments);
+        this.shouldTrim = this.attrs.trim ? pyeval.py_eval(this.attrs.trim) : true;
+    },
     //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
@@ -346,6 +353,16 @@ var FieldChar = InputField.extend(TranslatableFieldMixin, {
         }
         this.$el = this.$el.add(this._renderTranslateButton());
         return def;
+    },
+    /**
+     * @private
+     * @override
+     */
+    _setValue: function (value, options) {
+        if (this.shouldTrim) {
+            value = value.trim();
+        }
+        return this._super(value, options);
     },
 });
 
