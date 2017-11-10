@@ -554,6 +554,71 @@ QUnit.test('chatter: post, receive and star messages', function (assert) {
         });
 });
 
+QUnit.test('chatter: do not allow to send empty message', function (assert) {
+    var done = assert.async();
+    assert.expect(2);
+
+    var bus = new Bus();
+    var count = 0;
+    var form = createView({
+        View: FormView,
+        model: 'partner',
+        data: this.data,
+        arch: '<form string="Partners">' +
+                '<sheet>' +
+                    '<field name="foo"/>' +
+                '</sheet>' +
+                '<div class="oe_chatter">' +
+                    '<field name="message_ids" widget="mail_thread" options="{\'display_log_button\': True}"/>' +
+                '</div>' +
+            '</form>',
+        res_id: 2,
+        mockRPC: function (route, args) {
+            if (args.method === 'message_get_suggested_recipients') {
+                return $.when({2: []});
+            }
+            return this._super(route, args);
+        },
+        intercepts: {
+            get_messages: function (event) {
+                event.stopPropagation();
+                event.data.callback($.when([]));
+            },
+            post_message: function (event) {
+                event.stopPropagation();
+                count++;
+            },
+            get_bus: function (event) {
+                event.stopPropagation();
+                event.data.callback(bus);
+            },
+        },
+    });
+
+    form.$('.o_chatter_button_new_message').click();
+    form.$('.oe_chatter .o_composer_text_field:first()').val("My first message");
+    form.$('.oe_chatter .o_composer_button_send').click();
+
+    form.$('.o_chatter_button_new_message').click();
+    form.$('.oe_chatter .o_composer_button_send').click();
+
+    assert.strictEqual(count, 1, "blank message should not submitted");
+
+    form.$('.o_chatter_button_log_note').click();
+    form.$('.oe_chatter .o_composer_text_field:first()').val("My first note");
+    form.$('.oe_chatter .o_composer_button_send').click();
+
+    form.$('.o_chatter_button_log_note').click();
+    form.$('.oe_chatter .o_composer_button_send').click();
+
+    assert.strictEqual(count, 2, "blank log should not submitted");
+
+    concurrency.delay(0).then(function () {
+        form.destroy();
+        done();
+    });
+});
+
 QUnit.test('chatter: post a message and switch in edit mode', function (assert) {
     assert.expect(5);
 
