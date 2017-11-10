@@ -17,5 +17,5 @@ class ResUsers(models.Model):
         type(self).SELF_READABLE_FIELDS.extend(['enable_chat_limit', 'chat_limit'])
         return init_res
 
-    enable_chat_limit = fields.Boolean(string="Simultaneous Chat Limit", groups="base.group_user")
-    chat_limit = fields.Integer(string="Number Of Chat", groups="base.group_user")
+    enable_chat_limit = fields.Boolean(string="Simultaneous Chat Limit", groups="im_livechat.im_livechat_group_user")
+    chat_limit = fields.Integer(string="Number Of Chat", groups="im_livechat.im_livechat_group_user")
