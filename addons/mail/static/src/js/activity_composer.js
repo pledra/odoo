@@ -30,7 +30,6 @@ var ActivityComposer = composer.BasicComposer.extend(FieldManagerMixin, {
     },
 
     willStart: function () {
-        var self = this;
         var defs = [this._super.apply(this, arguments), this._defaultGet()];
         return $.when.apply($, defs);
     },
@@ -48,7 +47,7 @@ var ActivityComposer = composer.BasicComposer.extend(FieldManagerMixin, {
 
         this._initM2oFields();
 
-        return $.when().then(function() {
+        return $.when().then(function () {
             _.each(self.m2oFields, function (m2oField) {
                 self.model.makeRecord(self.modelName, [{
                     name: m2oField.fieldName,
@@ -116,11 +115,27 @@ var ActivityComposer = composer.BasicComposer.extend(FieldManagerMixin, {
      * @private
      */
     _checkRequiredField: function () {
-        if (this.selectedActivityTypeId) {
-            return true;
+        var rFields = false;
+        if (!this.selectedActivityTypeId) {
+            rFields = true;
+            this.m2oFields.activity_type_id.el.$input.parent().addClass('o_field_invalid');
+            this.do_warn('Please fill required field','Activity');
         }
-        this.do_warn('Please fill required field','Activity');
-        return false;
+        if (!this.activityComposer.val()) {
+            rFields = true;
+            this.do_warn('Please fill required field','Content');
+        }
+        if (!this.user_id) {
+            rFields = true;
+            this.m2oFields.user_id.el.$input.parent().addClass('o_field_invalid');
+            this.do_warn('Please fill required field','Assigned To');
+        }
+        if (!this.datewidget.getValue()) {
+            rFields = true;
+            this.datewidget.$el.addClass('o_field_invalid');
+            this.do_warn('Please fill required field','Due Date');
+        }
+        return !rFields;
     },
     /**
      * return id of current model
@@ -185,7 +200,7 @@ var ActivityComposer = composer.BasicComposer.extend(FieldManagerMixin, {
      */
     _resetActivityField: function (result) {
         this.datewidget.setValue(moment(result.value.date_deadline));
-        result.value.summary ? this.activitySummaryInput.val(result.value.summary) : this.activitySummaryInput.val('');
+        this.activitySummaryInput.val(result.value.summary || '');
     },
     /**
      * activity_type onchange method
@@ -210,14 +225,14 @@ var ActivityComposer = composer.BasicComposer.extend(FieldManagerMixin, {
     _onFieldChanged: function (event) {
         event.stopPropagation();
         var data = event.data.changes;
-        if (data.activity_type_id) {
-            this.selectedActivityTypeId = data.activity_type_id.id;
+        if (data.activity_type_id || data.activity_type_id === false) {
+            this.selectedActivityTypeId = data.activity_type_id.id || data.activity_type_id;
             this.m2oFields.activity_type_id.el.$input.val(data.activity_type_id.display_name);
             this._onChangeActivityData();
         }
 
-        if (data.user_id) {
-            this.user_id = data.user_id.id;
+        if (data.user_id || data.user_id === false) {
+            this.user_id = data.user_id.id || data.user_id;
             this.m2oFields.user_id.el.$input.val(data.user_id.display_name);
         }
     },

@@ -113,11 +113,11 @@
                 </table>
             </div>
             <div class="o_composer_container">
-                <img t-if="widget.avatarURL" height="36" width="36" class="o_thread_message_sidebar o_chatter_avatar img-circle" t-att-src="widget.avatarURL"/>
+                <img t-if="widget.avatarURL" class="o_thread_message_sidebar o_chatter_avatar img-circle" t-att-src="widget.avatarURL"/>
                 
                 <div class="o_composer">
                     <div class="o_composer_input">
-                        <textarea class="o_input o_composer_activity_text_field" placeholder="Write something..." tabindex="2" style="height: 50px;"></textarea>
+                        <textarea class="o_input o_composer_activity_text_field" placeholder="Write something..." tabindex="2" ></textarea>
                     </div>
                 </div>
                 <div class="o_composer_send">
@@ -129,11 +129,11 @@
                         <span class="hidden-xs">Schedule Activity</span>
                         <span class="visible-xs"><i class="fa fa-clock-o"/></span>
                     </button>
-                    <button class="btn btn-sm btn-primary o_composer_button_done" tabindex="3" type="button">
+                    <button class="btn btn-sm btn-primary o_composer_button_done" tabindex="4" type="button">
                         <span class="hidden-xs">Mark as Done</span>
                         <span class="visible-xs"><i class="fa fa-check-square-o"/></span>
                     </button>
-                    <button class="btn btn-sm btn-default o_composer_button_discard" tabindex="3" type="button">
+                    <button class="btn btn-sm btn-default o_composer_button_discard" tabindex="5" type="button">
                         <span class="hidden-xs">Discard</span>
                         <span class="visible-xs"><i class="fa fa-times"/></span>
                     </button>
