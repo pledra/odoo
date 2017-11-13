@@ -1,35 +1,198 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Account Tax Tags -->
+    <record id="cn_tag_gst" model="account.account.tag">
+        <field name="name">GST</field>
+        <field name="applicability">taxes</field>
+    </record>
+    <record id="cn_tag_gst_sale" model="account.account.tag">
+        <field name="name">Sale</field>
+        <field name="applicability">taxes</field>
+    </record>
+    <record id="cn_tag_gst_purchase" model="account.account.tag">
+        <field name="name">Purchase</field>
+        <field name="applicability">taxes</field>
+    </record>
+    <record id="cn_tag_gst_taxes_included" model="account.account.tag">
+        <field name="name">Taxes included</field>
+        <field name="applicability">taxes</field>
+    </record>
+    <record id="cn_tag_gst_taxes_excluded" model="account.account.tag">
+        <field name="name">Taxes excluded</field>
+        <field name="applicability">taxes</field>
+    </record>
 
-    <data noupdate="1">
-        <!-- Account Tax -->
-        <record id="tag1" model="account.account.tag">
-            <field name="name">增值税17%销项税</field>
-            <field name="applicability">taxes</field>
-        </record>
-        <record id="tag2" model="account.account.tag">
-            <field name="name">增值税17%进项税</field>
-            <field name="applicability">taxes</field>
-        </record>
-        <record id="vats_standard_business" model="account.tax.template">
-            <field name="name">增值税17%销项税 - 中国会计科目表-企业会计准则</field>
-            <field name="amount_type">percent</field>
-            <field name="amount" eval="17" />
-            <field name="type_tax_use">sale</field>
-            <field name="account_id" ref="account_2221_1_5" />
-            <field name="refund_account_id" ref="account_2221_1_5" />
-            <field name="tag_ids" eval="[(6, 0, [ref('tag1')])]" />
-            <field name="chart_template_id" ref="l10n_chart_china_standard_business" />
-        </record>
-        <record id="vatp_standard_business" model="account.tax.template">
-            <field name="name">增值税17%进项税 - 中国会计科目表-企业会计准则</field>
-            <field name="amount" eval="17" />
-            <field name="type_tax_use">purchase</field>
-            <field name="amount_type">percent</field>
-            <field name="account_id" ref="account_2221_1_1" />
-            <field name="refund_account_id" ref="account_2221_1_1" />
-            <field name="tag_ids" eval="[(6, 0, [ref('tag2')])]" />
-            <field name="chart_template_id" ref="l10n_chart_china_standard_business" />
-        </record>
-    </data>
+    <!-- account.tax.template -->
+    <!-- Sales excluded -->
+    <record id="cn_gst_sale_excl_3" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for sales excluded - 3%</field>
+        <field name="description">GST 3% SE</field>
+        <field name="type_tax_use">sale</field>
+        <field name="amount">3</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">10</field>
+        <field name="price_include" eval="0"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_sale'),ref('cn_tag_gst_taxes_excluded')])]"/>
+    </record>
+    <record id="cn_gst_sale_excl_6" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for sales excluded - 6%</field>
+        <field name="description">GST 6% SE</field>
+        <field name="type_tax_use">sale</field>
+        <field name="amount">6</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">20</field>
+        <field name="price_include" eval="0"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_sale'),ref('cn_tag_gst_taxes_excluded')])]"/>
+    </record>
+    <record id="cn_gst_sale_excl_11" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for sales excluded - 11%</field>
+        <field name="description">GST 11% SE</field>
+        <field name="type_tax_use">sale</field>
+        <field name="amount">11</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">30</field>
+        <field name="price_include" eval="0"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_sale'),ref('cn_tag_gst_taxes_excluded')])]"/>
+    </record>
+    <record id="cn_gst_sale_excl_17" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for sales excluded - 17%</field>
+        <field name="description">GST 17% SE</field>
+        <field name="type_tax_use">sale</field>
+        <field name="amount">17</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">40</field>
+        <field name="price_include" eval="0"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_sale'),ref('cn_tag_gst_taxes_excluded')])]"/>
+    </record>
+
+    <!-- Sales included -->
+    <record id="cn_gst_sale_incl_3" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for sales included - 3%</field>
+        <field name="description">GST 3% SI</field>
+        <field name="type_tax_use">sale</field>
+        <field name="amount">3</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">50</field>
+        <field name="price_include" eval="1"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_sale'),ref('cn_tag_gst_taxes_included')])]"/>
+    </record>
+    <record id="cn_gst_sale_incl_6" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for sales included - 6%</field>
+        <field name="description">GST 6% SI</field>
+        <field name="type_tax_use">sale</field>
+        <field name="amount">6</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">60</field>
+        <field name="price_include" eval="1"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_sale'),ref('cn_tag_gst_taxes_included')])]"/>
+    </record>
+    <record id="cn_gst_sale_incl_11" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for sales included - 11%</field>
+        <field name="description">GST 11% SI</field>
+        <field name="type_tax_use">sale</field>
+        <field name="amount">11</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">70</field>
+        <field name="price_include" eval="1"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_sale'),ref('cn_tag_gst_taxes_included')])]"/>
+    </record>
+    <record id="cn_gst_sale_incl_17" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for sales included - 17%</field>
+        <field name="description">GST 17% SI</field>
+        <field name="type_tax_use">sale</field>
+        <field name="amount">17</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">80</field>
+        <field name="price_include" eval="1"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_sale'),ref('cn_tag_gst_taxes_included')])]"/>
+    </record>
+
+    <!-- Purchases excluded -->
+    <record id="cn_gst_purchase_excl_3" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for purchase excluded - 3%</field>
+        <field name="description">GST 3% PE</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount">3</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">90</field>
+        <field name="price_include" eval="0"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_purchase'),ref('cn_tag_gst_taxes_excluded')])]"/>
+    </record>
+    <record id="cn_gst_purchase_excl_6" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for purchase excluded - 6%</field>
+        <field name="description">GST 6% PE</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount">6</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">100</field>
+        <field name="price_include" eval="0"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_purchase'),ref('cn_tag_gst_taxes_excluded')])]"/>
+    </record>
+    <record id="cn_gst_purchase_excl_11" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standardfor purchase excluded - 11%</field>
+        <field name="description">GST 11% PE</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount">11</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">110</field>
+        <field name="price_include" eval="0"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_purchase'),ref('cn_tag_gst_taxes_excluded')])]"/>
+    </record>
+    <record id="cn_gst_purchase_excl_17" model="account.tax.template">
+        <field name="chart_template_id" ref="l10n_chart_china_standard_business"/>
+        <field name="name">GST standard for purchase excluded - 17%</field>
+        <field name="description">GST 17% PE</field>
+        <field name="type_tax_use">purchase</field>
+        <field name="amount">17</field>
+        <field name="amount_type">percent</field>
+        <field name="sequence">120</field>
+        <field name="price_include" eval="0"/>
+        <field name="account_id" ref="account_1003"/>
+        <field name="refund_account_id" ref="account_1003"/>
+        <field name="cn_tag_ids" eval="[(6,0,[ref('cn_tag_gst'),ref('cn_tag_gst_purchase'),ref('cn_tag_gst_taxes_excluded')])]"/>
+    </record>
+
+
+    <!-- Default Taxes -->
+    <record id="cn_config_parameter_sale" model="ir.config_parameter">
+        <field name="key">account.default_sale_tax_id</field>
+        <field name="value" ref="cn_gst_sale_incl_17" />
+    </record>
+    <record id="cn_config_parameter_purchase" model="ir.config_parameter">
+        <field name="key">account.default_purchase_tax_id</field>
+        <field name="value" ref="cn_gst_purchase_excl_17" />
+    </record>
 </odoo>
