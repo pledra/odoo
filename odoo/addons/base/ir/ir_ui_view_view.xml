@@ -59,6 +59,33 @@
                 </tree>
             </field>
         </record>
+        <record id="view_master_data_unlink" model="ir.ui.view">
+            <field name="name">Delete master data view</field>
+            <field name="model">ir.ui.view.unlink</field>
+            <field name="arch" type="xml">
+                <form string="Delete view">
+                    <field name="name"/>
+                    <p>Deleting base views is very dangerous, in doing so you
+                        can potentially break your database, only do this
+                        if you are absolutely sure of what you're about to do.
+                    </p>
+                    <h3>The following views inherit from this one</h3>
+                    <field name="inherit_children_ids">
+                        <tree string="Views">
+                            <field name="name" string="Name"/>
+                            <field name="xml_id" string="External ID"/>
+                        </tree>
+                    </field>
+                    <p>To make sure that you understand the risks, please
+                        input the name of the view to be deleted:
+                    </p>
+                    <footer>
+                        <button string="I am an idiot" class="btn-primary" type="object" name="action_unlink"/>
+                        <button string="Cancel" class="btn-default" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
         <record id="view_view_search" model="ir.ui.view">
             <field name="model">ir.ui.view</field>
             <field name="arch" type="xml">

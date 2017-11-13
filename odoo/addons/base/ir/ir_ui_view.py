@@ -400,6 +400,11 @@ actual arch.
         return super(View, self).write(self._compute_defaults(vals))
 
     @api.multi
+    def unlink(self):
+        # Warn the user that what he's about to do is fucking stupid
+        super(View, self).unlink()
+
+    @api.multi
     def toggle(self):
         """ Switches between enabled and disabled statuses
         """
@@ -1213,3 +1218,10 @@ actual arch.
                 self.browse(vid)._check_xml()
             except Exception as e:
                 self.raise_view_error("Can't validate view:\n%s" % e, vid)
+
+
+class IrUiViewUnlink(models.TransientModel):
+    _name = 'ir.ui.view.unlink'
+    _description = "Unlinking of base views (master data)"
+
+    view_id = fields.Many2one('ir.ui.view', string="Views", required=True)

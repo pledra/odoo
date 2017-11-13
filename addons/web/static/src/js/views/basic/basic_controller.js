@@ -28,12 +28,15 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
      * @param {Object} params
      * @param {boolean} params.archiveEnabled
      * @param {boolean} params.confirmOnDelete
+     * @param {boolean} params.isMasterData
      * @param {boolean} params.hasButtons
      */
     init: function (parent, model, renderer, params) {
         this._super.apply(this, arguments);
         this.archiveEnabled = params.archiveEnabled;
         this.confirmOnDelete = params.confirmOnDelete;
+        // Will add an extra layer of security if trying to delete master data
+        this.isMasterData = params.isMasterData;
         this.hasButtons = params.hasButtons;
         FieldManagerMixin.init.call(this, this.model);
         this.handle = params.initialState.id;
@@ -290,6 +293,9 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
             Dialog.confirm(this, _t("Are you sure you want to delete this record ?"), {
                 confirm_callback: doIt,
             });
+        } else if (this.isMasterData) {
+            // Dangerous!!
+            doIt();
         } else {
             doIt();
         }
