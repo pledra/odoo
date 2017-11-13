@@ -20,7 +20,7 @@ class SaleStockPortal(CustomerPortal):
                 raise
         return picking_sudo
 
-    @route(['/my/picking/pdf/<int:picking_id>'], type='http', auth="public", website=True)
+    @route(['/my/picking/pdf/<int:picking_id>'], type='http', auth="user", website=True)
     def portal_my_picking_report(self, picking_id, access_token=None, **kw):
         """ Print delivery slip for customer, using either access rights or access token
         to be sure customer has access """
