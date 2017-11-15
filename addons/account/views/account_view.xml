@@ -1067,8 +1067,8 @@
                     <field name="company_id" groups="base.group_multi_company"/>
                     <separator/>
                     <group string="Group By">
-                        <filter string="Company" domain="[]" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
-                        <filter string="Tax Application" domain="[]" context="{'group_by':'type_tax_use'}"/>
+                        <filter string="Company" name="company" domain="[]" context="{'group_by':'company_id'}" groups="base.group_multi_company"/>
+                        <filter string="Tax Application" name="taxapp" domain="[]" context="{'group_by':'type_tax_use'}"/>
                     </group>
                 </search>
             </field>
