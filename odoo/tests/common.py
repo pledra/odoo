@@ -10,6 +10,7 @@ import importlib
 import json
 import logging
 import os
+import re
 import select
 import subprocess
 import threading
@@ -478,31 +479,45 @@ def can_import(module):
     else:
         return True
 
+class TagsError(Exception):
+    pass
+
 def set_tags(*tags):
     """
     A decorator to tag TestCase objects
     Tags are stored in a set that can be accessed from a 'test_tags' attribute
+    Tags must not contains '+' or '-' signs
     """
     def tags_decorator(obj):
+        unallowed_chars_re = re.compile('[\-\+]')
+        for t in tags:
+            if unallowed_chars_re.match(t):
+                raise TagsError()
         if not hasattr(obj, 'test_tags'):
             obj.test_tags = set()
-        obj.test_tags.update(set(tags))
+        obj.test_tags.update(tags)
         return obj
     return tags_decorator
 
 
-def has_tags(obj, tags):
+def check_tags(obj, tags):
     """
     Check if object 'obj' has test_tags 'tags' defined
-    Tags can be a set/list of tags or a comma seperated string
+    Obj is considered to have the tag 'standard' by default.
+    tags selection pico-language:
+    [+]tag_name: means that if the test has this tag, it have to be executed
+    -tag_name: means that if the test has this tag, it does not have to be executed
     """
     if not tags:
         return True
     if isinstance(tags, str):
-        tags = tags.split(',')
-    if not hasattr(obj, 'test_tags'):
-        _logger.debug('Test {} is not tagged'.format(obj))
-        return False
-    for t in tags:
-        if t in obj.test_tags:
-            return True
+        tags = {t.strip() for t in tags.split(',')}
+    no_test_tags = {t[1:] for t in tags if t.startswith('-')}
+    to_test_tags = {t.replace('+', '') for t in tags if not t.startswith('-')}
+
+    if 'standard' not in no_test_tags:
+        to_test_tags.add('standard')
+
+    obj_tags = getattr(obj, 'test_tags', set(('standard',)))
+
+    return bool(obj_tags.intersection(to_test_tags)) and not bool(obj_tags.intersection(no_test_tags))

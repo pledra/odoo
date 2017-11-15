@@ -162,6 +162,7 @@ class configmanager(object):
         group.add_option("--test-commit", action="store_true", dest="test_commit",
                          my_default=False, help="Commit database changes performed by XML tests.")
         group.add_option("--test-tags", dest="test_tags",
+                         default=('+standard'),
                          help="Comma separated list of tags to filter which tests to excute")
 
         parser.add_option_group(group)
