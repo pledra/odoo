@@ -158,15 +158,21 @@ Best Regards,''')
     def setting_init_bank_account_action(self):
         """ Called by the 'Bank Accounts' button of the setup bar."""
         company = self.env.user.company_id
-        view_id = self.env.ref('account.setup_bank_journal_form').id
+        view_id = self.env.ref('account.view_account_bank_journal_tree').id
+
+        # If an opening move has already been posted, we open the tree view showing all the bank accounts
+        if company.opening_move_posted():
+            return 'account.action_account_bank_journal_form'
 
         res = {
             'type': 'ir.actions.act_window',
             'name': _('Bank Account'),
-            'view_mode': 'form',
+            'view_mode': 'tree',
             'res_model': 'account.journal',
             'target': 'new',
-            'views': [[view_id, 'form']],
+            'views': [[view_id, 'list']],
+            'search_view_id': self.env.ref('account.view_account_journal_search').id,
+            # 'domain': domain,
         }
 
         # If some bank journal already exists, we open it in the form, so the user can edit it.
