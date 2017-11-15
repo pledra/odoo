@@ -4,6 +4,13 @@
 
         <menuitem id="menu_sub" name="Discussions" parent="menu_main" sequence="10"/>
 
+        <record id="action_discussions_test" model="ir.actions.act_window">
+            <field name="name">Discussions TEST</field>
+            <field name="res_model">test_new_api.testt</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <menuitem id="menu_discussions_test" action="action_discussions_test" parent="menu_sub" sequence="10"/>
+
         <record id="action_discussions" model="ir.actions.act_window">
             <field name="name">Discussions</field>
             <field name="res_model">test_new_api.discussion</field>
@@ -33,6 +40,67 @@
             <field name="view_mode">tree,form</field>
         </record>
         <menuitem id="menu_categories" action="action_categories" parent="menu_config"/>
+
+<!--         <record id="test_tree" model="ir.ui.view">
+            <field name="name">test tree view</field>
+            <field name="model">test_new_api.discussion</field>
+            <field name="arch" type="xml">
+                <tree string="TEST">
+                    <field name="name"/>
+                    <field name="messages" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+-->
+<!--         <record id="discussion_2_form" model="ir.ui.view">
+            <field name="name">discussion form view</field>
+            <field name="model">test_new_api.discussion</field>
+            <field name="arch" type="xml">
+                <form string="Discussion">
+                    <group>
+                        <field name="name"/>
+                        <field name="messages">
+                            <tree name="Important Messages">
+                                <field name="name"/>
+                            </tree>
+                        </field>
+                    </group>
+                </form>
+            </field>
+        </record> -->
+
+        <!-- Discussion Test form view -->
+        <record id="discussion_test_form" model="ir.ui.view">
+            <field name="name">discussion test form view</field>
+            <field name="model">test_new_api.testt</field>
+            <field name="priority" eval="1"/>
+            <field name="arch" type="xml">
+                <form string="Discussion TEST">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                        </group>
+                        <!-- <field name="o2m_1"/> -->
+                        <field name="o2m_1">
+                            <tree string="TEST">
+                                <field name="name"/>
+                                <field name="messages"/>
+                            </tree>
+                            <form string="Discussion">
+                                <group>
+                                    <field name="name"/>
+                                    <field name="messages">
+                                        <tree name="Important Messages">
+                                            <field name="name"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </form>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
 
         <!-- Discussion form view -->
         <record id="discussion_form" model="ir.ui.view">

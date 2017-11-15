@@ -113,7 +113,7 @@ var BasicView = AbstractView.extend({
             });
 
             var def;
-            if (fieldNames.length) {
+            // if (fieldNames.length) {
                 // Some fields in the new view weren't in the previous one, so
                 // we might have stored changes for them (e.g. coming from
                 // onchange RPCs), that we haven't been able to process earlier
@@ -128,7 +128,7 @@ var BasicView = AbstractView.extend({
                         });
                     }
                 });
-            }
+            // }
             return $.when(def).then(function () {
                 return record.id;
             });

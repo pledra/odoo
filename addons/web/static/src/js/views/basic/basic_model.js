@@ -948,9 +948,34 @@ var BasicModel = AbstractModel.extend({
      * @param {Object} viewInfo.fieldsInfo
      */
     addFieldsInfo: function (recordID, viewInfo) {
+        var self = this;
         var record = this.localData[recordID];
         record.fields = _.extend({}, record.fields, viewInfo.fields);
         record.fieldsInfo = _.extend({}, record.fieldsInfo, viewInfo.fieldsInfo);
+
+        // add sub fieldsInfo (of x2many fields)
+        _.each(viewInfo.fieldsInfo, function (fieldsInfo) {
+            for (var fieldName in fieldsInfo) {
+                var type = record.fields[fieldName].type;
+                if (type === 'one2many' || type === 'many2many') {
+                    var data = _.extend({}, record.data, record._changes);
+                    var dataPoint = self.localData[data[fieldName]];
+                    var fieldInfo = fieldsInfo[fieldName];
+                    var view = fieldInfo.views && fieldInfo.views[fieldInfo.mode];
+                    var subFields = view ? view.fields : fieldInfo.relatedFields;
+                    var subFieldsInfo = view ? view.fieldsInfo : fieldInfo.fieldsInfo;
+                    dataPoint.fields = _.extend({}, dataPoint.fields, subFields);
+                    dataPoint.fieldsInfo = _.extend({}, dataPoint.fieldsInfo, subFieldsInfo);
+                    dataPoint.viewType = view ? view.type : fieldInfo.viewType;
+                    for (var subRecordID in dataPoint._cache) {
+                        var subRecord = self.localData[dataPoint._cache[subRecordID]];
+                        subRecord.fields = _.extend({}, subRecord.fields, subFields);
+                        subRecord.fieldsInfo = _.extend({}, subRecord.fieldsInfo, subFieldsInfo);
+                        subRecord.viewType = view ? view.type : fieldInfo.viewType;
+                    }
+                }
+            }
+        });
     },
     /**
      * Manually sets a resource as dirty. This is used to notify that a field

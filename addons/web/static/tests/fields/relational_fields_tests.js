@@ -6819,18 +6819,20 @@ QUnit.module('relational_fields', {
             arch: '<form>' +
                     '<sheet>' +
                         '<field name="display_name"/>' +
-                        '<field name="p">' +
-                            '<tree>' +
-                                '<field name="display_name"/>' +
-                            '</tree>' +
-                            '<form>' +
-                                '<field name="turtles">' +
-                                    '<tree><field name="display_name"/></tree>' +
-                                '</field>' +
-                            '</form>' +
-                        '</field>' +
+                        '<field name="p"/>' +
                     '</sheet>' +
                 '</form>',
+            archs: {
+                'partner,false,list': '<tree>' +
+                        '<field name="display_name"/>' +
+                        '<field name="turtles" invisible="1"/>' +
+                    '</tree>',
+                'partner,false,form': '<form>' +
+                        '<field name="turtles">' +
+                            '<tree><field name="display_name"/></tree>' +
+                        '</field>' +
+                    '</form>',
+            },
             mockRPC: function (route, args) {
                 if (args.method === 'create') {
                     assert.strictEqual(args.args[0].p[0][0], 0,
@@ -6844,6 +6846,7 @@ QUnit.module('relational_fields', {
                 }
                 return this._super.apply(this, arguments);
             },
+            debug: 1,
         });
 
         form.$('.o_field_widget[name=display_name]').val('trigger onchange').trigger('input');
@@ -6860,7 +6863,7 @@ QUnit.module('relational_fields', {
 
         form.$buttons.find('.o_form_button_save').click();
 
-        form.destroy();
+        // form.destroy();
     });
     QUnit.module('FieldMany2Many');
 

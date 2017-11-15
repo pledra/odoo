@@ -59,6 +59,24 @@ class Category(models.Model):
         return super(Category, self).read(fields=fields, load=load)
 
 
+class Testt(models.Model):
+    _name = 'test_new_api.testt'
+
+    name = fields.Char(string='Title', required=True,
+        help="General description of what this discussion is about.")
+    o2m_1 = fields.One2many('test_new_api.discussion', 'testt')
+
+    @api.onchange('name')
+    def _onchange_name(self):
+        if self.name:
+            self.o2m_1 = [[5], [0, 0, {
+                'name': 'test',
+                'messages': [[5], [0, 0, {
+                    'name': 'test nested',
+                }]]
+            }]]
+
+
 class Discussion(models.Model):
     _name = 'test_new_api.discussion'
 
@@ -72,6 +90,8 @@ class Discussion(models.Model):
     message_concat = fields.Text(string='Message concatenate')
     important_messages = fields.One2many('test_new_api.message', 'discussion',
                                          domain=[('important', '=', True)])
+
+    testt = fields.Many2one('test_new_api.testt')
     very_important_messages = fields.One2many(
         'test_new_api.message', 'discussion',
         domain=lambda self: self._domain_very_important())
@@ -122,11 +142,11 @@ class Message(models.Model):
         search='_search_author_partner')
     important = fields.Boolean()
 
-    @api.one
-    @api.constrains('author', 'discussion')
-    def _check_author(self):
-        if self.discussion and self.author not in self.discussion.participants:
-            raise ValidationError(_("Author must be among the discussion participants."))
+    # @api.one
+    # @api.constrains('author', 'discussion')
+    # def _check_author(self):
+    #     if self.discussion and self.author not in self.discussion.participants:
+    #         raise ValidationError(_("Author must be among the discussion participants."))
 
     @api.one
     @api.depends('author.name', 'discussion.name')
