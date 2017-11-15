@@ -684,6 +684,13 @@ class Field(MetaField('DummyField', (object,), {})):
 
         # add indirect dependencies from the dependencies found above
         for model, field, path in list(result):
+            if field.inherited:
+                parent_path = path + [field.related[0]]
+                parent_field = field.related_field
+                parent_model = model0.env[parent_field.model_name]
+                result.append((parent_model, parent_field, parent_path))
+
+        for model, field, path in list(result):
             for inv_field in model._field_inverses[field]:
                 inv_model = model0.env[inv_field.model_name]
                 inv_path = None if path is None else path + [field.name]
