@@ -158,30 +158,21 @@ Best Regards,''')
     def setting_init_bank_account_action(self):
         """ Called by the 'Bank Accounts' button of the setup bar."""
         company = self.env.user.company_id
-        view_id = self.env.ref('account.view_account_bank_journal_tree').id
-
-        # If an opening move has already been posted, we open the tree view showing all the bank accounts
-        if company.opening_move_posted():
-            return 'account.action_account_bank_journal_form'
+        view_id_tree = self.env.ref('account.view_account_bank_journal_tree').id
+        view_id_form = self.env.ref('account.view_account_bank_journal_form').id
 
         res = {
-            'type': 'ir.actions.act_window',
             'name': _('Bank Account'),
-            'view_mode': 'tree',
             'res_model': 'account.journal',
-            'target': 'new',
-            'views': [[view_id, 'list']],
+            'view_mode': 'tree',
+            'type': 'ir.actions.act_window',
+            'views': [(view_id_tree, 'list'), (view_id_form, 'form')],
+            'view_id': view_id_tree,
             'search_view_id': self.env.ref('account.view_account_journal_search').id,
-            # 'domain': domain,
+            'domain': [('type', '=', 'bank')],
+            'view_type': 'form'
         }
 
-        # If some bank journal already exists, we open it in the form, so the user can edit it.
-        # Otherwise, we just open the form in creation mode.
-        bank_journal = self.env['account.journal'].search([('company_id','=', company.id), ('type','=','bank')], limit=1)
-        if bank_journal:
-            res['res_id'] = bank_journal.id
-        else:
-            res['context'] = {'default_type': 'bank'}
         return res
 
     @api.model
