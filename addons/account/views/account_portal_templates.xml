@@ -1,6 +1,8 @@
 <odoo>
 	<template id="portal_my_home_menu_invoice" name="Portal layout : invoice menu entries" inherit_id="portal.portal_layout" priority="30">
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <script type="text/javascript" src="/account/static/src/js/account_portal_invoices.js"></script>
+            <link rel='stylesheet' href='/account/static/src/css/account_portal_invoices.css'/>
             <li t-if="page_name == 'invoice'" class="active">
                 <a t-if="invoice" t-attf-href="/my/invoices?{{ keep_query() }}">Invoices</a>
                 <t t-else="">Invoices</t>
@@ -70,38 +72,90 @@
 
     <template id="portal_invoice_page" name="Invoice Portal Template">
         <t t-call="portal.portal_layout">
-            <div class="container">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h4>
-                                    <t t-call='portal.record_pager'/>
-                                    <span t-if="invoice.type == 'out_invoice' and (invoice.state == 'open' or invoice.state == 'paid')">Invoice</span>
-                                    <span t-if="invoice.type == 'out_invoice' and invoice.state == 'draft'">Draft Invoice</span>
-                                    <span t-if="invoice.type == 'out_invoice' and invoice.state == 'cancel'">Cancelled Invoice</span>
-                                    <span t-if="invoice.type == 'out_refund'">Credit Note</span>
-                                    <span t-if="invoice.type == 'in_refund'">Vendor Credit Note</span>
-                                    <span t-if="invoice.type == 'in_invoice'">Vendor Bill</span>
-                                    <span t-field="invoice.number"/>
-                                </h4>
-                            </div>
-                            <div class="col-md-6 col-sm-6 col-xs-12 hidden-print" id="o_portal_account_actions">
-                                <a target="_blank" t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())" class="pull-right" title="Download">
-                                    <i class="fa fa-download fa-2x" aria-hidden="true"/>
-                                </a>
-                            </div>
+            <body data-spy="scroll" data-target=".navspy" data-offset="50">
+            <div class="container o_account_portal_invoices">
+                <div class="row mt16">
+                <!-- Sidebar -->
+                <div class="col-md-3 hidden-print">
+                    <div class="bs-sidebar">
+                        <div class="text-center col-md-12 col-sm-4 col-xs-3" style="padding: 10px">
+                            <h3><span t-field="invoice.amount_total"/><br/></h3><h4>Due in 5 days</h4>
+                        </div>
+                        <div class="text-center col-md-12 col-sm-4 col-xs-3 hidden-print" style="padding: 10px">
+                              <a t-if="invoice.amount_total" class="btn btn-primary btn-block" data-toggle="modal" data-target="#portal_pay">
+                                Pay Now
+                              </a>
+                        </div>
+                        <div class="col-md-12 col-sm-4 col-xs-3 hidden-print" id="o_portal_account_actions">
+                            <a target="_blank" t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())" style="\margin-left: 100px;\" title="Download" align="center">
+                                <i class="fa fa-download fa-2x" aria-hidden="true"/>
+                            </a>
+                        </div>
+                        <div style="padding: 10px">
+                            <strong>Invoice #</strong>
+                            <span t-field="invoice.number"/>
+                        </div>
+                        <div name="reference" t-if="invoice.reference">
+                            <strong>Reference: </strong>
+                            <span t-field="invoice.reference"/>
+                        </div>
+                        <div style="padding: 10px">
+                            <strong>Issued: </strong>
+                            <span t-field="invoice.date_invoice"/>
+                        </div>
+                        <div style="padding: 10px">
+                            <strong>Due: </strong>
+                            <span t-field="invoice.date_due"/>
+                        </div>
+                        <div id="History" class="text-center" style="padding: 10px">
+                            <a href="#chatter">A question about the Invoice?</a>
                         </div>
                     </div>
-                    <div class="panel-body">
-                        <t t-if="error or warning" t-call="account.portal_invoice_error"/>
-                        <t t-if="success and (not error and not warning)" t-call="account.portal_invoice_success"/>
-                        <t t-call="account.portal_invoice_report"/>
+                </div>
+                <div id="invoice_content" class="col-md-9">
+                <h4>
+                    <t t-call='portal.record_pager'/>
+                    <span t-if="invoice.type == 'out_invoice' and (invoice.state == 'open' or invoice.state == 'paid')">Invoice</span>
+                    <span t-if="invoice.type == 'out_invoice' and invoice.state == 'draft'">Draft Invoice</span>
+                    <span t-if="invoice.type == 'out_invoice' and invoice.state == 'cancel'">Cancelled Invoice</span>
+                    <span t-if="invoice.type == 'out_refund'">Credit Note</span>
+                    <span t-if="invoice.type == 'in_refund'">Vendor Credit Note</span>
+                    <span t-if="invoice.type == 'in_invoice'">Vendor Bill</span>
+                    <span t-field="invoice.number"/>
+                </h4>
+                <div class="panel-body">
+                    <t t-if="error or warning" t-call="account.portal_invoice_error"/>
+                    <t t-if="success and (not error and not warning)" t-call="account.portal_invoice_success"/>
+                    <t t-call="account.portal_invoice_report"/>
+                </div>
+                <div class="panel-body" t-if="invoice.amount_total" id="portal_pay" role="dialouge">
+                    <div t-if="pms or s2s_acquirers or form_acquirers" id="payment_method" class="text-left col-md-13">
+                        <h3 class="mb24">Pay with</h3>
+                        <t t-call="payment.payment_tokens_list">
+                            <t t-set="mode" t-value="'payment'"/>
+                            <t t-set="submit_txt" t-value="'Pay &amp; Confirm'"/>
+                            <t t-set="icon_class" t-value="'fa-lock'"/>
+                            <t t-set="form_action" t-value="'/quote/' + str(quotation.id) + '/transaction/token'"/>
+                            <t t-set="prepare_tx_url" t-value="'/quote/' + str(quotation.id) + '/transaction/'"/>
+                        </t>
                     </div>
                 </div>
+                </div>
+                </div>
             </div>
-            <div class="oe_structure mb32"/>
+        <div class="oe_structure mb32"/>
+        </body>
         </t>
+    </template>
+
+    <template id="chatter" name="Allow Comments &amp; History" customize_show="True" inherit_id="account.portal_invoice_page">
+      <xpath expr="//div[@id='invoice_content']" position="inside">
+          <h1 class="page-header" id="chatter">History</h1>
+          <!-- Options:Quotation Chatter: user can reply -->
+          <t t-call="portal.message_thread">
+            <t t-set="object" t-value="invoice"/>
+          </t>
+      </xpath>
     </template>
 
     <template id="portal_invoice_report" name="Invoice Portal Report">
