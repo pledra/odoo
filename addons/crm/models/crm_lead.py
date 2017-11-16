@@ -913,10 +913,11 @@ class Lead(models.Model):
             if alias_record and alias_record.alias_domain and alias_record.alias_name:
                 email = '%s@%s' % (alias_record.alias_name, alias_record.alias_domain)
                 email_link = "<a href='mailto:%s'>%s</a>" % (email, email)
-                dynamic_help = _("""All email incoming to %s will automatically
-                    create new opportunity. Update your business card, phone book, social media,...
-                    Send an email right now and see it here.""") % (email_link,)
-                return '<p class="oe_view_nocontent_create">%s</p>%s<p>%s</p>' % (_('Click to add a new opportunity'), help, dynamic_help)
+                if self._context.get('default_type') == 'lead':
+                    help_title = _('Create a new lead or send an email to %s') % (email_link)
+                else:
+                    help_title = _('Create a new opportunity to add it to your pipeline')
+                return '<p class="oe_view_nocontent_create">%s</p><p>%s</p>' % (help_title, help)
         return super(Lead, self.with_context(
             empty_list_help_model='crm.team',
             empty_list_help_id=self._context.get('default_team_id', False),
@@ -1074,7 +1075,10 @@ class Lead(models.Model):
         elif 'active' in init_values and self.probability == 0 and not self.active:
             return 'crm.mt_lead_lost'
         elif 'stage_id' in init_values and self.stage_id and self.stage_id.sequence <= 1:
-            return 'crm.mt_lead_create'
+            if self._context.get('default_type') == 'opportunity':
+                return 'crm.mt_opportunity_create'
+            else:
+                return 'crm.mt_lead_create'
         elif 'stage_id' in init_values:
             return 'crm.mt_lead_stage'
         return super(Lead, self)._track_subtype(init_values)
