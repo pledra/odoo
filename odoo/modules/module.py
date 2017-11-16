@@ -505,7 +505,7 @@ def run_unit_tests(module_name, dbname, position=runs_at_install):
     r = True
     for m in mods:
         tests = unwrap_suite(unittest.TestLoader().loadTestsFromModule(m))
-        suite = unittest.TestSuite(t for t in tests if position(t) and check_tags(t, tools.config['test_tags']))
+        suite = unittest.TestSuite(t for t in tests if position(t) and check_tags(t, tools.config['to_test_tags'], tools.config['no_test_tags']))
 
         if suite.countTestCases():
             t0 = time.time()

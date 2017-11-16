@@ -4,6 +4,7 @@
 import unittest
 
 from odoo.tests.common import set_tags, check_tags, TagsError
+from odoo.tools.config import parse_pico_lang
 
 
 @set_tags('nodatabase')
@@ -33,7 +34,7 @@ class TestSetTags(unittest.TestCase):
         self.assertEqual(fc.test_tags, {'slow', })
 
     def test_set_tags_multiple_tags(self):
-        """Test the set_tags decorator ith multiple tags"""
+        """Test the set_tags decorator with multiple tags"""
 
         @set_tags('slow', 'nightly')
         class FakeClass():
@@ -50,6 +51,27 @@ class TestSetTags(unittest.TestCase):
             @set_tags('+slow')
             class FakeClass:
                 pass
+            
+        with self.assertRaises(TagsError):
+            @set_tags('js+slow')
+            class FakeClass:
+                pass
+
+@set_tags('nodatabase')
+class TestPicoLang(unittest.TestCase):
+    
+    def test_pico_language(self):
+        """Test the pico language for selecting deselecting tags"""
+        
+        self.assertEqual(({'slow',}, set()), parse_pico_lang('+slow'))
+        self.assertEqual(({'slow', 'nightly'}, set()), parse_pico_lang('+slow,nightly'))
+        self.assertEqual(({'slow'}, {'standard'}), parse_pico_lang('+slow,-standard'))
+        self.assertEqual(({'slow'}, {'standard'}), parse_pico_lang('+slow, -standard'))
+        self.assertEqual(({'slow'}, {'standard'}), parse_pico_lang('+slow , -standard'))
+        self.assertEqual(({'slow', 'js'},{'standard'}), parse_pico_lang('slow,-standard,+js'))
+        self.assertEqual(({'slow'},set()), parse_pico_lang('slow, '))
+        self.assertEqual(({'slow'}, {'standard'}), parse_pico_lang('+slow,-standard, slow,-standard'))
+        self.assertEqual((set(),set()), parse_pico_lang(''))
 
 @set_tags('nodatabase')
 class TestCheckTags(unittest.TestCase):
@@ -76,54 +98,52 @@ class TestCheckTags(unittest.TestCase):
         multiple_tags_obj = Test_C()
         multiple_tags_standard_obj = Test_D()
 
-        self.assertTrue(check_tags(no_tags_obj, None))
-        self.assertTrue(check_tags(no_tags_obj, ''))
+        # if 'standard' in not explicitly removed, tests without tags are
+        # considered tagged standards and they are run by default if
+        # not explicitly deselected with '-standards' or if 'standards' is not
+        # selectected along with another test tag
 
-#       if 'standard' in not explicitly removed, tests are without tags are standards
-        self.assertTrue(check_tags(no_tags_obj, '+slow'))
-        self.assertTrue(check_tags(no_tags_obj, '+slow,fake'))
-        self.assertTrue(check_tags(no_tags_obj, 'slow'))
-        self.assertTrue(check_tags(no_tags_obj, '+slow,+standard'))
-        self.assertTrue(check_tags(no_tags_obj, '+slow,standard'))
-        self.assertFalse(check_tags(no_tags_obj, '+slow,-standard'))
+        # same as no "--test-tags" parameters:
+        self.assertTrue(check_tags(no_tags_obj, None, None))
+        self.assertTrue(check_tags(no_tags_obj, set(), set()))
 
-        self.assertTrue(check_tags(stock_tag_obj, None))
-        self.assertTrue(check_tags(stock_tag_obj, ''))
-        self.assertFalse(check_tags(stock_tag_obj, '+slow'))
-        self.assertFalse(check_tags(stock_tag_obj, '+standard'))
-        self.assertFalse(check_tags(stock_tag_obj, '+slow,+standard'))
-        self.assertFalse(check_tags(stock_tag_obj, '+slow,-standard'))
-        self.assertTrue(check_tags(stock_tag_obj, '+stock'))
-        self.assertTrue(check_tags(stock_tag_obj, '+stock,+fake'))
-        self.assertTrue(check_tags(stock_tag_obj, '+stock,-standard'))
-        self.assertFalse(check_tags(stock_tag_obj, '-stock'))
+        # same as "--test-tags '+slow'":
+        self.assertFalse(check_tags(no_tags_obj, {'slow'}, set()))
+        # same as "--test-tags '+slow,+fake'":
+        self.assertFalse(check_tags(no_tags_obj, {'slow', 'fake'}, set()))
+        # same as "--test-tags '+slow,+standard'":
+        self.assertTrue(check_tags(no_tags_obj, {'slow', 'standard'}, set()))
+        # same as "--test-tags '+slow,-standard'":
+        self.assertFalse(check_tags(no_tags_obj, {'slow'}, {'standard'}))
+        # same as "--test-tags '-slow,-standard'":
+        self.assertFalse(check_tags(no_tags_obj, set(), {'slow', 'standard'}))
+        # same as "--test-tags '-slow,+standard'":
+        self.assertTrue(check_tags(no_tags_obj, {'standard'}, {'slow'}))
 
-        self.assertTrue(check_tags(multiple_tags_obj, None))
-        self.assertTrue(check_tags(multiple_tags_obj, ''))
-        self.assertFalse(check_tags(multiple_tags_obj, '-stock'))
-        self.assertFalse(check_tags(multiple_tags_obj, '-slow'))
-        self.assertTrue(check_tags(multiple_tags_obj, 'slow'))
-        self.assertTrue(check_tags(multiple_tags_obj, '+slow'))
-        self.assertTrue(check_tags(multiple_tags_obj, 'slow,stock'))
-        self.assertTrue(check_tags(multiple_tags_obj, '+slow,stock'))
-        self.assertTrue(check_tags(multiple_tags_obj, 'slow,+stock'))
-        self.assertFalse(check_tags(multiple_tags_obj, '-slow,stock'))
-        self.assertFalse(check_tags(multiple_tags_obj, '-slow,+stock'))
-        self.assertFalse(check_tags(multiple_tags_obj, '-slow,+stock,+slow'))
+        self.assertFalse(check_tags(stock_tag_obj, set(), set()))
+        self.assertFalse(check_tags(stock_tag_obj, {'slow'}, set()))
+        self.assertFalse(check_tags(stock_tag_obj, {'standard'}, set()))
+        self.assertFalse(check_tags(stock_tag_obj, {'slow', 'standard'}, set()))
+        self.assertFalse(check_tags(stock_tag_obj, {'slow'}, {'standard'}))
+        self.assertTrue(check_tags(stock_tag_obj, {'stock'}, set()))
+        self.assertTrue(check_tags(stock_tag_obj, {'stock', 'fake'}, set()))
+        self.assertTrue(check_tags(stock_tag_obj, {'stock'}, {'standard'}))
+        self.assertFalse(check_tags(stock_tag_obj, set(), {'stock'}))
 
-        self.assertTrue(check_tags(multiple_tags_standard_obj, None))
-        self.assertTrue(check_tags(multiple_tags_standard_obj, ''))
-        self.assertTrue(check_tags(multiple_tags_standard_obj, '+standard'))
-        self.assertTrue(check_tags(multiple_tags_standard_obj, '+slow'))
-        self.assertTrue(check_tags(multiple_tags_standard_obj, 'slow'))
-        self.assertTrue(check_tags(multiple_tags_standard_obj, 'slow,-fake'))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, '-slow'))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, '-standard'))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, '-standard,-slow'))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, '+standard,-slow'))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, '-standard,+slow'))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, '-standard,slow'))
+        self.assertFalse(check_tags(multiple_tags_obj, set(), set()))
+        self.assertFalse(check_tags(multiple_tags_obj, set(), {'stock'}))
+        self.assertFalse(check_tags(multiple_tags_obj, set(), {'slow'}))
+        self.assertTrue(check_tags(multiple_tags_obj, {'slow'}, set()))
+        self.assertTrue(check_tags(multiple_tags_obj, {'slow', 'stock'}, set()))
+        self.assertFalse(check_tags(multiple_tags_obj, {'stock'}, {'slow'}))
+        self.assertFalse(check_tags(multiple_tags_obj, {'stock', 'slow'}, {'slow'}))
 
-#       One could use spaces by accident
-        self.assertTrue(check_tags(no_tags_obj, 'fake, slow,fake'))
-        self.assertTrue(check_tags(no_tags_obj, 'fake, slow ,fake'))
+        self.assertTrue(check_tags(multiple_tags_standard_obj, set(), set()))
+        self.assertTrue(check_tags(multiple_tags_standard_obj, {'standard'}, set()))
+        self.assertTrue(check_tags(multiple_tags_standard_obj, {'slow'}, set()))
+        self.assertTrue(check_tags(multiple_tags_standard_obj, {'slow', 'fake'}, set()))
+        self.assertFalse(check_tags(multiple_tags_standard_obj, set(), {'slow'}))
+        self.assertFalse(check_tags(multiple_tags_standard_obj, set(), {'standard'}))
+        self.assertFalse(check_tags(multiple_tags_standard_obj, set(), {'standard', 'slow'}))
+        self.assertFalse(check_tags(multiple_tags_standard_obj, {'standard'}, {'slow'}))
+        self.assertFalse(check_tags(multiple_tags_standard_obj, {'slow'}, {'standard'}))

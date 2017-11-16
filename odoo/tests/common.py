@@ -491,8 +491,8 @@ def set_tags(*tags):
     def tags_decorator(obj):
         unallowed_chars_re = re.compile('[\-\+]')
         for t in tags:
-            if unallowed_chars_re.match(t):
-                raise TagsError()
+            if unallowed_chars_re.search(t):
+                raise TagsError("Illegal character '{}' found in test tag".format(unallowed_chars_re.search(t).group()))
         if not hasattr(obj, 'test_tags'):
             obj.test_tags = set()
         obj.test_tags.update(tags)
@@ -500,24 +500,28 @@ def set_tags(*tags):
     return tags_decorator
 
 
-def check_tags(obj, tags):
+def check_tags(obj, to_test_tags, no_test_tags):
     """
-    Check if object 'obj' has test_tags 'tags' defined
+    Check if object 'obj' has to be executed based on to_test_tags and
+    no_tesg_tags.
+    to_test_tags is a set of tags to select test
+    no_test_tags is a set of tags to deselect test
     Obj is considered to have the tag 'standard' by default.
-    tags selection pico-language:
-    [+]tag_name: means that if the test has this tag, it have to be executed
-    -tag_name: means that if the test has this tag, it does not have to be executed
     """
-    if not tags:
-        return True
-    if isinstance(tags, str):
-        tags = {t.strip() for t in tags.split(',')}
-    no_test_tags = {t[1:] for t in tags if t.startswith('-')}
-    to_test_tags = {t.replace('+', '') for t in tags if not t.startswith('-')}
+    if not to_test_tags and not no_test_tags:
+        to_test_tags = {'standard'}
 
-    if 'standard' not in no_test_tags:
-        to_test_tags.add('standard')
+    if no_test_tags is None:
+        no_test_tags = set()
 
     obj_tags = getattr(obj, 'test_tags', set(('standard',)))
 
-    return bool(obj_tags.intersection(to_test_tags)) and not bool(obj_tags.intersection(no_test_tags))
+    inter_no_test = obj_tags.intersection(no_test_tags)
+    if bool(inter_no_test):
+        _logger.info("Test '{}' deselected because of following tag(s): '{}'".format(obj, inter_no_test))
+        return False
+    inter_to_test = obj_tags.intersection(to_test_tags)
+    if bool(inter_to_test) is False:
+        _logger.info("Test '{}' deselected because it was not tagged with '{}'".format(obj, to_test_tags))
+        return False
+    return True
