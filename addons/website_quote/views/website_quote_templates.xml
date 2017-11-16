@@ -257,21 +257,10 @@
                           and do not hesitate to <a href="#discussion">contact us</a> for
                           any question.
                       </div>
-                      <div class="alert alert-warning alert-dismissable" t-if="tx_id and tx_state == 'done'">
-                          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&amp;times;</button>
-                          Your payment has been received, thank you for your trust.
-                          <span t-if='tx_post_msg' t-raw="tx_post_msg"/>
-                      </div>
-                      <div class="alert alert-warning alert-dismissable" t-if="tx_id and tx_state == 'pending'">
-                          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&amp;times;</button>
-                          Your transaction is waiting confirmation.
-                          <span t-if='tx_post_msg' t-raw="tx_post_msg"/>
-                      </div>
-                      <div class="alert alert-success alert-dismissable" t-if="tx_id and tx_state == 'authorized'">
-                          <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&amp;times;</button>
-                          Your payment has been authorized.
-                          <span t-if='tx_post_msg' t-raw="tx_post_msg"/>
-                      </div>
+                      <t t-if="payment_tx_id">
+                          <t t-set="payment_tx_id" t-value="payment_tx_id"/>
+                          <t t-call="payment.payment_confirmation_status"/>
+                      </t>
                       <div class="alert alert-warning alert-dismissable" t-if="message==4 and quotation.state != 'sent'">
                           <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&amp;times;</button>
                           This order
@@ -663,6 +652,6 @@
             <t t-else="">
                 <a t-attf-href="/my/orders/#{quotation.id}?#{keep_query()}"><t t-esc="quotation.name"/></a>
             </t>
-        </xpath>              
+        </xpath>
     </template>
 </odoo>

@@ -1,5 +1,5 @@
 <odoo>
-	<template id="portal_my_home_menu_invoice" name="Portal layout : invoice menu entries" inherit_id="portal.portal_layout" priority="30">
+    <template id="portal_my_home_menu_invoice" name="Portal layout : invoice menu entries" inherit_id="portal.portal_layout" priority="30">
         <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
             <li t-if="page_name == 'invoice'" class="active">
                 <a t-if="invoice" t-attf-href="/my/invoices?{{ keep_query() }}">Invoices</a>
@@ -96,6 +96,7 @@
                     <div class="panel-body">
                         <t t-if="error or warning" t-call="account.portal_invoice_error"/>
                         <t t-if="success and (not error and not warning)" t-call="account.portal_invoice_success"/>
+                        <div id="payment_status"></div>
                         <t t-call="account.portal_invoice_report"/>
                     </div>
                 </div>
@@ -253,21 +254,17 @@
     </template>
 
     <template id="portal_invoice_error" name="Invoice error/warning display">
-        <div class="row">
-            <div t-att-class="'col-md-6 col-md-offset-3 text-center alert alert-dismissable %s' % ('alert-danger' if error else 'alert-warning')">
-                <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
-                <t t-if="error == 'generic'" name="generic">
-                    There was an error processing this page.
-                </t>
-            </div>
+        <div t-att-class="'col-md-12 alert alert-dismissable %s' % ('alert-danger' if error else 'alert-warning')">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
+            <t t-if="error == 'generic'" name="generic">
+                There was an error processing this page.
+            </t>
         </div>
     </template>
 
     <template id="portal_invoice_success" name="Invoice success display">
-        <div class="row">
-            <div class="col-md-6 col-md-offset-3 text-center alert alert-dismissable alert-success">
-                <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
-            </div>
+        <div class="col-md-12 alert alert-dismissable alert-success">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close" title="close">×</a>
         </div>
     </template>
 </odoo>
