@@ -19,6 +19,17 @@
                         <button string="Unmark as done" type="object" name="unmark_company_setup_as_done_action" attrs="{'invisible': [('account_setup_company_data_done','=',False)]}"/>
                     </footer>
                 </xpath>
+                <xpath expr="//field[@name='email']" position="after">
+                    <field name="fiscal_localiazation"/>
+                        <div class="o_setting_left_pane">
+                            <p class=" text-muted">
+                                Taxes, fiscal positions, chart of accounts &amp; legal statements for your country
+                            </p>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <button name="%(account.open_account_charts_modules)d" icon="fa-arrow-right" type="action" string="Install More Packages" class="btn-link pull-right"/>
+                        </div>
+                </xpath>
             </field>
         </record>
 
