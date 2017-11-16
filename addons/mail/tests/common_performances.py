@@ -32,8 +32,8 @@ def queryCount(**counters):
                 self._round = True
                 self.resetQueryCount()
                 if self.debugMode():
-                    with sql_db._enable_full_sql_log:
-                        func(self)
+                    # with sql_db._enable_full_sql_log:
+                    func(self)
                 else:
                     func(self)
                 self.assertQueryCount(self.cr.sql_log_count - self._count,

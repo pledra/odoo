@@ -29,13 +29,13 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
 _logger = logging.getLogger(__name__)
 
 # Bob aka SQL logger
-sql_log_file_handler = logging.FileHandler('bob.txt')
-sql_log_file_handler.setLevel(logging.DEBUG)
-sql_log_file_handler.setFormatter(logging.Formatter(fmt='%(asctime)s [%(process)d]: [42-1] LOG:  %(message)s\n', datefmt='%Y-%m-%d %H:%M:%S %Z'))
-_sql_logger = _logger.getChild('bob')
-_sql_logger.propagate = False
-_sql_logger.addHandler(sql_log_file_handler)
-_enable_full_sql_log = enable_logger('odoo.sql_db.bob')
+# sql_log_file_handler = logging.FileHandler('bob.txt')
+# sql_log_file_handler.setLevel(logging.DEBUG)
+# sql_log_file_handler.setFormatter(logging.Formatter(fmt='%(asctime)s [%(process)d]: [42-1] LOG:  %(message)s\n', datefmt='%Y-%m-%d %H:%M:%S %Z'))
+# _sql_logger = _logger.getChild('bob')
+# _sql_logger.propagate = False
+# _sql_logger.addHandler(sql_log_file_handler)
+# _enable_full_sql_log = enable_logger('odoo.sql_db.bob')
 
 types_mapping = {
     'date': (1082,),
