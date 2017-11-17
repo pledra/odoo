@@ -140,7 +140,7 @@ class TestPerformance(TransactionCase):
         self.resetQueryCount()
 
         records.write({'value': self.int(20)})
-
+ 
     @queryCount(admin=19, demo=32)
     def test_write_mail_with_tracking(self):
         """ Write records inheriting from 'mail.thread' (with field tracking). """
