@@ -7,7 +7,7 @@ var data = require('web.data');
 var Domain = require('web.Domain');
 var FavoriteMenu = require('web.FavoriteMenu');
 var pyeval = require('web.pyeval');
-var ViewManager = require('web.ViewManager');
+// var ViewManager = require('web.ViewManager'); // AAB: to adapt
 
 var QWeb = core.qweb;
 
@@ -17,7 +17,7 @@ FavoriteMenu.include({
         var am = this.findAncestor(function (a) {
             return a instanceof ActionManager;
         });
-        if (am && am.get_inner_widget() instanceof ViewManager) {
+        if (false) {//am && am.get_inner_widget() instanceof ViewManager) {
             this.view_manager = am.get_inner_widget();
             this.$('.o_favorites_menu').append(QWeb.render('SearchView.addtogooglespreadsheet'));
             this.$('.add-to-spreadsheet').click(this.add_to_spreadsheet.bind(this));

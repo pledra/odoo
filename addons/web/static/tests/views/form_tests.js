@@ -1422,7 +1422,7 @@ QUnit.module('Views', {
                         '<field name="foo"/>' +
                     '</sheet>' +
                 '</form>',
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             res_id: 1,
             mockRPC: function (route, args) {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
@@ -1568,7 +1568,7 @@ QUnit.module('Views', {
                         '<field name="foo"/>' +
                 '</form>',
             res_id: 1,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             mockRPC: function (route, args) {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
                     return $.when([]);
@@ -1599,7 +1599,7 @@ QUnit.module('Views', {
                         '<field name="foo"/>' +
                 '</form>',
             res_id: 1,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             mockRPC: function (route, args) {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
                     return $.when([]);
@@ -2168,7 +2168,7 @@ QUnit.module('Views', {
             data: this.data,
             arch: '<form string="Partners"><field name="foo"></field></form>',
             res_id: 1,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             mockRPC: function (route, args) {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
                     return $.when([]);
@@ -2513,7 +2513,7 @@ QUnit.module('Views', {
             viewOptions: {
                 ids: [1, 2, 4],
                 index: 0,
-                sidebar: true,
+                hasSidebar: true,
             },
             res_id: 1,
             mockRPC: function (route, args) {
@@ -2557,7 +2557,7 @@ QUnit.module('Views', {
             viewOptions: {
                 ids: [1],
                 index: 0,
-                sidebar: true,
+                hasSidebar: true,
             },
             res_id: 1,
             mockRPC: function (route, args) {
@@ -4655,7 +4655,7 @@ QUnit.module('Views', {
                 print: [],
             },
             viewOptions: {
-                sidebar: true,
+                hasSidebar: true,
             },
             mockRPC: function (route, args) {
                 if (route === '/web/action/load') {
@@ -5914,7 +5914,7 @@ QUnit.module('Views', {
                         '<field name="display_name"/>' +
                 '</form>',
             res_id: 1,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             mockRPC: function (route, args) {
                 if (args.method === 'search_read' && args.model === 'ir.attachment') {
                     // rpcs done by the sidebar

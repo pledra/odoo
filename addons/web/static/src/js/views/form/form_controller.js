@@ -148,7 +148,7 @@ var FormController = BasicController.extend({
      *   inserted
      **/
     renderSidebar: function ($node) {
-        if (!this.sidebar && this.hasSidebar) {
+        if (this.hasSidebar) {
             var otherItems = [];
             if (this.is_action_enabled('delete')) {
                 otherItems.push({

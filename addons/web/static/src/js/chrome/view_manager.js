@@ -16,7 +16,7 @@ var QWeb = core.qweb;
 var _t = core._t;
 
 var ViewManager = Widget.extend(ControlPanelMixin, {
-    className: "o_view_manager_content",
+    className: "o_view_manager_content", // AAB: check all occurences of this className
     custom_events: {
         execute_action: function(event) {
             var data = event.data;
@@ -103,7 +103,7 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
             var view_label = View.prototype.display_name;
             var view_descr = {
                 accesskey: View.prototype.accesskey,
-                button_label: _.str.sprintf(_t('%(view_type)s view'), {'view_type': (view_label || view_type)}),
+                button_label: _.str.sprintf(_t('%(view_type)s view'), {'view_type': (view_label || view_type)}), // not used
                 controller: null,
                 fields_view: view[2] || view.fields_view,
                 icon: View.prototype.icon,
@@ -116,7 +116,7 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
                     views: self.action.views,
                     groupBy: actionGroupBy,
                 }, self.flags, self.flags[view_type], view.options),
-                searchable: View.prototype.searchable,
+                searchable: View.prototype.searchable, // seems not used
                 title: self.title,
                 type: view_type,
                 view_id: view[0] || view.view_id,
@@ -238,6 +238,7 @@ var ViewManager = Widget.extend(ControlPanelMixin, {
      * @returns {Object} the default view
      */
     get_default_view: function() {
+        // AAB: default_view flag seems unused
         return this.views[this.flags.default_view || this.view_order[0].type];
     },
     switch_mode: function(view_type, view_options) {

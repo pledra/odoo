@@ -10,7 +10,7 @@ var field_utils = require('web.field_utils');
 var session = require('web.session');
 var SystrayMenu = require('web.SystrayMenu');
 var utils = require('web.utils');
-var ViewManager = require('web.ViewManager');
+// var ViewManager = require('web.ViewManager'); // AAB: to adapt
 var WebClient = require('web.WebClient');
 var Widget = require('web.Widget');
 
@@ -334,20 +334,20 @@ DebugManager.include({
     update: function (tag, descriptor, widget) {
         switch (tag) {
         case 'action':
-            if (this._view_manager) {
-                this._view_manager.off('switch_mode', this);
-            }
-            if (!(widget instanceof ViewManager)) {
-                this._active_view = null;
-                this._view_manager = null;
-                break;
-            }
-            this._view_manager = widget;
-            widget.on('switch_mode', this, function () {
-                this.update('view', null, widget);
-            });
+            // if (this._view_manager) {
+            //     this._view_manager.off('switch_mode', this);
+            // }
+            // if (!(widget instanceof ViewManager)) {
+            //     this._active_view = null;
+            //     this._view_manager = null;
+            //     break;
+            // }
+            // this._view_manager = widget;
+            // widget.on('switch_mode', this, function () {
+            //     this.update('view', null, widget);
+            // });
         case 'view':
-            this._active_view = widget.active_view;
+            // this._active_view = widget.active_view;
         }
 
         return this._super(tag, descriptor).then(function () {

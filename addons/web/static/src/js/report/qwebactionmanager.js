@@ -135,6 +135,8 @@ ActionManager.include({
                 }
             });
         } else {
+            // AAB: is this dead code? there is no other report_type than qweb-html
+            // and qweb-pdf (so backward compat? can be dropped in v12?)
             return self._super(action, options);
         }
     }

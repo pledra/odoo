@@ -12,10 +12,13 @@ odoo.define('web.AbstractController', function (require) {
  * reading localstorage, ...) has to go through the controller.
  */
 
+var ControlPanelMixin = require('web.ControlPanelMixin');
+var core = require('web.core');
 var Widget = require('web.Widget');
 
+var QWeb = core.qweb;
 
-var AbstractController = Widget.extend({
+var AbstractController = Widget.extend(ControlPanelMixin, {
     custom_events: {
         open_record: '_onOpenRecord',
     },
@@ -30,8 +33,15 @@ var AbstractController = Widget.extend({
      * @param {AbstractRenderer} renderer
      * @param {object} params
      * @param {string} params.modelName
+     * @param {string} [params.controllerID] an id to ease the communication
+     *   with upstream components
      * @param {any} [params.handle] a handle that will be given to the model (some id)
      * @param {any} params.initialState the initialState
+     * @param {boolean} params.isMultiRecord
+     * @param {Object[]} params.actionViews
+     * @param {string} params.viewType
+     * @param {boolean} params.withControlPanel set to false to hide the
+     *   ControlPanel
      */
     init: function (parent, model, renderer, params) {
         this._super.apply(this, arguments);
@@ -40,7 +50,19 @@ var AbstractController = Widget.extend({
         this.modelName = params.modelName;
         this.handle = params.handle;
         this.activeActions = params.activeActions;
+        this.controllerID = params.controllerID;
         this.initialState = params.initialState;
+
+        // those arguments are temporary, they won't be necessary as soon as the
+        // ControlPanel will be handled by the View
+        this.displayName = params.displayName;
+        this.isMultiRecord = params.isMultiRecord;
+        this.searchable = params.searchable;
+        this.searchView = params.searchView;
+        this.searchViewHidden = params.searchViewHidden;
+        this.actionViews = params.actionViews;
+        this.viewType = params.viewType;
+        this.withControlPanel = params.withControlPanel !== false;
     },
     /**
      * Simply renders and updates the url.
@@ -48,6 +70,9 @@ var AbstractController = Widget.extend({
      * @returns {Deferred}
      */
     start: function () {
+        // render the ControlPanel elements (buttons, pager, sidebar...)
+        this.controlPanelElements = this._renderControlPanelElements();
+
         return $.when(
             this._super.apply(this, arguments),
             this.renderer.appendTo(this.$el)
@@ -60,6 +85,7 @@ var AbstractController = Widget.extend({
         if (this.$buttons) {
             this.$buttons.off();
         }
+        this.controlPanelElements.$switch_buttons.off();
         return this._super.apply(this, arguments);
     },
 
@@ -106,13 +132,12 @@ var AbstractController = Widget.extend({
      * Returns a title that may be displayed in the breadcrumb area.  For
      * example, the name of the record.
      *
-     * Note: this seems wrong right now, it should not be implemented, we have
-     * no guarantee that there is a display_name variable in a controller.
+     * note: this will be moved to AbstractAction
      *
      * @returns {string}
      */
     getTitle: function () {
-        return this.display_name;
+        return this.displayName;
     },
     /**
      * The use of this method is discouraged.  It is still snakecased, because
@@ -219,7 +244,67 @@ var AbstractController = Widget.extend({
      *   world
      */
     _pushState: function (state) {
-        this.trigger_up('push_state', state || {});
+        this.trigger_up('push_state', {
+            controllerID: this.controllerID,
+            state: state || {},
+        });
+    },
+    /**
+     * Renders the control elements (buttons, pager and sidebar) of the current
+     * view.
+     *
+     * @private
+     */
+    _renderControlPanelElements: function () {
+        var elements = {};
+
+        if (this.withControlPanel) {
+            elements = {
+                $buttons: $('<div>'),
+                $sidebar: $('<div>'),
+                $pager: $('<div>'),
+            };
+
+            this.renderButtons(elements.$buttons);
+            this.renderSidebar(elements.$sidebar);
+            this.renderPager(elements.$pager);
+            // remove the unnecessary outer div
+            elements = _.mapObject(elements, function($node) {
+                return $node && $node.contents();
+            });
+            elements.$switch_buttons = this._renderSwitchButtons();
+        }
+
+        return elements;
+    },
+    /**
+     * Renders the switch buttons and binds listeners on them.
+     *
+     * @private
+     * @returns {JQuery}
+     */
+    _renderSwitchButtons: function () {
+        var self = this;
+        var views = _.filter(this.actionViews, {multiRecord: this.isMultiRecord});
+
+        if (views.length <= 1) {
+            return $();
+        }
+
+        var $switchButtons = $(QWeb.render('ControlPanel.SwitchButtons', {
+            views: views,
+        }));
+        // create bootstrap tooltips
+        _.each(views, function (view) {
+            $switchButtons.filter('.o_cp_switch_' + view.type).tooltip();
+        });
+        // add onclick event listener
+        $switchButtons.filter('button').click(_.debounce(function (event) {
+            var viewType = $(event.target).data('view-type');
+            self.trigger_up('switch_view', {view_type: viewType});
+        }, 200, true));
+
+        return $switchButtons;
     },
     /**
      * This method is called after each update or when the start method is
@@ -235,6 +320,22 @@ var AbstractController = Widget.extend({
      * @returns {Deferred}
      */
     _update: function (state) {
+        // AAB: update the control panel -> this will be move elsewhere at some point
+        var cp_content = _.extend({}, this.controlPanelElements);
+        if (this.searchView) {
+            _.extend(cp_content, {
+                $searchview: this.searchView.$el,
+                $searchview_buttons: this.searchView.$buttons.contents(),
+            });
+        }
+        this.update_control_panel({
+            active_view_selector: '.o_cp_switch_' + this.viewType,
+            cp_content: cp_content,
+            hidden: !this.withControlPanel,
+            searchview: this.searchView,
+            search_view_hidden: !this.searchable || this.searchviewHidden,
+        });
+
         this._pushState();
         return $.when();
     },
