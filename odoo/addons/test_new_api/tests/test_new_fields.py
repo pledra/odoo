@@ -966,9 +966,9 @@ class TestParentStore(common.TransactionCase):
         def descendants(recs):
             return Category.search([('id', 'child_of', recs.ids)])
 
+        c = Category.create({'name': 'c'})
         a = Category.create({'name': 'a'})
         b = Category.create({'name': 'b'})
-        c = Category.create({'name': 'c'})
 
         # all records should be roots in the right order
         self.check_siblings([a, b, c])
