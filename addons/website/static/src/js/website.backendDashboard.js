@@ -174,6 +174,10 @@ var Dashboard = Widget.extend(ControlPanelMixin, {
             $analytics_components.empty();
             // 1. Authorize component
             var $analytics_auth = $('<div>').addClass('col-md-12');
+            window.onOriginError = function () {
+                $analytics_components.find('.js_unauthorized_message').remove();
+                self.display_unauthorized_message($analytics_components, 'not_initialized');
+            };
             gapi.analytics.auth.authorize({
                 container: $analytics_auth[0],
                 clientid: client_id
