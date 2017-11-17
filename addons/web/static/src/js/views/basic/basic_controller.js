@@ -467,7 +467,7 @@ var BasicController = AbstractController.extend(FieldManagerMixin, {
             var sidebarEnv = this._getSidebarEnv();
             this.sidebar.updateEnv(sidebarEnv);
         }
-        this.trigger_up('env_updated', env);
+        this.trigger_up('env_updated', {controllerID: this.controllerID, env: env});
     },
     /**
      * Helper method, to make sure the information displayed by the pager is up

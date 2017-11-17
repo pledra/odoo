@@ -150,7 +150,7 @@ QUnit.module('Views', {
             View: ListView,
             model: 'foo',
             data: this.data,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             arch: '<tree delete="0"><field name="foo"/></tree>',
         });
 
@@ -764,7 +764,7 @@ QUnit.module('Views', {
             View: ListView,
             model: 'foo',
             data: this.data,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             arch: '<tree><field name="foo"/></tree>',
         });
 
@@ -794,7 +794,7 @@ QUnit.module('Views', {
             View: ListView,
             model: 'foo',
             data: this.data,
-            viewOptions: {sidebar: true},
+            viewOptions: {hasSidebar: true},
             arch: '<tree><field name="foo"/></tree>',
             mockRPC: function (route) {
                 if (route === '/web/dataset/call_kw/ir.attachment/search_read') {
@@ -1676,7 +1676,7 @@ QUnit.module('Views', {
                         "'switch_view' event has been triggered");
                 },
                 env_updated: function (event) {
-                    assert.deepEqual(event.data.ids, envIDs,
+                    assert.deepEqual(event.data.env.ids, envIDs,
                         "should notify the environment with the correct ids");
                 },
             },
@@ -2210,7 +2210,7 @@ QUnit.module('Views', {
                 print: [],
             },
             viewOptions: {
-                sidebar: true,
+                hasSidebar: true,
             },
         });
 

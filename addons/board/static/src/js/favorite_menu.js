@@ -7,7 +7,7 @@ var core = require('web.core');
 var Domain = require('web.Domain');
 var FavoriteMenu = require('web.FavoriteMenu');
 var pyeval = require('web.pyeval');
-var ViewManager = require('web.ViewManager');
+// var ViewManager = require('web.ViewManager'); // AAB: to adapt
 
 var _t = core._t;
 var QWeb = core.qweb;
@@ -26,7 +26,7 @@ FavoriteMenu.include({
         var am = this.findAncestor(function (a) {
             return a instanceof ActionManager;
         });
-        if (am && am.get_inner_widget() instanceof ViewManager) {
+        if (false) {//am && am.get_inner_widget() instanceof ViewManager) {
             this.view_manager = am.get_inner_widget();
             this.add_to_dashboard_available = true;
             this.$('.o_favorites_menu').append(QWeb.render('SearchView.addtodashboard'));

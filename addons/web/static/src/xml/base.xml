@@ -177,8 +177,6 @@
     </div>
 </form>
 
-<div t-name="ActionManager" class="o_content"/>
-
 <t t-name="ControlPanel">
     <div class="o_control_panel">
         <ol class="breadcrumb"/>
@@ -201,9 +199,9 @@
     </div>
 </t>
 
-<t t-name="ViewManager.switch-buttons">
+<t t-name="ControlPanel.SwitchButtons">
     <t t-foreach="views" t-as="view">
-        <button type="button" t-att-accesskey="view.accesskey"
+        <button type="button" t-att-accesskey="view.accessKey"
             t-attf-class="btn btn-icon fa fa-lg #{view.icon} o_cp_switch_#{view.type}"
             t-att-aria-label="view.type"
             t-att-data-view-type="view.type" t-att-title="view.label"/>

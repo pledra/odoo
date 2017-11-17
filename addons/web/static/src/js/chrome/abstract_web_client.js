@@ -51,6 +51,7 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
             }
         },
         warning: '_onDisplayWarning',
+        load_action: '_onLoadAction',
         load_views: function (event) {
             var params = {
                 model: event.data.modelName,
@@ -66,6 +67,7 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
                 .load_filters(event.data.dataset, event.data.action_id)
                 .then(event.data.on_success);
         },
+        push_state: '_onPushState',
         show_effect: '_onShowEffect',
         // session
         get_session: function (event) {
@@ -213,11 +215,7 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
     show_application: function () {
     },
     clear_uncommitted_changes: function () {
-        var def = $.Deferred().resolve();
-        core.bus.trigger('clear_uncommitted_changes', function chain_callbacks(callback) {
-            def = def.then(callback);
-        });
-        return def;
+        return this.action_manager._clearUncommittedChanges();
     },
     destroy_content: function () {
         _.each(_.clone(this.getChildren()), function (el) {
@@ -274,6 +272,9 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
         });
     },
     do_push_state: function (state) {
+        if (!state.menu_id) {
+            state.menu_id = this.menu.getCurrentPrimaryMenu();
+        }
         if ('title' in state) {
             this.set_title(state.title);
             delete state.title;
@@ -345,6 +346,27 @@ var AbstractWebClient = Widget.extend(mixins.ServiceProvider, {
         } else if (this.notification_manager) {
             this.notification_manager.warn(e.data.title, e.data.message, e.data.sticky);
         }
+    },
+    /**
+     * Loads an action from the database given its ID.
+     *
+     * @param {OdooEvent} event
+     * @param {integer} event.data.actionID
+     * @param {Object} event.data.context
+     * @param {function} event.data.on_success
+     * @returns {Deferred<Object>} resolved with the description of the action
+     */
+    _onLoadAction: function (event) {
+        return data_manager
+            .load_action(event.data.actionID, event.data.context)
+            .then(event.data.on_success);
+    },
+    /**
+     * @private
+     * @param {OdooEvent} e
+     */
+    _onPushState: function (e) {
+        this.do_push_state(e.data.state);
     },
     /**
      * Displays a visual effect (for example, a rainbowman0

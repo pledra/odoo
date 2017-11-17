@@ -147,7 +147,6 @@ function createAsyncView(params) {
     var $web_client = $('<div>').addClass('o_web_client').prependTo($target);
     var $control_panel = $('<div>').addClass('o_control_panel').appendTo($web_client);
     var $content = $('<div>').addClass('o_content').appendTo($web_client);
-    var $view_manager = $('<div>').addClass('o_view_manager_content').appendTo($content);
 
     return view.getController(widget).then(function (view) {
         // override the view's 'destroy' so that it calls 'destroy' on the widget
@@ -163,7 +162,7 @@ function createAsyncView(params) {
         // without being in the DOM
         var fragment = document.createDocumentFragment();
         return view.appendTo(fragment).then(function () {
-            dom.append($view_manager, fragment, {
+            dom.append($content, fragment, {
                 callbacks: [{widget: view}],
                 in_DOM: true,
             });
@@ -245,6 +244,7 @@ function addMockEnvironment(widget, params) {
         console.log('%c[debug] debug mode activated', 'color: blue; font-weight: bold;', url);
     }
     var mockServer = new Server(params.data, {
+        actions: params.actions,
         archs: params.archs,
         currentDate: params.currentDate,
         debug: params.debug,
@@ -311,6 +311,14 @@ function addMockEnvironment(widget, params) {
             var result = mockServer.performRpc(event.data.args[0], event.data.args[1]);
             event.data.callback(result);
         }
+    });
+
+    intercept(widget, 'load_action', function (event) {
+        mockServer.performRpc('/web/action/load', {
+            kwargs: {action_id: event.data.actionID},
+        }).then(function (action) {
+            event.data.on_success(action);
+        });
     });
 
     intercept(widget, "load_views", function (event) {
