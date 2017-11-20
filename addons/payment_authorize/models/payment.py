@@ -133,7 +133,7 @@ class PaymentAcquirerAuthorize(models.Model):
     @api.multi
     def authorize_test_credentials(self):
         self.ensure_one()
-        transaction = AuthorizeAPI(self.acquirer_id)
+        transaction = AuthorizeAPI(self)
         return transaction.test_authenticate()
 
 class TxAuthorize(models.Model):
@@ -195,17 +195,20 @@ class TxAuthorize(models.Model):
             _logger.warning('Authorize: trying to validate an already validated tx (ref %s)' % self.reference)
             return True
         status_code = int(data.get('x_response_code', '0'))
+        curr_msg = self.state_message or ''
         if status_code == self._authorize_valid_tx_status:
             if data.get('x_type').lower() in ['auth_capture', 'prior_auth_capture']:
                 self.write({
                     'state': 'done',
                     'acquirer_reference': data.get('x_trans_id'),
                     'date_validate': fields.Datetime.now(),
+                    'state_message': '\n'.join([curr_msg, data.get('errors', '')]),
                 })
             elif data.get('x_type').lower() in ['auth_only']:
                 self.write({
                     'state': 'authorized',
                     'acquirer_reference': data.get('x_trans_id'),
+                    'state_message': '\n'.join([curr_msg, data.get('errors', '')]),
                 })
             if self.partner_id and not self.payment_token_id and \
                (self.type == 'form_save' or self.acquirer_id.save_token == 'always'):
@@ -217,6 +220,7 @@ class TxAuthorize(models.Model):
                     'acquirer_ref': res.get('payment_profile_id'),
                     'acquirer_id': self.acquirer_id.id,
                     'partner_id': self.partner_id.id,
+                    'state_message': '\n'.join([curr_msg, data.get('errors', '')]),
                 })
                 self.payment_token_id = token_id
             return True
@@ -224,12 +228,14 @@ class TxAuthorize(models.Model):
             self.write({
                 'state': 'pending',
                 'acquirer_reference': data.get('x_trans_id'),
+                'state_message': '\n'.join([curr_msg, data.get('errors', '')]),
             })
             return True
         elif status_code == self._authorize_cancel_tx_status:
             self.write({
                 'state': 'cancel',
                 'acquirer_reference': data.get('x_trans_id'),
+                'state_message': '\n'.join([curr_msg, data.get('errors', '')]),
             })
             return True
         else:
@@ -276,6 +282,7 @@ class TxAuthorize(models.Model):
         if self.state == 'done':
             _logger.warning('Authorize: trying to validate an already validated tx (ref %s)' % self.reference)
             return True
+        curr_msg = self.state_message or ''
         status_code = int(tree.get('x_response_code', '0'))
         if status_code == self._authorize_valid_tx_status:
             if tree.get('x_type').lower() in ['auth_capture', 'prior_auth_capture']:
@@ -284,6 +291,7 @@ class TxAuthorize(models.Model):
                     'state': 'done',
                     'acquirer_reference': tree.get('x_trans_id'),
                     'date_validate': fields.Datetime.now(),
+                    'state_message': '\n'.join([curr_msg, tree.get('errors', '')]),
                 })
                 if self.sudo().callback_eval and init_state != 'authorized':
                     safe_eval(self.sudo().callback_eval, {'self': self})
@@ -291,24 +299,28 @@ class TxAuthorize(models.Model):
                 self.write({
                     'state': 'authorized',
                     'acquirer_reference': tree.get('x_trans_id'),
+                    'state_message': '\n'.join([curr_msg, tree.get('errors', '')]),
                 })
                 if self.sudo().callback_eval:
                     safe_eval(self.sudo().callback_eval, {'self': self})
             if tree.get('x_type').lower() == 'void':
                 self.write({
                     'state': 'cancel',
+                    'state_message': '\n'.join([curr_msg, tree.get('errors', '')]),
                 })
             return True
         elif status_code == self._authorize_pending_tx_status:
             self.write({
                 'state': 'pending',
                 'acquirer_reference': tree.get('x_trans_id'),
+                'state_message': '\n'.join([curr_msg, tree.get('errors', '')]),
             })
             return True
         elif status_code == self._authorize_cancel_tx_status:
             self.write({
                 'state': 'cancel',
                 'acquirer_reference': tree.get('x_trans_id'),
+                'state_message': '\n'.join([curr_msg, tree.get('errors', '')]),
             })
             return True
         else:

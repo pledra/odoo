@@ -34,7 +34,7 @@ def strip_ns(xml, ns):
 
 def parse_errors(tree):
     errors = []
-    for e in tree.iter('//errors/error'):
+    for e in tree.findall('transactionResponse/errors/error'):
         code, msg = map(lambda tag: tag.text, list(e))
         errors.append('%s (error code %s)' % (msg, code))
     return errors
@@ -208,7 +208,7 @@ class AuthorizeAPI():
         res['x_response_code'] = response.find('transactionResponse/responseCode').text
         res['x_trans_id'] = response.find('transactionResponse/transId').text
         res['x_type'] = 'auth_capture'
-        res['errors'] = parse_errors(response)
+        res['errors'] = '\n'.join(parse_errors(response))
         return res
 
     def authorize(self, token, amount, reference):
@@ -239,7 +239,7 @@ class AuthorizeAPI():
         res['x_response_code'] = response.find('transactionResponse/responseCode').text
         res['x_trans_id'] = response.find('transactionResponse/transId').text
         res['x_type'] = 'auth_only'
-        res['errors'] = parse_errors(response)
+        res['errors'] = '\n'.join(parse_errors(response))
         return res
 
     def capture(self, transaction_id, amount):
@@ -265,7 +265,7 @@ class AuthorizeAPI():
         res['x_response_code'] = response.find('transactionResponse/responseCode').text
         res['x_trans_id'] = response.find('transactionResponse/transId').text
         res['x_type'] = 'prior_auth_capture'
-        res['errors'] = parse_errors(response)
+        res['errors'] = '\n'.join(parse_errors(response))
         return res
 
     def void(self, transaction_id):
@@ -286,7 +286,7 @@ class AuthorizeAPI():
         res['x_response_code'] = response.find('transactionResponse/responseCode').text
         res['x_trans_id'] = response.find('transactionResponse/transId').text
         res['x_type'] = 'void'
-        res['errors'] = parse_errors(response)
+        res['errors'] = '\n'.join(parse_errors(response))
         return res
 
     # Test
