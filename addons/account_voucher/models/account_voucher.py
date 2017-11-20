@@ -228,7 +228,7 @@ class AccountVoucher(models.Model):
         return {
             'payment_type': 'outbound',
             'payment_method_id': payment_methods and payment_methods[0].id or False,
-            'partner_type': 'supplier',
+            'partner_type': 'supplier' if self.amount < 0.0 else 'customer',
             'partner_id': self.partner_id.id,
             'amount': self.amount,
             'currency_id': self.currency_id.id,
