@@ -392,17 +392,6 @@ class QuantPackage(models.Model):
         else:
             return [('id', '=', False)]
 
-    def _check_location_constraint(self):
-        '''checks that all quants in a package are stored in the same location. This function cannot be used
-           as a constraint because it needs to be checked on pack operations (they may not call write on the
-           package)
-        '''
-        for pack in self:
-            locations = pack.get_content().filtered(lambda quant: quant.qty > 0.0).mapped('location_id')
-            if len(locations) != 1:
-                raise UserError(_('Everything inside a package should be in the same location'))
-        return True
-
     def unpack(self):
         for package in self:
             move_lines_to_remove = self.move_line_ids.filtered(lambda move_line: move_line.state != 'done')
