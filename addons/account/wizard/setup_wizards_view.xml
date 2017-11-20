@@ -20,14 +20,14 @@
                     </footer>
                 </xpath>
                 <xpath expr="//field[@name='currency_id']" position="after">
-                    <field name="chart_template_id" invisible="1"/>
+                    <label attrs="{'invisible': [('chart_template_id','!=',False)]}" string="Fiscal Localization"/><br />
+                    <span attrs="{'invisible': [('chart_template_id','!=',False)]}" class="text-muted" colspan="2">
+                      Taxes, fiscal positions, chart of accounts &amp; legal statements for your country
+                    </span>
+                    <label attrs="{'invisible': [('chart_template_id','!=',False)]}" for="chart_template_id" string="Package"/>
                     <div attrs="{'invisible': [('chart_template_id','!=',False)]}">
-                        <label for="chart_template_id" string="Fiscal Localization"/>
-                        <field name="chart_template_id"/>
-                        <span class="text-muted">
-                            Taxes, fiscal positions, chart of accounts &amp; legal statements for your country
-                        </span>
-                        <button name="%(account.open_account_charts_modules)d" icon="fa-arrow-right" type="action" string="Install More Packages" class="btn-link pull-right"/>
+                        <field name="chart_template_id" nolabel="1" options="{'no_quick_create':True,'no_create_edit':True}"/>
+                        <button name="218" icon="fa-arrow-right" type="action" string="Install More Packages" class="btn-link pull-right"/>
                     </div>
                 </xpath>
             </field>
