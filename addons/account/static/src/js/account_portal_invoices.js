@@ -16,7 +16,7 @@ var $bs_sidebar = $(".o_account_portal_invoices .bs-sidebar");
 
     function adapt_sidebar_position() {
         $bs_sidebar.css({
-            position: "",
+            position: "relative",
             width: "",
         });
         if (config.device.size_class >= config.device.SIZES.MD) {

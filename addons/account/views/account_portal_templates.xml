@@ -76,22 +76,27 @@
             <div class="container o_account_portal_invoices">
                 <div class="row mt16">
                 <!-- Sidebar -->
-                <div class="col-md-3 hidden-print">
-                    <div class="bs-sidebar">
-                        <div class="text-center col-md-12 col-sm-4 col-xs-3" style="padding: 10px">
-                            <h3><span t-field="invoice.amount_total"/><br/></h3><h4>Due in 5 days</h4>
+                <div class="col-md-3 hidden-print text-center">
+                    <div class="bs-sidebar" style="background-color:#f8f8f8;">
+                        <div>
+                            <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h4>Due in 1 days</h4>
                         </div>
-                        <div class="text-center col-md-12 col-sm-4 col-xs-3 hidden-print" style="padding: 10px">
-                              <a t-if="invoice.amount_total" class="btn btn-primary btn-block" data-toggle="modal" data-target="#portal_pay">
+                        <div style="padding: 5px">
+                            <a t-if="invoice.amount_total" class="btn btn-primary btn-block" data-toggle="modal" data-target="#pay_with">
                                 Pay Now
-                              </a>
-                        </div>
-                        <div class="col-md-12 col-sm-4 col-xs-3 hidden-print" id="o_portal_account_actions">
-                            <a target="_blank" t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())" style="\margin-left: 100px;\" title="Download" align="center">
-                                <i class="fa fa-download fa-2x" aria-hidden="true"/>
                             </a>
                         </div>
-                        <div style="padding: 10px">
+                        <div>
+                            <div class="button print col-md-6">
+                                <i class="fa fa-print fa-2x"></i>
+                            </div>
+                            <div class="col-md-6" style="padding: 5px" id="o_portal_account_actions">
+                                <a target="_blank" t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())" title="Download">
+                                    <i class="fa fa-download fa-2x" aria-hidden="true"/>
+                                </a>
+                            </div>
+                        </div>
+                        <div style="padding: 5px">
                             <strong>Invoice #</strong>
                             <span t-field="invoice.number"/>
                         </div>
@@ -99,11 +104,11 @@
                             <strong>Reference: </strong>
                             <span t-field="invoice.reference"/>
                         </div>
-                        <div style="padding: 10px">
+                        <div style="padding: 5px">
                             <strong>Issued: </strong>
                             <span t-field="invoice.date_invoice"/>
                         </div>
-                        <div style="padding: 10px">
+                        <div style="padding: 5px">
                             <strong>Due: </strong>
                             <span t-field="invoice.date_due"/>
                         </div>
@@ -112,33 +117,60 @@
                         </div>
                     </div>
                 </div>
-                <div id="invoice_content" class="col-md-9">
-                <h4>
+                <div id="invoice_content" class="col-md-9 hidden-print">
+                    <div style="border:5px solid #BAB1B1; border-spacing: 5px;">
+                    <div class="row hidden-print">
+                        <div class="col-md-8 hidden-print">
+                        </div>
+                        <div class="col-md-4" name="company_address">
+                            <strong>Your Company</strong>
+                            <div t-if="invoice.partner_id.phone">Tel: <span t-field="invoice.partner_id.phone"/>
+                            </div>
+                            <address t-field="invoice.partner_id"
+                                t-options='{"widget": "contact", "fields": ["email","website"], "no_marker": True}' />
+                        </div>
+                     </div>
+                     <div class="row hidden-print">
+                        <div class="col-md-8 hidden-print">
+                        </div>
+                        <div class="col-md-4" name="customer_address">
+                            <address t-field="invoice.partner_id"
+                                t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}' />
+                            <div t-if="invoice.partner_id.vat" class="mt16">VAT: <span t-field="invoice.partner_id.vat"/></div>
+                        </div>
+                    </div>
+                <h3>
                     <t t-call='portal.record_pager'/>
-                    <span t-if="invoice.type == 'out_invoice' and (invoice.state == 'open' or invoice.state == 'paid')">Invoice</span>
+                    <b>
+                    <span style="margin-left:10px" t-if="invoice.type == 'out_invoice' and (invoice.state == 'open' or invoice.state == 'paid')">Invoice</span>
                     <span t-if="invoice.type == 'out_invoice' and invoice.state == 'draft'">Draft Invoice</span>
                     <span t-if="invoice.type == 'out_invoice' and invoice.state == 'cancel'">Cancelled Invoice</span>
                     <span t-if="invoice.type == 'out_refund'">Credit Note</span>
                     <span t-if="invoice.type == 'in_refund'">Vendor Credit Note</span>
                     <span t-if="invoice.type == 'in_invoice'">Vendor Bill</span>
                     <span t-field="invoice.number"/>
-                </h4>
+                    </b>
+                </h3>
                 <div class="panel-body">
                     <t t-if="error or warning" t-call="account.portal_invoice_error"/>
                     <t t-if="success and (not error and not warning)" t-call="account.portal_invoice_success"/>
                     <t t-call="account.portal_invoice_report"/>
                 </div>
-                <div class="panel-body" t-if="invoice.amount_total" id="portal_pay" role="dialouge">
-                    <div t-if="pms or s2s_acquirers or form_acquirers" id="payment_method" class="text-left col-md-13">
-                        <h3 class="mb24">Pay with</h3>
-                        <t t-call="payment.payment_tokens_list">
-                            <t t-set="mode" t-value="'payment'"/>
-                            <t t-set="submit_txt" t-value="'Pay &amp; Confirm'"/>
-                            <t t-set="icon_class" t-value="'fa-lock'"/>
-                            <t t-set="form_action" t-value="'/quote/' + str(quotation.id) + '/transaction/token'"/>
-                            <t t-set="prepare_tx_url" t-value="'/quote/' + str(quotation.id) + '/transaction/'"/>
-                        </t>
+                <div class="modal fade" id="pay_with" tabindex="-1" role="dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&amp;times;</button>
+                                <h3 class="modal-title">Pay with</h3>
+                            </div>
+                            <div class="modal-body">
+                                <div style="padding: 5px"><label class="radio-inline"><input type="radio" name="paypal" value="paypal"/> Paypal</label></div>
+                                <div style="padding: 5px"><label class="radio-inline"><input type="radio" name="wire_transfer" value="wire_transfer"/> Wire Transfer</label></div>
+                                <div style="padding: 5px"><button type="button" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-lock"/> Pay Now</button></div>
+                            </div>
+                        </div>
                     </div>
+                </div>
                 </div>
                 </div>
                 </div>
@@ -151,7 +183,6 @@
     <template id="chatter" name="Allow Comments &amp; History" customize_show="True" inherit_id="account.portal_invoice_page">
       <xpath expr="//div[@id='invoice_content']" position="inside">
           <h1 class="page-header" id="chatter">History</h1>
-          <!-- Options:Quotation Chatter: user can reply -->
           <t t-call="portal.message_thread">
             <t t-set="object" t-value="invoice"/>
           </t>
@@ -159,15 +190,6 @@
     </template>
 
     <template id="portal_invoice_report" name="Invoice Portal Report">
-        <div class="row">
-            <div class="col-xs-5" name="customer_address">
-                <strong>Customer Address</strong>
-                <address t-field="invoice.partner_id"
-                    t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}' />
-                <div t-if="invoice.partner_id.vat" class="mt16">VAT: <span t-field="invoice.partner_id.vat"/></div>
-            </div>
-        </div>
-
         <div class="row mt32 mb32">
             <div class="col-xs-2" t-if="invoice.name">
                 <strong>Description:</strong>
