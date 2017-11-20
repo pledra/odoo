@@ -273,6 +273,9 @@ class Picking(models.Model):
         'Has Packages', compute='_compute_has_packages',
         help='Check the existence of destination packages on move lines')
 
+    package_ids = fields.One2many('stock.quant.package', compute='_compute_package_ids', inverse='_set_package_ids')
+    package_detail_ids = fields.One2many('stock.quant.package', compute='_compute_package_ids', inverse='_set_package_ids')
+
     show_check_availability = fields.Boolean(
         compute='_compute_show_check_availability',
         help='Technical field used to compute whether the check availability button should be shown.')
@@ -392,12 +395,19 @@ class Picking(models.Model):
 
     @api.one
     def _compute_has_packages(self):
-        has_packages = False
-        for pack_op in self.move_line_ids:
-            if pack_op.result_package_id:
-                has_packages = True
-                break
-        self.has_packages = has_packages
+        self.has_packages = self.move_line_ids.filtered(lambda ml: ml.result_package_id)
+
+    def _compute_package_ids(self):
+        for picking in self:
+            packages = self.env['stock.quant.package']
+            for ml in picking.move_line_ids:
+                if ml.package_id.id == ml.result_package_id.id:
+                    packages |= ml.package_id
+            picking.package_ids = packages
+            picking.package_detail_ids = packages
+
+    def _set_package_ids(self):
+        pass
 
     @api.multi
     def _compute_show_check_availability(self):

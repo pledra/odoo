@@ -331,6 +331,9 @@ class QuantPackage(models.Model):
     move_line_ids = fields.One2many('stock.move.line', 'result_package_id')
     current_picking_move_line_ids = fields.One2many('stock.move.line', compute="_compute_current_picking_info")
     current_picking_id = fields.Boolean(compute="_compute_current_picking_info")
+    current_source_location_id = fields.Many2one('stock.location', compute="_compute_current_picking_info")
+    current_destination_location_id = fields.Many2one('stock.location', compute="_compute_current_picking_info", inverse="_set_current_destination_location")
+    is_processed = fields.Boolean(compute="_compute_current_picking_info")
 
     @api.depends('quant_ids.package_id', 'quant_ids.location_id', 'quant_ids.company_id', 'quant_ids.owner_id')
     def _compute_package_info(self):
@@ -354,13 +357,47 @@ class QuantPackage(models.Model):
         return res
 
     def _compute_current_picking_info(self):
+        for package in self:
+            picking_id = self.env.context.get('picking_id')
+            if picking_id:
+                package.current_picking_move_line_ids = package.move_line_ids.filtered(lambda move_line: move_line.picking_id.id == picking_id)
+                package.current_picking_id = True
+                if package.current_picking_move_line_ids:
+                    package.current_source_location_id = package.current_picking_move_line_ids[0].location_id
+                    package.current_destination_location_id = package.current_picking_move_line_ids[0].location_dest_id
+                else:
+                    package.current_source_location_id = False
+                    package.current_destination_location_id = False
+                if package.current_picking_move_line_ids.filtered(lambda ml: ml.qty_done < ml.product_uom_qty):
+                    package.is_processed = False
+                else:
+                    package.is_processed = True
+            else:
+                package.current_picking_move_line_ids = False
+                package.current_picking_id = False
+                package.is_processed = False
+                package.current_source_location_id = False
+                package.current_destination_location_id = False
+
+    def _set_current_destination_location(self):
+        pass
+
+    def action_toggle_processed(self):
         picking_id = self.env.context.get('picking_id')
         if picking_id:
-            self.current_picking_move_line_ids = self.move_line_ids.filtered(lambda move_line: move_line.picking_id.id == picking_id)
-            self.current_picking_id = True
-        else:
-            self.current_picking_move_line_ids = False
-            self.current_picking_id = False
+            for package in self:
+                move_lines = package.move_line_ids.filtered(lambda move_line: move_line.picking_id.id == picking_id)
+                if move_lines.filtered(lambda ml: ml.qty_done < ml.product_uom_qty):
+                    destination_location = self.env.context.get('destination_location')
+                    for ml in move_lines:
+                        vals = {'qty_done': ml.product_uom_qty}
+                        if destination_location:
+                            vals['location_dest_id'] = destination_location
+                        ml.write(vals)
+                else:
+                    for ml in move_lines:
+                        ml.qty_done = 0
+
 
     def _search_owner(self, operator, value):
         if value:
