@@ -945,6 +945,7 @@ class TestParentStore(common.TransactionCase):
         # pretend the pool has finished loading to avoid deferring parent_store
         # computation
         self.patch(self.registry, '_init', False)
+        self.registry.do_parent_store(self.cr)
 
     def check_siblings(self, nodes):
         for node in nodes:
