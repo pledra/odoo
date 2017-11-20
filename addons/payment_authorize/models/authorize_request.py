@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from lxml import etree, objectify
+import logging
 from urllib2 import urlopen, Request
 from StringIO import StringIO
 import xml.etree.ElementTree as ET
@@ -11,6 +12,8 @@ from odoo import _
 
 XMLNS = 'AnetApi/xml/v1/schema/AnetApiSchema.xsd'
 
+_logger = logging.getLogger(__name__)
+
 
 def strip_ns(xml, ns):
     """Strip the provided name from tag names.
@@ -21,12 +24,20 @@ def strip_ns(xml, ns):
     :rtype: etree._Element
     :return: the parsed xml string with the namespace prefix removed
     """
-    it = ET.iterparse(StringIO(xml))
+    tree = etree.parse(StringIO(xml))
     ns_prefix = '{%s}' % XMLNS
-    for _, el in it:
+    for el in tree.iter():
         if el.tag.startswith(ns_prefix):
             el.tag = el.tag[len(ns_prefix):]  # strip all Auth.net namespaces
-    return it.root
+    return tree
+
+
+def parse_errors(tree):
+    errors = []
+    for e in tree.iter('//errors/error'):
+        code, msg = map(lambda tag: tag.text, list(e))
+        errors.append('%s (error code %s)' % (msg, code))
+    return errors
 
 
 class AuthorizeAPI():
@@ -58,14 +69,18 @@ class AuthorizeAPI():
 
         :param etree._Element data: etree data to process
         """
-        data = etree.tostring(data, xml_declaration=True, encoding='utf-8')
-        request = Request(self.url, data)
+        data_tree = etree.tostring(data, xml_declaration=True, encoding='utf-8')
+        request = Request(self.url, data_tree)
         request.add_header('Content-Type', 'text/xml')
+        _logger.debug('Authorize.net request sent: \n%s', etree.tostring(data, pretty_print=True))
         response = urlopen(request).read()
         response = strip_ns(response, XMLNS)
+        _logger.debug('Authorize.net response: \n%s', etree.tostring(response, pretty_print=True))
         if response.find('messages/resultCode').text == 'Error':
             messages = map(lambda m: m.text, response.findall('messages/message/text'))
-            raise ValidationError(_('Authorize.net Error Message(s):\n %s') % '\n'.join(messages))
+            errors = parse_errors(response)
+            all_msgs = messages + errors
+            raise ValidationError(_('Authorize.net Error Message(s):\n %s') % '\n'.join(all_msgs))
         return response
 
     def _base_tree(self, requestType):
@@ -193,6 +208,7 @@ class AuthorizeAPI():
         res['x_response_code'] = response.find('transactionResponse/responseCode').text
         res['x_trans_id'] = response.find('transactionResponse/transId').text
         res['x_type'] = 'auth_capture'
+        res['errors'] = parse_errors(response)
         return res
 
     def authorize(self, token, amount, reference):
@@ -223,6 +239,7 @@ class AuthorizeAPI():
         res['x_response_code'] = response.find('transactionResponse/responseCode').text
         res['x_trans_id'] = response.find('transactionResponse/transId').text
         res['x_type'] = 'auth_only'
+        res['errors'] = parse_errors(response)
         return res
 
     def capture(self, transaction_id, amount):
@@ -248,6 +265,7 @@ class AuthorizeAPI():
         res['x_response_code'] = response.find('transactionResponse/responseCode').text
         res['x_trans_id'] = response.find('transactionResponse/transId').text
         res['x_type'] = 'prior_auth_capture'
+        res['errors'] = parse_errors(response)
         return res
 
     def void(self, transaction_id):
@@ -268,6 +286,7 @@ class AuthorizeAPI():
         res['x_response_code'] = response.find('transactionResponse/responseCode').text
         res['x_trans_id'] = response.find('transactionResponse/transId').text
         res['x_type'] = 'void'
+        res['errors'] = parse_errors(response)
         return res
 
     # Test
@@ -279,7 +298,6 @@ class AuthorizeAPI():
         """
         test_auth = self._base_tree('authenticateTestRequest')
         response = self._authorize_request(test_auth)
-        root = objectify.fromstring(response)
-        if root.find('{ns}messages/{ns}resultCode'.format(ns='{%s}' % XMLNS)) == 'Ok':
+        if response.find('messages/resultCode') == 'Ok':
             return True
         return False
