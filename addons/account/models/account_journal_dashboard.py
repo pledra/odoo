@@ -161,15 +161,16 @@ class account_journal(models.Model):
                             LEFT JOIN account_bank_statement AS st
                             ON line.statement_id = st.id
                             WHERE st.journal_id IN %s AND st.state = 'open' AND line.amount != 0.0
+                            AND line.date >= %s
                             AND not exists (select 1 from account_move_line aml where aml.statement_line_id = line.id)
-                        """, (tuple(self.ids),))
+                        """, (tuple(self.ids), self.company_id.account_opening_date))
             number_to_reconcile = self.env.cr.fetchone()[0]
             # optimization to read sum of balance from account_move_line
             account_ids = tuple(ac for ac in [self.default_debit_account_id.id, self.default_credit_account_id.id] if ac)
             if account_ids:
                 amount_field = 'balance' if (not self.currency_id or self.currency_id == self.company_id.currency_id) else 'amount_currency'
-                query = """SELECT sum(%s) FROM account_move_line WHERE account_id in %%s AND date <= %%s;""" % (amount_field,)
-                self.env.cr.execute(query, (account_ids, fields.Date.today(),))
+                query = """SELECT sum(%s) FROM account_move_line WHERE account_id in %%s AND date >= %%s;""" % (amount_field,)
+                self.env.cr.execute(query, (account_ids, self.company_id.account_opening_date))
                 query_results = self.env.cr.dictfetchall()
                 if query_results and query_results[0].get('sum') != None:
                     account_sum = query_results[0].get('sum')
