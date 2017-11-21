@@ -63,7 +63,9 @@ function PhantomTest() {
     this.page.onLoadFinished = function(status) {
         console.log('PhantomJS: onLoadFinished. Status=', status);
         if (status === "success") {
-            for (var k in self.inject) {
+                // clear localstorage leftovers
+                self.page.evaluate(function () { localStorage.clear() });
+                for (var k in self.inject) {
                 var found = false;
                 var v = self.inject[k];
                 var need = v;
@@ -112,8 +114,6 @@ function PhantomTest() {
                 phantom.exit(1);
             } else {
                 console.log('loaded', url, status);
-                // clear localstorage leftovers
-                self.page.evaluate(function () { localStorage.clear() });
                 // process ready
                 waitFor(function() {
                     console.log("PhantomTest.run: wait for condition:", ready);
