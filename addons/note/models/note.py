@@ -61,6 +61,16 @@ class Note(models.Model):
             note.name = text.strip().replace('*', '').split("\n")[0]
 
     @api.multi
+    def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None, force=True):
+        res = super(Note, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids, subtype_ids=subtype_ids, force=force)
+        users = self.env['res.users'].search([('partner_id', 'in', partner_ids)])
+        for user in users:
+            stages = self.env['note.stage'].sudo().search([('user_id', '=', user.id)])
+            if stages:
+                self.stage_ids =  [(4, stages[0].id, None)]
+        return res
+
+    @api.multi
     def _compute_stage_id(self):
         for note in self:
             for stage in note.stage_ids.filtered(lambda stage: stage.user_id == self.env.user):
