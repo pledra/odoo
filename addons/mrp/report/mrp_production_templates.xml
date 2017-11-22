@@ -45,10 +45,10 @@
                     </div>
 
                     <div t-if="o.workorder_ids">
-                        <strong>Work Orders</strong>
+                        <h3>Planned Operations</h3>
                         <table class="table table-condensed">
                             <tr>
-                                <td class="text-center"><strong>Name</strong></td>
+                                <td class="text-center"><strong>Operation</strong></td>
                                 <td class="text-center"><strong>WorkCenter</strong></td>
                                 <td class="text-center"><strong>No. Of Minutes</strong></td>
                             </tr>
