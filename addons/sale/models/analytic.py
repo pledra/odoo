@@ -8,7 +8,10 @@ from odoo.exceptions import UserError
 class AccountAnalyticLine(models.Model):
     _inherit = "account.analytic.line"
 
-    so_line = fields.Many2one('sale.order.line', string='Sales Order Line')
+    def _default_sale_line_id_domain(self):
+        return [('qty_delivered_method', '=', 'analytic')]
+
+    so_line = fields.Many2one('sale.order.line', string='Sales Order Line', domain=lambda self: self._default_sale_line_id_domain())
 
     @api.model
     def create(self, values):
@@ -19,36 +22,36 @@ class AccountAnalyticLine(models.Model):
     @api.multi
     def write(self, values):
         # get current so lines for which update qty wil be required
-        sale_order_lines = self.env['sale.order.line']
-        if 'so_line' in values:
-            sale_order_lines = self.sudo().mapped('so_line')
+        # sale_order_lines = self.env['sale.order.line']
+        # if 'so_line' in values:
+        #     sale_order_lines = self.sudo().mapped('so_line')
         result = super(AccountAnalyticLine, self).write(values)
-        self._sale_postprocess(values, additional_so_lines=sale_order_lines)
+        self._sale_postprocess(values)  #, additional_so_lines=sale_order_lines)
         return result
 
-    @api.multi
-    def unlink(self):
-        sale_order_lines = self.sudo().mapped('so_line')
-        res = super(AccountAnalyticLine, self).unlink()
-        sale_order_lines._analytic_compute_delivered_quantity()
-        return res
+    # @api.multi
+    # def unlink(self):
+    #     sale_order_lines = self.sudo().mapped('so_line')
+    #     res = super(AccountAnalyticLine, self).unlink()
+    #     sale_order_lines._analytic_compute_delivered_quantity()
+    #     return res
 
-    @api.model
-    def _sale_get_fields_delivered_qty(self):
-        """ Returns a list with the field impacting the delivered quantity on SO line. """
-        return ['so_line', 'unit_amount', 'product_uom_id']
+    # @api.model
+    # def _sale_get_fields_delivered_qty(self):
+    #     """ Returns a list with the field impacting the delivered quantity on SO line. """
+    #     return ['so_line', 'unit_amount', 'product_uom_id']
 
     @api.multi
     def _sale_postprocess(self, values, additional_so_lines=None):
         if 'so_line' not in values:  # allow to force a False value for so_line
             self.sudo().filtered(lambda aal: not aal.so_line and aal.product_id and aal.product_id.expense_policy != 'no').with_context(sale_analytic_norecompute=True)._sale_determine_order_line()
 
-        if any(field_name in values for field_name in self._sale_get_fields_delivered_qty()):
-            if not self._context.get('sale_analytic_norecompute'):
-                so_lines = self.sudo().filtered(lambda aal: aal.so_line).mapped('so_line')
-                if additional_so_lines:
-                    so_lines |= additional_so_lines
-                so_lines.sudo()._analytic_compute_delivered_quantity()
+        # if any(field_name in values for field_name in self._sale_get_fields_delivered_qty()):
+        #     if not self._context.get('sale_analytic_norecompute'):
+        #         so_lines = self.sudo().filtered(lambda aal: aal.so_line).mapped('so_line')
+        #         if additional_so_lines:
+        #             so_lines |= additional_so_lines
+        #         so_lines.sudo()._analytic_compute_delivered_quantity()
 
     # NOTE JEM: thoses method are used in vendor bills to reinvoice at cost (see test `test_cost_invoicing`)
     # some cleaning are still necessary
@@ -131,7 +134,8 @@ class AccountAnalyticLine(models.Model):
             so_line = self.env['sale.order.line'].search([
                 ('order_id', '=', sale_order.id),
                 ('price_unit', '=', price),
-                ('product_id', '=', self.product_id.id)
+                ('product_id', '=', self.product_id.id),
+                ('qty_delivered_method', '=', 'manual'),
             ], limit=1)
 
             if not so_line:
@@ -141,6 +145,8 @@ class AccountAnalyticLine(models.Model):
                 so_line_values = analytic_line._sale_prepare_sale_order_line_values(sale_order, price)
                 so_line = self.env['sale.order.line'].create(so_line_values)
                 so_line._compute_tax_id()
+            else:  # increment only the manual SO lines
+                so_line.write({'qty_delivered': so_line.qty_delivered + analytic_line.unit_amount})
 
             if so_line:  # if so line found or created, then update AAL (this will trigger the recomputation of qty delivered on SO line)
                 analytic_line.write({'so_line': so_line.id})

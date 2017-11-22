@@ -5,23 +5,35 @@ from odoo import api, fields, models
 from odoo.tools import float_compare
 
 
+# TODO JEM: move me in mrp ? if sle is ok ...
+class ProductProduct(models.Model):
+    _inherit = "product.product"
+
+    bom_ids = fields.One2many('mrp.bom', 'product_id', string='BOMs')
+
+
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     @api.multi
-    def _get_delivered_qty(self):
-        self.ensure_one()
+    @api.depends('product_id.bom_ids')  # NOTE JEM: might be not efficient ... do we really need this trigger ?
+    def _compute_qty_delivered(self):
+        lines_by_mrp = self.env['sale.order.line']
+        lines_by_stockmove = self.filtered(lambda sol: sol.qty_delivered_method == 'stock_move')
 
-        # In the case of a kit, we need to check if all components are shipped. Since the BOM might
-        # have changed, we don't compute the quantities but verify the move state.
-        bom = self.env['mrp.bom']._bom_find(product=self.product_id)
-        if bom and bom.type == 'phantom':
-            bom_delivered = all([move.state == 'done' for move in self.move_ids])
-            if bom_delivered:
-                return self.product_uom_qty
-            else:
-                return 0.0
-        return super(SaleOrderLine, self)._get_delivered_qty()
+        for line in lines_by_stockmove:
+            # In the case of a kit, we need to check if all components are shipped. Since the BOM might
+            # have changed, we don't compute the quantities but verify the move state.
+            bom = self.env['mrp.bom']._bom_find(product=line.product_id)
+            if bom and bom.type == 'phantom':
+                bom_delivered = all([move.state == 'done' for move in line.move_ids])
+                if bom_delivered:
+                    line.qty_delivered = line.product_uom_qty
+                else:
+                    line.qty_delivered = 0.0
+                lines_by_mrp |= line
+
+        super(SaleOrderLine, self - lines_by_mrp)._compute_qty_delivered()
 
     @api.multi
     def _get_bom_component_qty(self, bom):

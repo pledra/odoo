@@ -86,9 +86,41 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
+    qty_delivered_method = fields.Selection(selection_add=[('stock_move', 'Stock Moves')])
     product_packaging = fields.Many2one('product.packaging', string='Package', default=False)
     route_id = fields.Many2one('stock.location.route', string='Route', domain=[('sale_selectable', '=', True)], ondelete='restrict')
     move_ids = fields.One2many('stock.move', 'sale_line_id', string='Stock Moves')
+
+    @api.multi
+    @api.depends('product_id.type')
+    def _compute_qty_delivered_method(self):
+        """ Stock module compute delivered qty for product [('type', 'in', ['consu', 'product'])] """
+        # prefetch field before filtering, to avoid fetching one by one product type
+        self.mapped('product_id')
+        # set status for my concerned records only: stock module change, on purpose, the behavior of
+        # consumable products.
+        lines_by_stock = self.filtered(lambda sol: sol.product_id.type in ['consu', 'product'])
+        for line in lines_by_stock:
+            line.qty_delivered_method = 'stock_move'
+        # call super with remaining records (delegate the job to super)
+        # optimization for prefetching, comming from https://github.com/odoo/odoo/commit/59b010ac366e0826fb314b2a89ca47f26906e185
+        super(SaleOrderLine, (self - lines_by_stock).with_prefetch(self._prefetch))._compute_qty_delivered_method()
+
+    @api.multi
+    @api.depends('move_ids.state', 'move_ids.scrapped', 'move_ids.product_uom_qty', 'move_ids.product_uom')
+    # TODO JEM: should we add move_ids.location_dest_id.usage and move_ids.to_refund in dependencies ?
+    def _compute_qty_delivered(self):
+        lines_by_stockmove = self.filtered(lambda sol: sol.qty_delivered_method == 'stock_move')
+        for line in lines_by_stockmove:  # TODO: maybe one day, this should be done in SQL for performance sake
+            qty = 0.0
+            for move in line.move_ids.filtered(lambda r: r.state == 'done' and not r.scrapped):
+                if move.location_dest_id.usage == "customer":
+                    if not move.origin_returned_move_id:
+                        qty += move.product_uom._compute_quantity(move.product_uom_qty, line.product_uom)
+                elif move.location_dest_id.usage != "customer" and move.to_refund:
+                    qty -= move.product_uom._compute_quantity(move.product_uom_qty, line.product_uom)
+            line.qty_delivered = qty
+        super(SaleOrderLine, self - lines_by_stockmove)._compute_qty_delivered()
 
     @api.model
     def create(self, values):
@@ -108,7 +140,7 @@ class SaleOrderLine(models.Model):
         if lines:
             lines._action_launch_procurement_rule()
         return res
-    
+
 
     @api.depends('order_id.state')
     def _compute_invoice_status(self):
@@ -133,17 +165,6 @@ class SaleOrderLine(models.Model):
                 super(SaleOrderLine, line)._compute_product_updatable()
             else:
                 line.product_updatable = False
-
-    @api.multi
-    @api.depends('product_id')
-    def _compute_qty_delivered_updateable(self):
-        # prefetch field before filtering
-        self.mapped('product_id')
-        # on consumable or stockable products, qty_delivered_updateable defaults
-        # to False; on other lines use the original computation
-        lines = self.filtered(lambda line: line.product_id.type not in ('consu', 'product'))
-        lines = lines.with_prefetch(self._prefetch)
-        super(SaleOrderLine, lines)._compute_qty_delivered_updateable()
 
     @api.onchange('product_id')
     def _onchange_product_id_set_customer_lead(self):
@@ -270,19 +291,6 @@ class SaleOrderLine(models.Model):
         if errors:
             raise UserError('\n'.join(errors))
         return True
-
-    @api.multi
-    def _get_delivered_qty(self):
-        self.ensure_one()
-        super(SaleOrderLine, self)._get_delivered_qty()
-        qty = 0.0
-        for move in self.move_ids.filtered(lambda r: r.state == 'done' and not r.scrapped):
-            if move.location_dest_id.usage == "customer":
-                if not move.origin_returned_move_id:
-                    qty += move.product_uom._compute_quantity(move.product_uom_qty, self.product_uom)
-            elif move.location_dest_id.usage != "customer" and move.to_refund:
-                qty -= move.product_uom._compute_quantity(move.product_uom_qty, self.product_uom)
-        return qty
 
     @api.multi
     def _check_package(self):
