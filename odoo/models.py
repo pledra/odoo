@@ -2992,6 +2992,8 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
             elif field.inverse:
                 inverse_vals[key] = val
                 protected_fields.append(field)
+            if field.store and field.compute and not field.readonly:
+                protected_fields.append(field)
 
         if unknown_names:
             _logger.warning("%s.write() with unknown fields: %s",
@@ -3319,6 +3321,8 @@ class BaseModel(MetaModel('DummyModel', (object,), {'_register': False})):
                 inherited_vals[field.related_field.model_name][key] = val
             elif field.inverse:
                 inverse_vals[key] = val
+                protected_fields.append(field)
+            if field.store and field.compute and not field.readonly:
                 protected_fields.append(field)
 
         if unknown_names:
