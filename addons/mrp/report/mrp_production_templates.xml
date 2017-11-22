@@ -60,7 +60,7 @@
                         </table>
                     </div>
 
-                    <h3 t-if="o.move_raw_ids">Bill Of Material</h3>
+                    <h3 t-if="o.move_raw_ids">Products to Consume</h3>
 
                     <table class="table table-condensed" t-if="o.move_raw_ids">
                         <thead>
@@ -71,9 +71,6 @@
                         </thead>
                         <tbody>
                             <t t-if="o.move_raw_ids">
-                                <tr>
-                                    <td colspan="4"><strong>Products to Consume</strong></td>
-                                </tr>
                                 <tr t-foreach="o.move_raw_ids" t-as="line">
                                     <td>
                                         <span t-field="line.product_id"/>
@@ -86,6 +83,7 @@
                             </t>
                         </tbody>
                     </table>
+                    <span> "This are the components that have been reserved." </span>
                     <div class="oe_structure"/>
                 </div>
             </t>
