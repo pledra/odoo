@@ -791,7 +791,7 @@ class Menu(models.Model):
 
     _parent_store = True
     _parent_order = 'sequence'
-    _order = "sequence"
+    _order = "sequence, create_date"
 
     def _default_sequence(self):
         menu = self.search([], limit=1, order="sequence DESC")
