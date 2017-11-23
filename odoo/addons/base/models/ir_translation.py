@@ -206,6 +206,8 @@ class IrTranslation(models.Model):
     _sql_constraints = [
         ('lang_fkey_res_lang', 'FOREIGN KEY(lang) REFERENCES res_lang(code)',
          'Language code of translation item must be among known languages'),
+        ('unique_translation', 'UNIQUE(type, name, lang, res_id, src)',
+         "Translations must be unique."),
     ]
 
     @api.model
