@@ -118,7 +118,10 @@
                     </div>
                 </div>
                 <div id="invoice_content" class="col-md-9 hidden-print">
-                    <div style="border:5px solid #BAB1B1; border-spacing: 5px;">
+                    <div class="o_poratl_invoice">
+                        <iframe id="o_portal_account_actions"/>
+                    </div>
+                    <!-- <div style="border:5px solid #BAB1B1; border-spacing: 5px;">
                     <div class="row hidden-print">
                         <div class="col-md-8 hidden-print">
                         </div>
@@ -171,7 +174,7 @@
                         </div>
                     </div>
                 </div>
-                </div>
+                </div> -->
                 </div>
                 </div>
             </div>
