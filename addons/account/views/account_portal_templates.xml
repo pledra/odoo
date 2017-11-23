@@ -43,6 +43,7 @@
                     <tr>
                         <td>
                             <a t-attf-href="/my/invoices/#{invoice.id}" t-att-title="invoice.number"><t t-esc="invoice.number"/></a>
+                            <t t-if="invoice.shared"><span class="label label-info">shared</span></t>
                         </td>
                         <td><span t-field="invoice.date_invoice"/></td>
                         <td class='hidden-xs'><span t-field="invoice.date_due"/></td>

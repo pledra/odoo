@@ -164,7 +164,7 @@ class CustomerPortal(CustomerPortal):
 
         values.update({
             'date': date_begin,
-            'orders': orders.sudo(),
+            'orders': orders,
             'page_name': 'order',
             'pager': pager,
             'archive_groups': archive_groups,

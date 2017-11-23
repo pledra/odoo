@@ -12,3 +12,13 @@ class MailThread(models.AbstractModel):
     website_message_ids = fields.One2many('mail.message', 'res_id', string='Website Messages',
         domain=lambda self: [('model', '=', self._name), ('message_type', '=', 'comment')], auto_join=True,
         help="Website communication history")
+
+    shared = fields.Boolean('Check shared Document', compute="_compute_share")
+
+    def _compute_share(self):
+        partner = self.env.user.partner_id
+        for record in self:
+            if partner in record.message_follower_ids.mapped('partner_id') and (partner != record.partner_id) and (record.create_uid != self.env.user):
+                record.shared = True
+            else:
+                record.shared = False
