@@ -360,8 +360,9 @@
             <field name="target">main</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
-                    Click to create a new project.<br/>
-                    <i>Or <a type="action" name="%(project.ir_actions_server_project_sample)d">activate a sample project</a> to play with.</i>
+                    Create a <a type="create">new project</a>.
+                </p><p>
+                    You could also <a type="action" name="%(project.ir_actions_server_project_sample)d">activate a sample project</a> to play with.
                 </p>
             </field>
         </record>
@@ -378,8 +379,8 @@
             <field name="search_view_id" ref="view_project_project_filter"/>
             <field name="context">{}</field>
             <field name="help" type="html">
-                <p class="oe_view_nocontent_create">
-                    Create a new project.
+                <p class="oe_view_nocontent_create nocontent_create_config">
+                    Create a <a type="create">new project</a>.
                 </p><p>
                     Organize your activities (plan tasks, track issues, invoice timesheets) for internal, personal or customer projects.
                 </p>
@@ -650,7 +651,8 @@
             <field name="search_view_id" ref="view_task_search_form"/>
             <field name="help" type="html">
                 <p>
-                    Odoo's project management allows you to manage the pipeline of your tasks efficiently. You can track progress, discuss on tasks, attach documents, etc.
+                    Odoo's project management allows you to manage the pipeline of your tasks efficiently.<br/>
+                    You can track progress, discuss on tasks, attach documents, etc.
                 </p>
             </field>
         </record>

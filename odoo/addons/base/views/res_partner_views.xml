@@ -500,11 +500,9 @@
             <field name="search_view_id" ref="view_res_partner_filter"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to add a contact in your address book.
+                Create a <a type="create">new contact</a> in your address book.
               </p><p>
-                Odoo helps you easily track all activities related to
-                a customer: discussions, history of business opportunities,
-                documents, etc.
+                Odoo helps you easily track all activities related to a customer.
               </p>
             </field>
         </record>
@@ -538,11 +536,9 @@
             <field name="filter" eval="True"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to add a contact in your address book.
+                Create a <a type="create">new contact</a> in your address book.
               </p><p>
-                Odoo helps you easily track all activities related to
-                a customer: discussions, history of business opportunities,
-                documents, etc.
+                Odoo helps you easily track all activities related to a customer.
               </p>
             </field>
         </record>
@@ -576,11 +572,9 @@
             <field name="filter" eval="True"/>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to add a contact in your address book.
+                Create a <a type="create">new contact</a> in your address book.
               </p><p>
-                Odoo helps you easily track all activities related to
-                a supplier: discussions, history of purchases,
-                documents, etc.
+                Odoo helps you easily track all activities related to a customer.
               </p>
             </field>
         </record>

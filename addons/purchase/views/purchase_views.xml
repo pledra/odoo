@@ -64,15 +64,10 @@
         <field name="view_id" eval="False"/> <!-- Force empty -->
         <field name="help" type="html">
           <p class="oe_view_nocontent_create">
-            Click to define a new product.
+            Create a <a type="create">new product</a>.
           </p><p>
-            You must define a product for everything you purchase, whether
-            it's a physical product, a consumable or services you buy to
-            subcontractors.
-          </p><p>
-            The product form contains detailed information to improve the
-            purchase process: prices, procurement logistics, accounting data,
-            available vendors, etc.
+            You must define a product for everything you purchase,<br/>
+            whether it's a physical product, a consumable or services.
           </p>
         </field>
     </record>
@@ -89,15 +84,10 @@
             <field name="context">{"search_default_filter_to_purchase": 1}</field>
             <field name="help" type="html">
               <p class="oe_view_nocontent_create">
-                Click to define a new product.
+                Create a <a type="create">new product</a>.
               </p><p>
-                You must define a product for everything you purchase, whether
-                it's a physical product, a consumable or services you buy to
-                subcontractors.
-              </p><p>
-                The product form contains detailed information to improve the
-                purchase process: prices, procurement logistics, accounting data,
-                available vendors, etc.
+                You must define a product for everything you purchase,<br/>
+                whether it's a physical product, a consumable or services.
               </p>
             </field>
         </record>

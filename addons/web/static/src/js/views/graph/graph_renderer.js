@@ -71,9 +71,8 @@ return AbstractRenderer.extend({
         } else if (!this.state.data.length) {
             this.$el.empty();
             this.$el.append(qweb.render('GraphView.error', {
-                title: _t("No data to display"),
-                description: _t("No data available for this chart. " +
-                    "Try to add some records, or make sure that " +
+                title: _t("No data to display."),
+                description: _t("Try to add some records, or make sure that " +
                     "there is no active filter in the search bar."),
             }));
         } else {

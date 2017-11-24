@@ -313,7 +313,8 @@ class MailThread(models.AbstractModel):
         res_id = self._context.get('empty_list_help_id')
         catchall_domain = self.env['ir.config_parameter'].sudo().get_param("mail.catchall.domain")
         document_name = self._context.get('empty_list_help_document_name', _('document'))
-        add_arrow = not help or help.find("oe_view_nocontent_create") == -1
+        create_action = self._context.get('empty_list_help_create_action', False)
+        nothing_here = not help or help.find("oe_view_nocontent_create") == -1
         alias = None
 
         if catchall_domain and model and res_id:  # specific res_id -> find its alias (i.e. section_id specified)
@@ -336,7 +337,7 @@ class MailThread(models.AbstractModel):
 
         if alias:
             email_link = "<a href='mailto:%(email)s'>%(email)s</a>" % {'email': alias.name_get()[0][1]}
-            if add_arrow:
+            if nothing_here:
                 return "<p class='oe_view_nocontent_create'>%(dyn_help)s</p>%(static_help)s" % {
                     'static_help': help or '',
                     'dyn_help': _("Click here to add new %(document)s or send an email to: %(email_link)s") % {
@@ -344,7 +345,7 @@ class MailThread(models.AbstractModel):
                         'email_link': email_link
                     }
                 }
-            return "%(static_help)s<p>%(dyn_help)s" % {
+            return "<p>%(dyn_help)s</p>%(static_help)s" % {
                     'static_help': help or '',
                     'dyn_help': _("You could also add a new %(document)s by sending an email to: %(email_link)s.") %  {
                         'document': document_name,
@@ -352,11 +353,19 @@ class MailThread(models.AbstractModel):
                     }
                 }
 
-        if add_arrow:
+        if nothing_here:
+            # check that create_action exists! do not show link otherwise
             return "<p class='oe_view_nocontent_create'>%(dyn_help)s</p>%(static_help)s" % {
                 'static_help': help or '',
-                'dyn_help': _("Click here to add new %s") % document_name,
+                'dyn_help': _("Create a %(new_record)s.") % {
+                    'new_record': "<a type='action' name=%(action_id)s>new %(document)s</a>" % {
+                        'action_id': create_action.id,
+                        'document': document_name,
+                    } if create_action else "new %(document)s" % {
+                        'document': document_name,
+                    },
                 }
+            }
 
         return help
 
