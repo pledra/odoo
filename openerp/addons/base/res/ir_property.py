@@ -222,7 +222,9 @@ class ir_property(osv.osv):
             id = refs.pop(prop.res_id)
             value = clean(values[id])
             if value == default_value:
-                prop.unlink()
+                # do not prop.unlink(), as it would clear the record cache,
+                # which may contain the value of other properties to set
+                self._cr.execute("DELETE FROM ir_property WHERE id=%s", [prop.id])
             elif value != clean(prop.get_by_record(prop)):
                 prop.write({'value': value})
 
