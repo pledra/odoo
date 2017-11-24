@@ -41,7 +41,7 @@
     <record id="action_orders_ecommerce" model="ir.actions.act_window">
         <field name="name">Orders</field>
         <field name="res_model">sale.order</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree,form,kanban</field>
         <field name="domain">[('team_id.team_type', '=', 'website')]</field>
         <field name="context">{'show_sale': True, 'search_default_order_confirmed': 1}</field>
         <field name="search_view_id" ref="view_sales_order_filter_ecommerce"/>
@@ -51,7 +51,7 @@
     <record id="action_unpaid_orders_ecommerce" model="ir.actions.act_window">
         <field name="name">Unpaid Orders</field>
         <field name="res_model">sale.order</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree,form,kanban</field>
         <field name="domain">[('state', '=', 'sent'), ('team_id.team_type', '=', 'website')]</field>
         <field name="context">{'show_sale': True, 'create': False}</field>
         <field name="search_view_id" ref="view_sales_order_filter_ecommerce"/>
@@ -61,7 +61,7 @@
     <record id="action_abandoned_orders_ecommerce" model="ir.actions.act_window">
         <field name="name">Abandoned Carts</field>
         <field name="res_model">sale.order</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree,form,kanban</field>
         <field name="domain">[('is_abandoned_cart', '=', True)]</field>
         <field name="context" eval="{'show_sale': True, 'create': False, 'search_default_recovery_email' : 1}"/>
         <field name="search_view_id" ref="view_sales_order_filter_ecommerce"/>
