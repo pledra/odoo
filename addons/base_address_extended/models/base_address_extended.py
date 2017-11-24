@@ -27,11 +27,11 @@ class Partner(models.Model):
     _name = 'res.partner'
 
     street_name = fields.Char('Street Name', compute='_split_street',
-                              inverse='_set_street', store=True)
+                              inverse='_set_street', store=True, readonly=False)
     street_number = fields.Char('House Number', compute='_split_street',
-                                inverse='_set_street', store=True)
+                                inverse='_set_street', store=True, readonly=False)
     street_number2 = fields.Char('Door Number', compute='_split_street',
-                                 inverse='_set_street', store=True)
+                                 inverse='_set_street', store=True, readonly=False)
 
     def get_street_fields(self):
         """Returns the fields that can be used in a street format.
