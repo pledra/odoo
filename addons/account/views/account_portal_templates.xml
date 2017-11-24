@@ -118,63 +118,9 @@
                     </div>
                 </div>
                 <div id="invoice_content" class="col-md-9 hidden-print">
-                    <div class="o_poratl_invoice">
-                        <iframe id="o_portal_account_actions"/>
+                    <div class="o_portal_invoice">
+                        <iframe width="100%" height="500px" t-attf-src="/my/invoices/pdf/#{invoice.id}?access_token=#{invoice.access_token}"/>
                     </div>
-                    <!-- <div style="border:5px solid #BAB1B1; border-spacing: 5px;">
-                    <div class="row hidden-print">
-                        <div class="col-md-8 hidden-print">
-                        </div>
-                        <div class="col-md-4" name="company_address">
-                            <strong>Your Company</strong>
-                            <div t-if="invoice.partner_id.phone">Tel: <span t-field="invoice.partner_id.phone"/>
-                            </div>
-                            <address t-field="invoice.partner_id"
-                                t-options='{"widget": "contact", "fields": ["email","website"], "no_marker": True}' />
-                        </div>
-                     </div>
-                     <div class="row hidden-print">
-                        <div class="col-md-8 hidden-print">
-                        </div>
-                        <div class="col-md-4" name="customer_address">
-                            <address t-field="invoice.partner_id"
-                                t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}' />
-                            <div t-if="invoice.partner_id.vat" class="mt16">VAT: <span t-field="invoice.partner_id.vat"/></div>
-                        </div>
-                    </div>
-                <h3>
-                    <t t-call='portal.record_pager'/>
-                    <b>
-                    <span style="margin-left:10px" t-if="invoice.type == 'out_invoice' and (invoice.state == 'open' or invoice.state == 'paid')">Invoice</span>
-                    <span t-if="invoice.type == 'out_invoice' and invoice.state == 'draft'">Draft Invoice</span>
-                    <span t-if="invoice.type == 'out_invoice' and invoice.state == 'cancel'">Cancelled Invoice</span>
-                    <span t-if="invoice.type == 'out_refund'">Credit Note</span>
-                    <span t-if="invoice.type == 'in_refund'">Vendor Credit Note</span>
-                    <span t-if="invoice.type == 'in_invoice'">Vendor Bill</span>
-                    <span t-field="invoice.number"/>
-                    </b>
-                </h3>
-                <div class="panel-body">
-                    <t t-if="error or warning" t-call="account.portal_invoice_error"/>
-                    <t t-if="success and (not error and not warning)" t-call="account.portal_invoice_success"/>
-                    <t t-call="account.portal_invoice_report"/>
-                </div>
-                <div class="modal fade" id="pay_with" tabindex="-1" role="dialog">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&amp;times;</button>
-                                <h3 class="modal-title">Pay with</h3>
-                            </div>
-                            <div class="modal-body">
-                                <div style="padding: 5px"><label class="radio-inline"><input type="radio" name="paypal" value="paypal"/> Paypal</label></div>
-                                <div style="padding: 5px"><label class="radio-inline"><input type="radio" name="wire_transfer" value="wire_transfer"/> Wire Transfer</label></div>
-                                <div style="padding: 5px"><button type="button" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-lock"/> Pay Now</button></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                </div> -->
                 </div>
                 </div>
             </div>

@@ -10,19 +10,6 @@ if(!$('.o_account_portal_invoices').length) {
     return $.Deferred().reject("DOM doesn't contain '.o_account_portal_invoices'");
 }
 
-if($(".o_portal_invoice").length){
-    var href = $(location).attr("href"),
-        invoice_id = href.match(/invoice\/([0-9]+)/),
-        access_token = href.match(/invoice\/([^\/?]*)/),
-        params = {};
-    
-    params.token = access_token ? access_token[1] : '';
-    params.invoice_id = invoice_id ? invoice_id[1]: '';
-    ajax.jsonRpc('/my/invoice/pdf/', 'call', params).then(function (data) {
-        var $iframe = $('iframe#o_portal_account_actions')[0];
-        $iframe.contentWindow.document.open('text/pdfreplace');
-        $iframe.contentWindow.document.write(data);
-});
 var $bs_sidebar = $(".o_account_portal_invoices .bs-sidebar");
     $(window).on('resize', _.throttle(adapt_sidebar_position, 200, {leading: false}));
     adapt_sidebar_position();
