@@ -23,7 +23,7 @@
                                            <span  t-field="l.product_id.name"/>
                                         </td>
                                         <td class="text-right">
-                                            <span t-field="l.qty"/>
+                                            <span t-field="l.quantity"/>
                                             <span groups="product.group_uom" t-field="l.product_id.uom_id.name"/>
                                         </td>
                                         <td>
