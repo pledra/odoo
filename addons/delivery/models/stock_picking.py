@@ -57,16 +57,6 @@ class StockPicking(models.Model):
 
     @api.one
     @api.depends('move_line_ids')
-    def _compute_packages(self):
-        self.ensure_one()
-        packs = set()
-        for move_line in self.move_line_ids:
-            if move_line.result_package_id:
-                packs.add(move_line.result_package_id.id)
-        self.package_ids = list(packs)
-
-    @api.one
-    @api.depends('move_line_ids')
     def _compute_bulk_weight(self):
         weight = 0.0
         for move_line in self.move_line_ids:
@@ -86,9 +76,8 @@ class StockPicking(models.Model):
     weight = fields.Float(compute='_cal_weight', digits=dp.get_precision('Stock Weight'), store=True)
     carrier_tracking_ref = fields.Char(string='Tracking Reference', copy=False)
     carrier_tracking_url = fields.Char(string='Tracking URL', compute='_compute_carrier_tracking_url')
-    number_of_packages = fields.Integer(string='Number of Packages', copy=False)
+    number_of_packages = fields.Integer(string='Number of Packages', compute='_compute_number_of_package')
     weight_uom_id = fields.Many2one('product.uom', string='Unit of Measure', required=True, readonly="1", help="Unit of measurement for Weight", default=_default_uom)
-    package_ids = fields.Many2many('stock.quant.package', compute='_compute_packages', string='Packages')
     weight_bulk = fields.Float('Bulk Weight', compute='_compute_bulk_weight')
     shipping_weight = fields.Float("Weight for Shipping", compute='_compute_shipping_weight')
 
@@ -96,6 +85,10 @@ class StockPicking(models.Model):
     def _compute_carrier_tracking_url(self):
         for picking in self:
             picking.carrier_tracking_url = picking.carrier_id.get_tracking_link(picking) if picking.carrier_id and picking.carrier_tracking_ref else False
+
+    def _compute_number_of_package(self):
+        for picking in self:
+            picking.number_of_packages = len(self.move_line_ids.mapped('result_package_id.id'))
 
     @api.depends('product_id', 'move_lines')
     def _cal_weight(self):
