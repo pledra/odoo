@@ -28,7 +28,10 @@
             <field name="arch" type="xml">
                 <form string="Expenses" class="o_expense_form">
                 <header>
-                    <button name="submit_expenses" states="draft" string="Submit to Manager" type="object" class="oe_highlight o_expense_submit"/>
+                    <button string="Attach Document" special="attachdocument" attrs="{'invisible': [('attachment_number', '&lt;=', 0)]}"/>
+                    <button string="Attach Document" special="attachdocument" class="oe_highlight" attrs="{'invisible': [('attachment_number', '&gt;=', 1)]}"/>
+                    <button name="submit_expenses" string="Submit to Manager" type="object" class="o_expense_submit" attrs="{'invisible': ['|', ('attachment_number', '&gt;=', 1), ('sheet_id', '!=', False)]}"/>
+                    <button name="submit_expenses" string="Submit to Manager" type="object" class="oe_highlight o_expense_submit" attrs="{'invisible': ['|', ('attachment_number', '&lt;=', 0), ('sheet_id', '!=', False)]}"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,reported,done"/>
                     <button name="view_sheet" type="object" string="View Report" class="oe_highlight" attrs="{'invisible': [('state', '=','draft')]}"/>
                 </header>
