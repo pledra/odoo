@@ -41,14 +41,20 @@ QUnit.config.hidepassed = (window.location.href.match(/[?&]testId=/) === null);
 var sortButtonAppended = false;
 
 /**
- * We override the _.throttle function to avoid the delay in order to be able to
- * chain multiple actions using throttle in the same test.
+ * We override the debounce and throttle functions of underscore to remove the
+ * delay in order to be able to chain multiple debounced or throttled actions in
+ * the same test.
  */
+var initialDebounce;
+var initialThrottle;
 QUnit.begin(function () {
-    this._initialThrottle = _.throttle;
-    var self = this;
-    _.throttle = function (func, wait, options) {
-        return self._initialThrottle(func, 0, options);
+    initialDebounce = _.debounce;
+    _.debounce = function (func) {
+        return func;
+    };
+    initialThrottle = _.throttle;
+    _.throttle = function (func) {
+        return func;
     };
 });
 /**
@@ -67,7 +73,8 @@ QUnit.done(function(result) {
     if (!sortButtonAppended) {
         _addSortButton();
     }
-    _.throttle = this._initialThrottle;
+    _.debounce = initialDebounce;
+    _.throttle = initialThrottle;
 });
 
 /**
