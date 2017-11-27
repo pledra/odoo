@@ -206,8 +206,6 @@ class IrTranslation(models.Model):
     _sql_constraints = [
         ('lang_fkey_res_lang', 'FOREIGN KEY(lang) REFERENCES res_lang(code)',
          'Language code of translation item must be among known languages'),
-        ('unique_translation', 'UNIQUE(type, name, lang, res_id, src)',
-         "Translations must be unique."),
     ]
 
     @api.model
@@ -263,7 +261,8 @@ class IrTranslation(models.Model):
         res = super(IrTranslation, self)._auto_init()
         # Add separate md5 index on src (no size limit on values, and good performance).
         tools.create_index(self._cr, 'ir_translation_src_md5', self._table, ['md5(src)'])
-        tools.create_index(self._cr, 'ir_translation_ltn', self._table, ['name', 'lang', 'type'])
+        tools.create_unique_index(self._cr, 'ir_translation_unique', self._table,
+                                  ['type', 'name', 'lang', 'res_id', 'md5(src)'])
         return res
 
     @api.model
