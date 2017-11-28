@@ -25,26 +25,21 @@
     </t>
 
     <t t-name="auth_token.wizard">
-        <div class="o_form_view">
-            <div class="oe_form_sheetbg o_form_sheet_bg">
-                <div class="oe_form_sheet oe_form_sheet_width o_form_sheet">
-                    <p>Temporary credentials have been created for the user <t t-esc="widget.user.name"/> (<t t-esc="widget.user.login"/>).</p>
-                    <p>These credentials will be valid until <strong t-esc="widget.limit_validity"/>.</p>
-                    <p t-if="widget.email_success">An invitation has been sent to <t t-esc="widget.recipients"/> by email.</p>
-                    <p t-if="widget.recipients &amp;&amp; !widget.email_success" class="text-danger">No invitation e-mail could be sent to <t t-esc="widget.recipients"/>; if the Remote Assistance e-mail template was deleted, you may reinstall the module to solve the issue.</p>
-                    
-                    <p>You can send to following link manually:</p>
-                    <p class="alert alert-info">
-                        <a t-att-href="widget.url"><t t-esc="widget.url"/></a>
-                        <button class="btn btn-sm btn-primary pull-right ml8 o_clipboard_button">
-                            <i class="fa fa-clipboard mr8"/>Copy to clipboard
-                        </button>
-                    </p>
-                </div>
+        <div class="o_form_view">                
+            <div class="oe_form_sheet oe_form_sheet_width o_form_sheet">
+                <p>Temporary credentials have been created for the user <t t-esc="widget.user.name"/> (<t t-esc="widget.user.login"/>).</p>
+                <p>These credentials will be valid until <strong t-esc="widget.limit_validity"/>.</p>
+                <p t-if="widget.email_success">An invitation has been sent to <t t-esc="widget.recipients"/> by email.</p>
+                <p t-if="widget.recipients &amp;&amp; !widget.email_success" class="text-danger">No invitation e-mail could be sent to <t t-esc="widget.recipients"/>; if the Remote Assistance e-mail template was deleted, you may reinstall the module to solve the issue.</p>
+                
+                <p>You can send the following link manually:</p>
+                <p class="alert alert-info">
+                    <a t-att-href="widget.url"><t t-esc="widget.url"/></a>
+                </p>
             </div>
         </div>
         <footer>
-            <button class="btn btn-default o_remote_close">Close</button>
+            <button class="btn btn-primary mr8 o_remote_close">Close</button>
         </footer>
     </t>
 

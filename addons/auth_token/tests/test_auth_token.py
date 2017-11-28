@@ -56,9 +56,6 @@ class AuthTokenTest(common.TransactionCase):
         login_params = parse_qs(urlparse(res.get('url')).query)
         with self.assertRaises(AccessDenied):
             self.user.check_credentials(login_params['token'][0])
-        self.assertEqual(len(self.user.auth_token_ids.ids), 1)
-        self.user.unlink_remote_tokens()
-        self.assertEqual(len(self.user.auth_token_ids.ids), 0)
 
     def test_03_gc_token(self):
         """Check that tokens are garbage collected correctly."""
@@ -75,3 +72,30 @@ class AuthTokenTest(common.TransactionCase):
         self.assertEqual(len(self.user.auth_token_ids.ids), 1)
         self.env['auth.token']._cron_gc_token()
         self.assertEqual(len(self.user.auth_token_ids.ids), 0)
+
+    def test_04_broken_template(self):
+        """Check that the token is generated even if the mail template is broken."""
+        wiz = self.env['auth.token.wizard'].create({
+            'user_id': self.user.id,
+            'validity': 'hour',
+            'comment': 'test',
+            'recipients': 'ale@odoo.com;dbo@odoo.com'
+        })
+        mail_template = self.env['ir.model.data'].xmlid_to_object('auth_token.token_invite')
+        mail_template.body_html = "This will crash because ${object.false_field.property}"
+        mail_template.unlink()
+        res = wiz.create_token()
+        self.assertFalse(res['email_success'])
+
+    def test_05_broken_template(self):
+        """Check that the token is generated even if the mail template has been deleted."""
+        wiz = self.env['auth.token.wizard'].create({
+            'user_id': self.user.id,
+            'validity': 'hour',
+            'comment': 'test',
+            'recipients': 'ale@odoo.com;dbo@odoo.com'
+        })
+        mail_template = self.env['ir.model.data'].xmlid_to_object('auth_token.token_invite')
+        mail_template.unlink()
+        res = wiz.create_token()
+        self.assertFalse(res['email_success'])

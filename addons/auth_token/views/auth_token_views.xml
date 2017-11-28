@@ -16,8 +16,9 @@
                             <field name="expired" invisible="1"/>
                         </tree>
                     </field>
-                    <button type="action" name="auth_token.auth_token_wizard_action_form" class="btn-primary" string="Create a Token"/>
-                    <button type="object" name="unlink_auth_tokens" string="Delete all Tokens"/>
+                    <div class="text-right">
+                        <button type="action" name="auth_token.auth_token_wizard_action_form" class="btn-primary" string="Create a Token"/>
+                    </div>
                 </page>
             </xpath>
         </field>

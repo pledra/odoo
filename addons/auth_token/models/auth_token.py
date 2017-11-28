@@ -59,6 +59,6 @@ class AuthToken(models.Model):
         to connect using it.
         """
         auth_token = self.create(values)
-        token = self.uuid.uuid4()
+        token = str(uuid.uuid4())
         auth_token._set_token(token)
         return (auth_token, token)

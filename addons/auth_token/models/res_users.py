@@ -48,7 +48,7 @@ class ResUsers(models.Model):
             valid_pass = False
             for row in rows:
                 valid_pass, replacement = CRYPT_CONTEXT.verify_and_update(password, row['hash'])
-                token = self.env['auth_token'].sudo().browse(row['id'])
+                token = self.env['auth.token'].sudo().browse(row['id'])
                 if replacement is not None:
                     token._set_token(replacement)
                 if valid_pass:
@@ -59,8 +59,3 @@ class ResUsers(models.Model):
             if not valid_pass:
                 raise
             _logger.info('auth_token: connection as %s successful using token with id %s' % (self.env.user.login, row['id']))
-
-    def unlink_auth_tokens(self):
-        for user in self:
-            user.auth_token_ids.unlink()
-        return True

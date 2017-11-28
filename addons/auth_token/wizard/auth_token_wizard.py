@@ -1,8 +1,8 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta as delta
-import uuid
 
-from odoo import api, models, fields
+from odoo import models, fields
+from odoo.exceptions import UserError
 
 
 class AuthTokenWizard(models.TransientModel):
@@ -50,7 +50,10 @@ class AuthTokenWizard(models.TransientModel):
                 'email_to': self.recipients,
                 'comment': self.comment,
             }
-            mail = mail_template.with_context(email_context).send_mail(auth_token.id)
+            try:
+                mail = mail_template.with_context(email_context).send_mail(auth_token.id)
+            except UserError:
+                mail = False
         return {
             'type': 'ir.actions.client',
             'tag': 'auth_token.wizard',

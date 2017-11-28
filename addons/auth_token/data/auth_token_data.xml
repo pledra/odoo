@@ -11,7 +11,7 @@
     </record>
 
     <record id="token_invite" model="mail.template">
-        <field name="name">Remote Assistance: Invitation</field>
+        <field name="name">Token Authentication: Remote Assistance Invitation</field>
         <field name="email_from">${(user.partner_id.email or object.user_id.company_id.email or 'noreply@localhost')|safe}</field>
         <field name="subject">Remote Assistance Invitation</field>
         <field name="email_to">${ctx.get('email_to')}</field>
