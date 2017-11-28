@@ -16,13 +16,26 @@ var createActionManager = function (params) {
 
     var widget = new Widget();
     testUtils.addMockEnvironment(widget, _.defaults(params, {debounce: false}));
+    testUtils.intercept(widget, 'call_service', function (event) {
+        if (event.data.service === 'report') {
+            var state = widget._rpc({route: '/report/check_wkhtmltopdf'});
+            event.data.callback(state);
+        }
+    }, true);
     widget.appendTo($target);
     widget.$el.addClass('o_web_client');
+
+    // make sure images and iframes do not trigger a GET on the server
+    // AAB; this should be done in addMockEnvironment
+    $target.on('DOMNodeInserted.removeSRC', function () {
+        testUtils.removeSrcAttribute($(this), widget);
+    });
 
     var actionManager = new ActionManager(widget);
     var originalDestroy = ActionManager.prototype.destroy;
     actionManager.destroy = function () {
         actionManager.destroy = originalDestroy;
+        $target.off('DOMNodeInserted.removeSRC');
         widget.destroy();
     };
     actionManager.appendTo(widget.$el);
@@ -75,7 +88,14 @@ QUnit.module('ActionManager', {
             target: 'new',
             type: 'ir.actions.act_window',
             views: [[false, 'form']],
+        }, {
+            id: 6,
+            name: "Some Report",
+            report_name: 'some_report',
+            report_type: 'qweb-pdf',
+            type: 'ir.actions.report',
         }];
+
         this.archs = {
             // kanban views
             'partner,1,kanban': '<kanban><templates><t t-name="kanban-box">' +
@@ -194,6 +214,121 @@ QUnit.module('ActionManager', {
             '/web/action/load',
             'load_views',
             '/web/dataset/search_read',
+        ]);
+
+        actionManager.destroy();
+    });
+
+    QUnit.module('Report actions');
+
+    QUnit.test('can execute report actions from db ID', function (assert) {
+        assert.expect(4);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                if (route === '/report/check_wkhtmltopdf') {
+                    return $.when('ok');
+                }
+                return this._super.apply(this, arguments);
+            },
+            session: {
+                get_file: function (params) {
+                    assert.step(params.url);
+                    params.complete();
+                },
+            },
+        });
+        actionManager.do_action(6);
+
+        assert.verifySteps([
+            '/web/action/load',
+            '/report/check_wkhtmltopdf',
+            '/report/download',
+        ]);
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('should trigger a notification if wkhtmltopdf is to upgrade', function (assert) {
+        assert.expect(5);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                if (route === '/report/check_wkhtmltopdf') {
+                    return $.when('upgrade');
+                }
+                return this._super.apply(this, arguments);
+            },
+            session: {
+                get_file: function (params) {
+                    assert.step(params.url);
+                    params.complete();
+                },
+            },
+            intercepts: {
+                notification: function () {
+                    assert.step('notification');
+                },
+            },
+        });
+        actionManager.do_action(6);
+
+        assert.verifySteps([
+            '/web/action/load',
+            '/report/check_wkhtmltopdf',
+            'notification',
+            '/report/download',
+        ]);
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('should open the report client action if wkhtmltopdf is broken', function (assert) {
+        assert.expect(6);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                if (route === '/report/check_wkhtmltopdf') {
+                    return $.when('broken');
+                }
+                if (route === '/report/html/some_report') {
+                    return $.when();
+                }
+                return this._super.apply(this, arguments);
+            },
+            session: {
+                get_file: function (params) {
+                    assert.step(params.url); // should not be called
+                },
+            },
+            intercepts: {
+                notification: function () {
+                    assert.step('notification');
+                },
+            },
+        });
+        actionManager.do_action(6);
+
+        assert.strictEqual(actionManager.$('.o_report_iframe').length, 1,
+            "should have opened the report client action");
+
+        assert.verifySteps([
+            '/web/action/load',
+            '/report/check_wkhtmltopdf',
+            'notification',
+            '/report/html/some_report', // report client action's iframe
         ]);
 
         actionManager.destroy();

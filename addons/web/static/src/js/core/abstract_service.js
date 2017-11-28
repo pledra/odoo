@@ -17,4 +17,5 @@ AbstractService.extend = function() {
 };
 
 return AbstractService;
+
 });

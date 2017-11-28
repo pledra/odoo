@@ -63,6 +63,10 @@ var AbstractController = Widget.extend(ControlPanelMixin, {
         this.actionViews = params.actionViews;
         this.viewType = params.viewType;
         this.withControlPanel = params.withControlPanel !== false;
+        // override this.need_control_panel so that the ActionManager doesn't
+        // update the control panel when it isn't visible (this is a temporary
+        // hack that can be removed as soon as the CP'll be handled by the view)
+        this.need_control_panel = this.withControlPanel;
     },
     /**
      * Simply renders and updates the url.
@@ -85,7 +89,9 @@ var AbstractController = Widget.extend(ControlPanelMixin, {
         if (this.$buttons) {
             this.$buttons.off();
         }
-        this.controlPanelElements.$switch_buttons.off();
+        if (this.controlPanelElements.$switch_buttons) {
+            this.controlPanelElements.$switch_buttons.off();
+        }
         return this._super.apply(this, arguments);
     },
 
