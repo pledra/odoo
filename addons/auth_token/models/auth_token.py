@@ -28,7 +28,7 @@ class AuthToken(models.Model):
         self.env.cr.execute('''
             DO $$
                 BEGIN
-                    ALTER TABLE auth_token ADD COLUMN hash varchar NOT NULL;
+                    ALTER TABLE auth_token ADD COLUMN hash varchar;
                 EXCEPTION
                     WHEN duplicate_column THEN null;
               END;
