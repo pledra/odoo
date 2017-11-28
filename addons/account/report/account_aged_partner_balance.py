@@ -14,6 +14,7 @@ class ReportAgedPartnerBalance(models.AbstractModel):
 
     def _get_partner_move_lines(self, account_type, date_from, target_move, period_length):
         periods = {}
+        partner_query = ''
         start = datetime.strptime(date_from, "%Y-%m-%d")
         for i in range(5)[::-1]:
             stop = start - relativedelta(days=period_length)
@@ -42,6 +43,9 @@ class ReportAgedPartnerBalance(models.AbstractModel):
             reconciliation_clause = '(l.reconciled IS FALSE OR l.id IN %s)'
             arg_list += (tuple(reconciled_after_date),)
         arg_list += (date_from, user_company)
+        if self._context.get('partner_name'):
+            partner_query = ' AND res_partner.name ilike %s'
+            arg_list += ('%'+self._context['partner_name']+'%',)
         query = '''
             SELECT DISTINCT l.partner_id, UPPER(res_partner.name)
             FROM account_move_line AS l left join res_partner on l.partner_id = res_partner.id, account_account, account_move am
@@ -52,6 +56,7 @@ class ReportAgedPartnerBalance(models.AbstractModel):
                 AND ''' + reconciliation_clause + '''
                 AND (l.date <= %s)
                 AND l.company_id = %s
+                ''' + partner_query + '''
             ORDER BY UPPER(res_partner.name)'''
         cr.execute(query, arg_list)
 
