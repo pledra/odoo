@@ -6,6 +6,7 @@ var ajax = require('web.ajax');
 var core = require('web.core');
 var Widget = require('web.Widget');
 var rpc = require('web.rpc');
+var SystrayMenu = require('web.SystrayMenu');
 
 var qweb = core.qweb;
 var _t = core._t;
@@ -17,6 +18,15 @@ var _t = core._t;
  * - Display chatter: pager, total message, composer (according to access right)
  * - Provider API to filter displayed messages
  */
+
+var ProtalShareDoc = widget.extend({
+    template: 'portal.sharing_icon',
+     init: function(parent, options){
+        console.log("abc....")
+     }
+})
+SystrayMenu.Items.push(ProtalShareDoc);
+
 var PortalChatter = Widget.extend({
     template: 'portal.chatter',
     events: {
