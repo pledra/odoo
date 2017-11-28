@@ -10,6 +10,29 @@ class TestReInvoice(CommonTest):
     def setUpClass(cls):
         super(TestReInvoice, cls).setUpClass()
 
+        # update policies on expense products
+        cls.product_ordered_cost.write({
+            'invoice_policy': 'delivery',
+            'expense_policy': 'cost',
+        })
+        cls.product_deliver_cost.write({
+            'invoice_policy': 'delivery',
+            'expense_policy': 'cost',
+        })
+        cls.product_order_sales_price.write({
+            'invoice_policy': 'order',
+            'expense_policy': 'sales_price',
+        })
+        cls.product_deliver_sales_price.write({
+            'invoice_policy': 'delivery',
+            'expense_policy': 'sales_price',
+        })
+        cls.product_no_expense.write({
+            'invoice_policy': 'delivery',
+            'expense_policy': 'no',
+        })
+
+        # partner and SO
         cls.partner_customer = cls.env['res.partner'].create({
             'name': 'Ze Client',
             'email': 'client@agrolait.com',

@@ -10,6 +10,15 @@ class CommonTest(common.SavepointCase):
     def setUpClass(cls):
         super(CommonTest, cls).setUpClass()
 
+        # Create tax
+        cls.tax = cls.env['account.tax'].create({
+            'name': 'Expense 10%',
+            'amount': 10,
+            'amount_type': 'percent',
+            'type_tax_use': 'purchase',
+            'price_include': True,
+        })
+
         # Create payable account for the expense
         user_type = cls.env.ref('account.data_account_type_payable')
         cls.account_payable = cls.env['account.account'].create({
@@ -25,6 +34,11 @@ class CommonTest(common.SavepointCase):
             'code': 'X2120',
             'name': 'HR Expense - Test Purchase Account',
             'user_type_id': user_type.id
+        })
+
+        # Create analytic account
+        cls.analytic_account = cls.env['account.analytic.account'].create({
+            'name': 'Test Analytic Account for Expenses',
         })
 
         # User groups
@@ -61,23 +75,17 @@ class CommonTest(common.SavepointCase):
             'standard_price': 8,
             'list_price': 10,
             'type': 'consu',
-            'invoice_policy': 'order',
-            'expense_policy': 'cost',
             'default_code': 'CONSU-ORDERED1',
-            'service_type': 'manual',
             'taxes_id': False,
             'property_account_expense_id': cls.account_expense.id,
         })
 
         cls.product_deliver_cost = cls.env['product.product'].create({
             'name': "Delivered at cost",
-            'standard_price': 8,
-            'list_price': 10,
+            'standard_price': 700,
+            'list_price': 700,
             'type': 'consu',
-            'invoice_policy': 'delivery',
-            'expense_policy': 'cost',
             'default_code': 'CONSU-DELI1',
-            'service_type': 'manual',
             'taxes_id': False,
             'property_account_expense_id': cls.account_expense.id,
         })
@@ -87,10 +95,7 @@ class CommonTest(common.SavepointCase):
             'standard_price': 8,
             'list_price': 10,
             'type': 'consu',
-            'invoice_policy': 'order',
-            'expense_policy': 'sales_price',
             'default_code': 'CONSU-ORDERED2',
-            'service_type': 'manual',
             'taxes_id': False,
             'property_account_expense_id': cls.account_expense.id,
         })
@@ -100,10 +105,7 @@ class CommonTest(common.SavepointCase):
             'standard_price': 8,
             'list_price': 10,
             'type': 'consu',
-            'invoice_policy': 'delivery',
-            'expense_policy': 'sales_price',
             'default_code': 'CONSU-DELI2',
-            'service_type': 'manual',
             'taxes_id': False,
             'property_account_expense_id': cls.account_expense.id,
         })
@@ -113,10 +115,7 @@ class CommonTest(common.SavepointCase):
             'standard_price': 8,
             'list_price': 10,
             'type': 'consu',
-            'invoice_policy': 'delivery',
-            'expense_policy': 'no',
             'default_code': 'CONSU-NO',
-            'service_type': 'manual',
             'taxes_id': False,
             'property_account_expense_id': cls.account_expense.id,
         })
