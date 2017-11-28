@@ -2959,7 +2959,8 @@ var BasicModel = AbstractModel.extend({
         _.each(element._changes, function (command) {
             if (command.operation === 'DELETE' ||
                     command.operation === 'FORGET' ||
-                    command.operation === 'REMOVE_ALL') {
+                    command.operation === 'REMOVE_ALL' ||
+                    (command.operation === 'ADD' && command.id === null)) {
                 return;
             }
             var recordData = self.get(command.id, {raw: true}).data;
