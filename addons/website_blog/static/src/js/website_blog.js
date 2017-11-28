@@ -62,6 +62,15 @@ $(document).ready(function() {
         $('.cover_footer').on('click', page_transist);
         $('a[href^="#blog_content"]').on('click', animate);
         $('.o_twitter, .o_facebook, .o_linkedin, .o_google, .o_twitter_complete, .o_facebook_complete, .o_linkedin_complete, .o_google_complete').on('click', shareArticle);
+        /* Archives years collapse */
+        $('.blog_post_year_collapse').on('click', function() {
+            $(this).find('i.fa').toggleClass('fa-chevron-down fa-chevron-right');
+        });
+        /* Collapse in active tag or latest year */
+        var $activeYear = $('.blog_post_year li.active');
+        if ($activeYear.length) {
+            $activeYear.closest('ul').addClass('in').prev().find('i.fa').toggleClass('fa-chevron-down fa-chevron-right');
+        }
     }
 
     /* Sharing links hover in blogpost */
