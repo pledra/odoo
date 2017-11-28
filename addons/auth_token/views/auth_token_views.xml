@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Form view -->
+    <record id="res_users_view_form_inherit_auth_token" model="ir.ui.view">
+        <field name="name">res.users.form.inherit.auth_token</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='access_rights']" position="after">
+                <page name="auth_tokens" string="Authentication Tokens">
+                    <field name="auth_token_ids">
+                        <tree decoration-muted="expired == True" editable="bottom">
+                            <field name="valid_limit" readonly="1"/>
+                            <field name="connection_date" readonly="1"/>
+                            <field name="comment" readonly="1"/>
+                            <field name="expired" invisible="1"/>
+                        </tree>
+                    </field>
+                    <button type="action" name="auth_token.auth_token_wizard_action_form" class="btn-primary" string="Create a Token"/>
+                    <button type="object" name="unlink_auth_tokens" string="Delete all Tokens"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    
+    <record id="auth_token_token_view_list" model="ir.ui.view">
+        <field name="name">auth.token.list</field>
+        <field name="model">auth.token</field>
+        <field name="arch" type="xml">
+            <tree decoration-muted="expired == True" edit="false" create="false" string="Authentication Tokens">
+                <field name="user_id"/>
+                <field name="connection_date"/>
+                <field name="valid_limit"/>
+                <field name="comment"/>
+                <field name="expired" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    
+    <record id="auth_token_wizard_view_form" model="ir.ui.view">
+        <field name="name">auth.token.wizard.form</field>
+        <field name="model">auth.token.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Create an Authentication Token">
+                <group>
+                    <field name="user_id"/>
+                    <field name="validity"/>
+                    <field name="valid_limit" attrs="{'invisible': [('validity', '!=', 'custom')]}"/>
+                    <field name="comment" placeholder="The reason for creating this token..."/>
+                    <field name="recipients"/>
+                </group>
+                <footer>
+                    <button name="create_token" string="Create Token" type="object" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-default"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <record id="auth_token_token_action_form" model="ir.actions.act_window">
+        <field name="name">Authentication Tokens</field>
+        <field name="res_model">auth.token</field>
+        <field name="view_mode">tree</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Authentication Tokens allow third-parties to connect to your databases
+                for a limited time without sharing credentials.
+            </p>
+            <p>
+                When using an authentication token, third-parties can connect to your instance by
+                impersonating an internal user, accessing the system with their login without needing
+                to share any password. This access comes with a time limit to avoid abuse.
+            </p>
+            <p>
+                To create these tokens, open the "Remote Assistance" wizard from the Settings Dashboard.
+            </p>
+        </field>
+    </record>
+    
+    <record id="auth_token_wizard_action_form" model="ir.actions.act_window">
+        <field name="name">Create an Authentication Token</field>
+        <field name="res_model">auth.token.wizard</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+    
+    <menuitem id="menu_auth_token_tokens"
+              name="Authentication Tokens"
+              parent="base.menu_security"
+              action="auth_token_token_action_form"
+              sequence="5"/>
+                  
+</odoo>

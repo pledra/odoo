@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.cron" id="account_analytic_cron_for_invoice">
+       <field name="name">Remote Assistance: Garbage Collect Expired Tokens</field>
+       <field name="interval_number">1</field>
+       <field name="interval_type">days</field>
+       <field name="numbercall">-1</field>
+       <field name="model" eval="'remote.assistance.token'"/>
+       <field name="function" eval="'_cron_gc_token'"/>
+       <field name="args" eval="'()'"/>
+    </record>
+
+    <record id="token_invite" model="mail.template">
+        <field name="name">Remote Assistance: Invitation</field>
+        <field name="email_from">${(user.partner_id.email or object.user_id.company_id.email or 'noreply@localhost')|safe}</field>
+        <field name="subject">Remote Assistance Invitation</field>
+        <field name="email_to">${ctx.get('email_to')}</field>
+        <field name="model_id" ref="auth_token.model_auth_token"/>
+        <field name="body_html"><![CDATA[
+<div summary="o_mail_template" style="padding:0px; width:600px; margin:0 auto; background: #FFFFFF repeat top /100%;color:#777777">
+    <table cellspacing="0" cellpadding="0" style="width:600px; border-collapse:collapse; background:inherit; color:inherit">
+        <tbody><tr>
+            <td valign="center" width="200" style="padding:0px 10px 5px 5px;font-size: 12px">
+                <img src="/logo.png?company_id=${object.user_id.company_id.id}" style="padding: 0px; margin: 0px; height: auto; width: 80px;" alt="${object.user_id.company_id.name}">
+            </td>
+        </tr></tbody>
+    </table>
+    <table cellspacing="0" cellpadding="0" style="width:600px; border-collapse:collapse; background:inherit; color:inherit">
+        <tbody><tr>
+            <td valign="top" style="width:600px; padding:0px 10px 5px 5px;">
+                <div>
+                    <hr width="100%" style="background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0;margin:15px auto;padding:0">
+                </div>
+            </td>
+        </tr></tbody>
+    </table>
+</div>
+<div style="padding:0px; width:600px; max-width:600px; margin:0 auto; background: #FFFFFF repeat top /100%;color:#777777">
+    <table cellspacing="0" cellpadding="0" style="width:600px ;text-align:justify; margin:0 auto; border-collapse:collapse; background:inherit; color:inherit">
+        <tbody><tr>
+            <td style="padding:0px 10px 5px 5px;font-size: 14px;">
+                <p>Hello,</p>
+                <p>You have been invited to remotely connect to ${object.user_id.company_id.name}'s Odoo instance as the user ${object.user_id.name} for assistance.</p>
+                
+                % if object.comment
+                <p>This invitation was generated with the following comment:</p>
+                <blockquote style="border-left: 2px solid #875A7B; padding-left: 8px">${object.comment}</blockquote>
+                % endif
+                
+                <p>You can connect directly as this user by clicking on the following link:
+                <p style="text-align: center;"><a style="padding: 5px 10px; font-size: 12px; line-height: 18px; color: #FFFFFF; border-color:#875A7B; text-decoration: none; display: inline-block; margin-bottom: 0px; font-weight: 400; text-align: center; vertical-align: middle; cursor: pointer; white-space: nowrap; background-image: none; background-color: #875A7B; border: 1px solid #875A7B; border-radius:3px" href="${ctx.get('url')}" target="_blank">Connect</a></p>
+                
+                <p>This link will remain valid until ${object.valid_limit}.</p>
+
+                <p>If you believe this message was sent to you erroneously, you may safely ignore it.</p>
+            </td>
+        </tr><tr>
+            <td style="padding:0px 10px 5px 5px;font-size: 14px;">
+                % if user.signature
+                <p style="font-size: 14px;">${user.signature | safe}
+                </p>
+                % endif
+                <p style="font-size: 11px;"><strong>Sent by
+                <a href="${user.company_id.website}" style="text-decoration:none; color: #875A7B;">
+                    <strong>${object.user_id.company_id.name}</strong>
+                </a> using <a href="www.odoo.com" style="text-decoration:none; color: #875A7B;"><strong>Odoo</strong></a>
+                </strong></p>
+            </td>
+        </tr></tbody>
+    </table>
+</div>]]></field>
+    </record>
+
+</odoo>
