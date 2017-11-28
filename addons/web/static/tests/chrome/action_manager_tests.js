@@ -49,6 +49,7 @@ QUnit.module('ActionManager', {
             partner: {
                 fields: {
                     foo: {string: "Foo", type: "char"},
+                    bar: {string: "Bar", type: "many2one", relation: 'partner'},
                 },
                 records: [
                     {id: 1, display_name: "First record", foo: "yop"},
@@ -58,11 +59,21 @@ QUnit.module('ActionManager', {
                     {id: 5, display_name: "Fifth record", foo: "zoup"},
                 ],
             },
+            pony: {
+                fields: {
+                    name: {string: 'Name', type: 'char'},
+                },
+                records: [
+                    {id: 4, name: 'Twilight Sparkle'},
+                    {id: 6, name: 'Applejack'},
+                    {id: 9, name: 'Fluttershy'}
+                ],
+            },
         };
 
         this.actions = [{
             id: 1,
-            display_name: 'Partners',
+            display_name: 'Partners Action 1',
             res_model: 'partner',
             type: 'ir.actions.act_window',
             views: [[1, 'kanban']],
@@ -77,7 +88,7 @@ QUnit.module('ActionManager', {
             views: [[false, 'list'], [1, 'kanban'], [false, 'form']],
         }, {
             id: 4,
-            display_name: 'Partners',
+            display_name: 'Partners Action 4',
             res_model: 'partner',
             type: 'ir.actions.act_window',
             views: [[1, 'kanban'], [2, 'list'], [false, 'form']],
@@ -94,17 +105,24 @@ QUnit.module('ActionManager', {
             report_name: 'some_report',
             report_type: 'qweb-pdf',
             type: 'ir.actions.report',
+        }, {
+            id: 7,
+            display_name: 'Favorite Ponies',
+            res_model: 'pony',
+            type: 'ir.actions.act_window',
+            views: [[false, 'list'], [false, 'form']],
         }];
 
         this.archs = {
             // kanban views
             'partner,1,kanban': '<kanban><templates><t t-name="kanban-box">' +
-                    '<div><field name="foo"/></div>' +
+                    '<div class="oe_kanban_global_click"><field name="foo"/></div>' +
                 '</t></templates></kanban>',
 
             // list views
             'partner,false,list': '<tree><field name="foo"/></tree>',
             'partner,2,list': '<tree limit="3"><field name="foo"/></tree>',
+            'pony,false,list': '<tree><field name="name"/></tree>',
 
             // form views
             'partner,false,form': '<form>' +
@@ -117,12 +135,344 @@ QUnit.module('ActionManager', {
                         '<field name="foo"/>' +
                     '</group>' +
                 '</form>',
+            'pony,false,form': '<form>' +
+                    '<field name="name"/>' +
+                '</form>',
 
             // search views
             'partner,false,search': '<search><field name="foo" string="Foo"/></search>',
+            'pony,false,search': '<search></search>',
         };
     },
 }, function () {
+
+    QUnit.test('breadcrumbs and actions with target inline', function (assert) {
+        assert.expect(3);
+
+        this.actions[3].views = [[false, 'form']];
+        this.actions[3].target = 'inline';
+        this.actions[3].view_mode = 'form';
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+        });
+
+        actionManager.do_action(4);
+        assert.ok(!$('.o_control_panel').is(':visible'),
+            "control panel should not be visible");
+
+        actionManager.do_action(1, {clear_breadcrumbs: true});
+        assert.ok($('.o_control_panel').is(':visible'),
+            "control panel should now be visible");
+        assert.strictEqual($('.o_control_panel .breadcrumb').text(), "Partners Action 1",
+            "should have only one current action visible in breadcrumbs");
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('properly push state', function (assert) {
+        assert.expect(3);
+
+        var stateDescriptions = [
+            {action: 4, model: "partner", title: "Partners Action 4", view_type: "kanban"},
+            {action: 7, model: "pony", title: "Favorite Ponies", view_type: "list"},
+            {action: 7, id: 4, model: "pony", title: "Twilight Sparkle", view_type: "form"},
+        ];
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            intercepts: {
+                push_state: function (event) {
+                    var descr = stateDescriptions.shift();
+                    assert.deepEqual(_.extend({}, event.data.state), descr,
+                        "should notify the environment of new state");
+                },
+            },
+        });
+        actionManager.do_action(4);
+        actionManager.do_action(7);
+        actionManager.$('tr.o_data_row:first').click();
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('push state after action is loaded, not before', function (assert) {
+        assert.expect(5);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            intercepts: {
+                push_state: function () {
+                    assert.step('push_state');
+                },
+            },
+            mockRPC: function (route) {
+                assert.step(route);
+                return this._super.apply(this, arguments);
+            },
+        });
+        actionManager.do_action(4);
+        assert.verifySteps([
+            '/web/action/load',
+            '/web/dataset/call_kw/partner',
+            '/web/dataset/search_read',
+            'push_state'
+        ]);
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('do not push state for actions in target=new', function (assert) {
+        assert.expect(3);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            intercepts: {
+                push_state: function () {
+                    assert.step('push_state');
+                },
+            },
+        });
+        actionManager.do_action(4);
+        assert.verifySteps(['push_state']);
+        actionManager.do_action(5);
+        assert.verifySteps(['push_state']);
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('do not push state when action fails', function (assert) {
+        assert.expect(4);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            intercepts: {
+                push_state: function () {
+                    assert.step('push_state');
+                },
+            },
+            mockRPC: function (route, args) {
+                if (args.method === 'read') {
+                    // this is the rpc to load form view
+                    return $.Deferred().reject();
+                }
+                return this._super.apply(this, arguments);
+            },
+        });
+        actionManager.do_action(7);
+        assert.verifySteps(['push_state']);
+        actionManager.$('tr.o_data_row:first').click();
+        assert.verifySteps(['push_state']);
+        // we make sure here that the list view is still in the dom
+        assert.strictEqual(actionManager.$('.o_list_view').length, 1,
+            "there should still be a list view in dom");
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('no widget memory leaks when doing some action stuff', function (assert) {
+        assert.expect(1);
+
+        var delta = 0;
+        var oldInit = Widget.prototype.init;
+        var oldDestroy = Widget.prototype.destroy;
+        Widget.prototype.init = function () {
+            delta++;
+            oldInit.apply(this, arguments);
+        };
+        Widget.prototype.destroy = function () {
+            delta--;
+            oldDestroy.apply(this, arguments);
+        };
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+        });
+        actionManager.do_action(7);
+
+        var n = delta;
+        actionManager.do_action(4);
+        // kanban view is loaded, switch to list view
+        $('.o_control_panel .o_cp_switch_list').click();
+        // open a record in form view
+        actionManager.$('.o_list_view .o_data_row:first').click();
+        // go back to action 7 in breadcrumbs
+        $('.o_control_panel .breadcrumb a:first').click();
+
+        assert.strictEqual(delta, n,
+            "should have properly destroyed all other widgets");
+        actionManager.destroy();
+        Widget.prototype.init = oldInit;
+        Widget.prototype.destroy = oldDestroy;
+    });
+
+    QUnit.module('Concurrency management');
+
+    QUnit.test('drop previous actions if possible', function (assert) {
+        assert.expect(6);
+
+        var def = $.Deferred();
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route) {
+                var result = this._super.apply(this, arguments);
+                assert.step(route);
+                if (route === '/web/action/load') {
+                    return def.then(_.constant(result));
+                }
+                return result;
+            },
+        });
+        actionManager.do_action(4);
+        actionManager.do_action(7);
+
+        def.resolve();
+
+        // action 4 loads a kanban view first, 6 loads a list view. We want a list
+        assert.strictEqual(actionManager.$('.o_list_view').length, 1,
+            'there should be a list view in DOM');
+
+        assert.verifySteps([
+            '/web/action/load',  // load action 4
+            '/web/action/load', // load action 6
+            '/web/dataset/call_kw/pony', // load views for action 6
+            '/web/dataset/search_read', // search read for list view action 6
+        ]);
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('handle switching view and switching back on slow network', function (assert) {
+        assert.expect(8);
+
+        var def = $.Deferred();
+        var defs = [$.when(), def, $.when()];
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route) {
+                assert.step(route);
+                var result = this._super.apply(this, arguments);
+                if (route === '/web/dataset/search_read') {
+                    var def = defs.shift();
+                    return def.then(_.constant(result));
+                }
+                return result;
+            },
+        });
+        actionManager.do_action(4);
+
+        // kanban view is loaded, switch to list view
+        $('.o_control_panel .o_cp_switch_list').click();
+
+        // here, list view is not ready yet, because def is not resolved
+        // switch back to kanban view
+        $('.o_control_panel .o_cp_switch_kanban').click();
+
+        // here, we want the kanban view to reload itself, regardless of list view
+        assert.verifySteps([
+            "/web/action/load",             // initial load action
+            "/web/dataset/call_kw/partner", // load views
+            "/web/dataset/search_read",     // search_read for kanban view
+            "/web/dataset/search_read",     // search_read for list view (not resolved yet)
+            "/web/dataset/search_read"      // search_read for kanban view reload (not resolved yet)
+        ]);
+
+        // we resolve def => list view is now ready (but we want to ignore it)
+        def.resolve();
+
+        assert.strictEqual(actionManager.$('.o_kanban_view').length, 1,
+            "there should be a kanban view in dom");
+        assert.strictEqual(actionManager.$('.o_list_view').length, 0,
+            "there should not be a list view in dom");
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('when an server action takes too much time...', function (assert) {
+        assert.expect(1);
+
+        var def = $.Deferred();
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route) {
+                if (route === '/web/action/run') {
+                    return def.then(_.constant(1));
+                }
+                return this._super.apply(this, arguments);
+            },
+        });
+
+        actionManager.do_action(2);
+        actionManager.do_action(4);
+
+        def.resolve();
+
+        assert.strictEqual($('.o_control_panel .breadcrumb li.active').text(), 'Partners Action 4',
+            'action 4 should be loaded');
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('clicking quickly on breadcrumbs...', function (assert) {
+        assert.expect(1);
+
+        var def = $.when();
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route, args) {
+                var result = this._super.apply(this, arguments);
+                if (args.method === 'read') {
+                    return def.then(_.constant(result));
+                }
+                return result;
+            },
+        });
+
+        // create a situation with 3 breadcrumbs: kanban/form/list
+        actionManager.do_action(4);
+        actionManager.$('.o_kanban_record:first').click();
+        actionManager.do_action(7);
+
+        // now, the next read operations will be deferred (this is the read
+        // operation for the form view reload)
+        def = $.Deferred();
+
+        // click on the breadcrumbs for the form view, then on the kanban view
+        // before the form view is fully reloaded
+        $('.o_control_panel .breadcrumb li:eq(1)').click();
+        $('.o_control_panel .breadcrumb li:eq(0)').click();
+
+        // resolve the form view read
+        def.resolve();
+
+        assert.strictEqual($('.o_control_panel .breadcrumb li.active').text(), 'Partners Action 4',
+            'action 4 should be loaded and visible');
+
+        actionManager.destroy();
+    });
 
     QUnit.module('Client Actions');
 
@@ -842,7 +1192,194 @@ QUnit.module('ActionManager', {
         actionManager.destroy();
     });
 
-    // keep internal state of views when switching back
+    QUnit.test('restore previous view state when switching back', function (assert) {
+        assert.expect(5);
+
+        this.actions[2].views.unshift([false, 'graph']);
+        this.archs['partner,false,graph'] = '<graph></graph>';
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+        });
+        actionManager.do_action(3);
+
+        assert.ok($('.o_control_panel  .fa-bar-chart-o').hasClass('active'),
+            "bar chart button is active");
+        assert.ok(!$('.o_control_panel  .fa-line-chart').hasClass('active'),
+            "line chart button is not active");
+
+        // display line chart
+        $('.o_control_panel  .fa-line-chart').click();
+        assert.ok($('.o_control_panel  .fa-line-chart').hasClass('active'),
+            "line chart button is now active");
+
+        // switch to kanban and back to graph view
+        $('.o_control_panel .o_cp_switch_kanban').click();
+        assert.strictEqual($('.o_control_panel  .fa-line-chart').length, 0,
+            "graph buttons are no longer in control panel");
+
+        $('.o_control_panel .o_cp_switch_graph').click();
+        assert.ok($('.o_control_panel  .fa-line-chart').hasClass('active'),
+            "line chart button is still active");
+        actionManager.destroy();
+    });
+
+    QUnit.test('view switcher is properly highlighted in graph view', function (assert) {
+        assert.expect(4);
+
+        // note: this test should be moved to graph tests ?
+
+        this.actions[2].views.splice(1, 1, [false, 'graph']);
+        this.archs['partner,false,graph'] = '<graph></graph>';
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+        });
+        actionManager.do_action(3);
+
+        assert.ok($('.o_control_panel .o_cp_switch_list').hasClass('active'),
+            "list button in control panel is active");
+        assert.ok(!$('.o_control_panel .o_cp_switch_graph').hasClass('active'),
+            "graph button in control panel is not active");
+
+        // switch to graph view
+        $('.o_control_panel .o_cp_switch_graph').click();
+        assert.ok(!$('.o_control_panel .o_cp_switch_list').hasClass('active'),
+            "list button in control panel is not active");
+        assert.ok($('.o_control_panel .o_cp_switch_graph').hasClass('active'),
+            "graph button in control panel is active");
+        actionManager.destroy();
+    });
+
+    QUnit.test('can interact with search view', function (assert) {
+        assert.expect(2);
+
+        this.archs['partner,false,search'] = '<search>'+
+                '<group>'+
+                    '<filter name="foo" string="foo" context="{\'group_by\': \'foo\'}"/>' +
+                '</group>'+
+            '</search>';
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+        });
+        actionManager.do_action(3);
+
+        assert.ok(!actionManager.$('.o_list_view').hasClass('o_list_view_grouped'),
+            "list view is not grouped");
+        // open search view sub menus
+        $('.o_control_panel .o_searchview_more').click();
+
+        // open group by dropdown
+        $('.o_control_panel .o_cp_right button:contains(Group By)').click();
+
+        // click on first link
+        $('.o_control_panel .o_group_by_menu a:first').click();
+
+        assert.ok(actionManager.$('.o_list_view').hasClass('o_list_view_grouped'),
+            'list view is now grouped');
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('can open a many2one external window', function (assert) {
+        // AAB: this test could be merged with 'many2ones in form views' in relational_fields_tests.js
+        assert.expect(8);
+
+        this.data.partner.records[0].bar = 2;
+        this.archs['partner,false,search'] = '<search>'+
+                '<group>'+
+                    '<filter name="foo" string="foo" context="{\'group_by\': \'foo\'}"/>' +
+                '</group>'+
+            '</search>';
+        this.archs['partner,false,form'] = '<form>' +
+            '<group>' +
+                '<field name="foo"/>' +
+                '<field name="bar"/>' +
+            '</group>' +
+        '</form>';
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(route);
+                if (args.method === "get_formview_id") {
+                    return $.when(false);
+                }
+                return this._super.apply(this, arguments);
+            },
+        });
+        actionManager.do_action(3);
+
+        // open first record in form view
+        actionManager.$('.o_data_row:first').click();
+        // click on edit
+        $('.o_control_panel .o_form_button_edit').click();
+
+        // click on external button for m2o
+        actionManager.$('.o_external_button').click();
+        assert.verifySteps([
+            '/web/action/load',             // initial load action
+            '/web/dataset/call_kw/partner', // load views
+            '/web/dataset/search_read',     // read list view data
+            '/web/dataset/call_kw/partner/read', // read form view data
+            '/web/dataset/call_kw/partner/get_formview_id', // get form view id
+            '/web/dataset/call_kw/partner', // load form view for modal
+            '/web/dataset/call_kw/partner/read' // read data for m2o record
+        ]);
+        actionManager.destroy();
+    });
+
+    QUnit.test('ask for confirmation when leaving a "dirty" view', function (assert) {
+        assert.expect(4);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+        });
+        actionManager.do_action(4);
+
+        // open record in form view
+        actionManager.$('.o_kanban_record:first').click();
+
+        // edit record
+        $('.o_control_panel button.o_form_button_edit').click();
+        actionManager.$('input[name="foo"]').val('pinkypie').trigger('input');
+
+        // go back to kanban view
+        $('.o_control_panel .breadcrumb li:first a').click();
+
+        assert.strictEqual($('.modal .modal-body').text(),
+            "The record has been modified, your changes will be discarded. Do you want to proceed?",
+            "should display a modal dialog to confirm discard action");
+
+        // cancel
+        $('.modal .modal-footer button.btn-default').click();
+
+        assert.strictEqual(actionManager.$('.o_form_view').length, 1,
+            "should still be in form view");
+
+        // go back again to kanban view
+        $('.o_control_panel .breadcrumb li:first a').click();
+
+        // confirm discard
+        $('.modal .modal-footer button.btn-primary').click();
+
+        assert.strictEqual(actionManager.$('.o_form_view').length, 0,
+            "should no longer be in form view");
+        assert.strictEqual(actionManager.$('.o_kanban_view').length, 1,
+            "should be in kanban view");
+
+        actionManager.destroy();
+    });
 
     QUnit.module('Actions in target="new"');
 
