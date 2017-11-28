@@ -150,6 +150,9 @@ class WebsiteBlog(http.Controller):
                 tag_ids.append(current_tag)
             tag_ids = request.env['blog.tag'].browse(tag_ids).exists()
             return ','.join(slug(tag) for tag in tag_ids)
+
+        tag_category = request.env['blog.tag.category'].search([])
+
         values = {
             'blog': blog,
             'blogs': blogs,
@@ -164,6 +167,7 @@ class WebsiteBlog(http.Controller):
             'nav_list': self.nav_list(blog),
             'blog_url': blog_url,
             'date': date_begin,
+            'tag_category': tag_category,
         }
         response = request.render("website_blog.blog_post_short", values)
         return response

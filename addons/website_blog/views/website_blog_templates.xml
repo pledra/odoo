@@ -391,6 +391,21 @@
 </template>
 
 <!-- Option:Right Column: tags -->
+
+<template id="tag_category" name="Tags List">
+        <ul class="nav nav-pills nav-stacked">
+            <span t-field="nav_tag_category.name"/><br></br>
+            <t t-foreach="nav_tag_category.tag_ids" t-as="category_tag">
+                <li t-att-class="category_tag.id in active_tag_ids and 'active' or None" style="display: inline-block;">
+                    <span t-esc="active_category_tag"/>
+                    <a t-attf-href="#{blog_url(tag=tags_list(active_tag_ids, category_tag.id))}">
+                        <span t-field="category_tag.name"/>
+                    </a>
+                </li>
+            </t>
+        </ul>
+</template>
+
 <template id="opt_blog_rc_tags" name="Tags"
         inherit_id="website_blog.index_right" active="True" customize_show="True">
     <xpath expr="//div[@id='main_column']" position="attributes">
@@ -399,15 +414,21 @@
     <xpath expr="//div[@id='blog_right_column']" position="inside">
         <section class="mt32">
         <h4>Tags</h4>
-        <ul class="nav nav-pills nav-stacked">
-            <t t-foreach="tags" t-as="nav_tag">
-            <li t-att-class="nav_tag.id in active_tag_ids and 'active' or None" style="display: inline-block;">
-                <a t-attf-href="#{blog_url(tag=tags_list(active_tag_ids, nav_tag.id))}">
-                    <span t-field="nav_tag.name"/>
-                </a>
-            </li>
+            <t t-foreach="tag_category" t-as="nav_tag_category">
+                <t t-call="website_blog.tag_category"/>
             </t>
-        </ul>
+            <ul class="nav nav-pills nav-stacked" id="o_blog_tag_collapse">
+                <span>Other Tags</span><br></br>
+                <t t-foreach="tags" t-as="nav_tag">
+                    <t t-if="not nav_tag.category_id">
+                        <li t-att-class="nav_tag.id in active_tag_ids and 'active' or None" style="display: inline-block;">
+                            <a t-attf-href="#{blog_url(tag=tags_list(active_tag_ids, nav_tag.id))}">
+                                <span t-field="nav_tag.name"/>
+                            </a>
+                        </li>
+                    </t>
+                </t>
+            </ul>
         </section>
     </xpath>
 </template>
