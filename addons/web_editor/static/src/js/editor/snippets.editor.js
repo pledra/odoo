@@ -421,7 +421,7 @@ var SnippetEditor = Widget.extend({
                 if (self._totalOcc(currentRow, 'ocp') < bsCap) {
                     currentRow.push({
                         el: child,
-                        idx: i,
+                        // idx: i,
                         ocp: ocpCols,
                         offset : colOffset,
                         space: (ocpCols - 3) < 0 ? 0 : (ocpCols - 3) // only +ve
@@ -433,7 +433,7 @@ var SnippetEditor = Widget.extend({
                         }
                         currentRow = [{
                             el: child,
-                            idx: i,
+                            // idx: i,
                             ocp: ocpCols,
                             offset : colOffset,
                             space: (ocpCols - 3) < 0 ? 0 : (ocpCols - 3) // only +ve
@@ -457,11 +457,11 @@ var SnippetEditor = Widget.extend({
                 var tgtOcc = this._getOcc(this.$target);
                 var tgtOffset = this._getOffset(this.$target);
                 var totalEls = currentRow.length + 1;
-                var eqClasses = bsCap / totalEls;
+                var eqClasses = 'col-md-' + (bsCap / totalEls);
                 for (var i = 0; i < currentRow.length; i++) {
-                    currentRow[i].el.removeClass('col-md-' + (currentRow[i].ocp - currentRow[i].offset) + ' col-md-offset-' + currentRow[i].offset).addClass('col-md-' + eqClasses);
+                    currentRow[i].el.removeClass('col-md-' + (currentRow[i].ocp - currentRow[i].offset) + ' col-md-offset-' + currentRow[i].offset).addClass(eqClasses);
                 }
-                $clone.removeClass('col-md-' + tgtOcc + ' col-md-offset-' + tgtOffset).addClass('col-md-' + eqClasses);
+                $clone.removeClass('col-md-' + tgtOcc + ' col-md-offset-' + tgtOffset).addClass(eqClasses);
             }
         }
         this.$target.after($clone);
