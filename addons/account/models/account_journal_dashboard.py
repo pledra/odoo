@@ -173,7 +173,7 @@ class account_journal(models.Model):
                 where_clause = where_clause + ' AND line.date >= %s'
                 self.env.cr.execute(select_clause + from_clause + where_clause, (tuple(self.ids), date_opening))
             else:
-                self.env.cr.execute(select_clause + from_clause + where_clause, tuple(self.ids))
+                self.env.cr.execute(select_clause + from_clause + where_clause, (tuple(self.ids), ))
 
             number_to_reconcile = self.env.cr.fetchone()[0]
             # optimization to read sum of balance from account_move_line

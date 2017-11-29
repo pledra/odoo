@@ -17,6 +17,30 @@
             <field name="arch" type="xml">
                 <xpath expr="//div[hasclass('settings')]" position="inside">
                     <div class="app_settings_block o_not_app" data-string="Invoicing" string="Invoicing" data-key="account_invoicing" groups="account.group_account_manager">
+                        <field name="has_chart_of_accounts" invisible="1"/>
+                        <field name="has_accounting_entries" invisible="1"/>
+                            <h2 attrs="{'invisible': [('has_accounting_entries','!=',False)]}" invisible="1">Fiscal Localization</h2>
+                            <div class="row mt16 o_settings_container" invisible="1">
+                                <div class="col-xs-12 col-md-6 o_setting_box" attrs="{'invisible': [('has_accounting_entries','!=',False)]}">
+                                    <div class="o_setting_left_pane"/>
+                                    <div class="o_setting_right_pane">
+                                        <label string="Fiscal Localization"/>
+                                        <span class="fa fa-lg fa-building-o" title="Values set here are company-specific." groups="base.group_multi_company"/>
+                                        <div class="text-muted">
+                                            Taxes, fiscal positions, chart of accounts &amp; legal statements for your country
+                                        </div>
+                                        <div class="content-group">
+                                            <div class="row mt16">
+                                                <label string="Package" class="col-md-3 o_light_label"/>
+                                                <field name="chart_template_id" widget="selection"/>
+                                            </div>
+                                            <div>
+                                                <button name="%(account.open_account_charts_modules)d" icon="fa-arrow-right" type="action" string="Install More Packages" class="btn-link"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         <t groups="account.group_account_user">
                             <h2>Setup</h2>
                             <div class="row mt16 o_settings_container">

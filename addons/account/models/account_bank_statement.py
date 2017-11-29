@@ -574,13 +574,14 @@ class AccountBankStatementLine(models.Model):
             # TODO : find out what use case this permits (match a check payment, registered on a journal whose account type is other instead of liquidity)
             domain_matching = expression.AND([domain_matching, [('account_id.reconcile', '=', True)]])
 
-        if self.company_id.account_opening_date:
-            domain = [('date_maturity', '>=', self.company_id.account_opening_date)]
-
         # Let's add what applies to both
         domain = expression.OR([domain_reconciliation, domain_matching])
         if partner_id and not overlook_partner:
             domain = expression.AND([domain, [('partner_id', '=', partner_id)]])
+
+        # Domain for fiscal_year_date selection
+        if self.company_id.account_opening_date:
+            domain = expression.AND([domain, [('date_maturity', '>=', self.company_id.account_opening_date)]])
 
         # Domain factorized for all reconciliation use cases
         if str:
