@@ -222,7 +222,7 @@ class AccountVoucher(models.Model):
         :rtype: float
         '''
         for voucher in self:
-            return voucher.currency_id.compute(amount, voucher.company_id.currency_id)
+            return voucher.currency_id._convert_amount(amount, voucher.company_id.currency_id, voucher.company_id, voucher.account_date)
 
     @api.multi
     def voucher_pay_now_payment_create(self):
@@ -262,7 +262,7 @@ class AccountVoucher(models.Model):
             if not line.price_subtotal:
                 continue
             # convert the amount set on the voucher line into the currency of the voucher's company
-            # this calls res_curreny.compute() with the right context,
+            # this calls res_currency.convert_amount with the right context,
             # so that it will take either the rate on the voucher if it is relevant or will use the default behaviour
             amount = self._convert_amount(line.price_unit*line.quantity)
             move_line = {
@@ -298,6 +298,7 @@ class AccountVoucher(models.Model):
             # we select the context to use accordingly if it's a multicurrency case or not
             # But for the operations made by _convert_amount, we always need to give the date in the context
             ctx = local_context.copy()
+            # TODO: The date key should be useless now that we use convert_amount
             ctx['date'] = voucher.account_date
             ctx['check_move_validity'] = False
             # Create a payment to allow the reconciliation when pay_now = 'pay_now'.

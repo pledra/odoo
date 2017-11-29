@@ -4,7 +4,7 @@ import json
 import logging
 from werkzeug.exceptions import Forbidden
 
-from odoo import http, tools, _
+from odoo import fields, http, tools, _
 from odoo.http import request
 from odoo.addons.base.models.ir_qweb_fields import nl2br
 from odoo.addons.http_routing.models.ir_http import slug
@@ -128,7 +128,7 @@ class WebsiteSale(http.Controller):
 
         from_currency = request.env.user.company_id.currency_id
         to_currency = pricelist.currency_id
-        compute_currency = lambda price: from_currency.compute(price, to_currency)
+        compute_currency = lambda price: from_currency._convert_amount(price, to_currency, request.env.user.company_id, fields.Date.today())
 
         return compute_currency, pricelist_context, pricelist
 
@@ -147,7 +147,10 @@ class WebsiteSale(http.Controller):
         attribute_value_ids = []
         for variant in product.product_variant_ids:
             if to_currency != product.currency_id:
-                price = variant.currency_id.compute(variant.website_public_price, to_currency) / quantity
+                price = variant.currency_id._convert_amount(
+                    variant.website_public_price, to_currency,
+                    request.env.user.company_id, fields.Date.today()
+                ) / quantity
             else:
                 price = variant.website_public_price / quantity
             visible_attribute_ids = [v.id for v in variant.attribute_value_ids if v.attribute_id.id in visible_attrs_ids]
@@ -292,7 +295,7 @@ class WebsiteSale(http.Controller):
 
         from_currency = request.env.user.company_id.currency_id
         to_currency = pricelist.currency_id
-        compute_currency = lambda price: from_currency.compute(price, to_currency)
+        compute_currency = lambda price: from_currency._convert_amount(price, to_currency, request.env.user.company_id, fields.Date.today())
 
         if not product_context.get('pricelist'):
             product_context['pricelist'] = pricelist.id
@@ -358,7 +361,8 @@ class WebsiteSale(http.Controller):
         if order:
             from_currency = order.company_id.currency_id
             to_currency = order.pricelist_id.currency_id
-            compute_currency = lambda price: from_currency.compute(price, to_currency)
+            compute_currency = lambda price: from_currency._convert_amount(
+                price, to_currency, request.env.user.company_id, fields.Date.today())
         else:
             compute_currency = lambda price: price
 
@@ -415,7 +419,8 @@ class WebsiteSale(http.Controller):
 
         value['website_sale.cart_lines'] = request.env['ir.ui.view'].render_template("website_sale.cart_lines", {
             'website_sale_order': order,
-            'compute_currency': lambda price: from_currency.compute(price, to_currency),
+            'compute_currency': lambda price: from_currency._convert_amount(
+                price, to_currency, request.env.user.company_id, fields.Date.today()),
             'suggested_products': order._cart_accessories()
         })
         return value

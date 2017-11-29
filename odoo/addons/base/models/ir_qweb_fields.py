@@ -308,8 +308,12 @@ class MonetaryConverter(models.AbstractModel):
         # (integer > 0) from the currency's rounding (a float generally < 1.0).
         fmt = "%.{0}f".format(display_currency.decimal_places)
 
+        # TODO : Ensure to pass the correct values
+        company = options.get('company', self.env.user.company_id)
+        date = options.get('date') or fields.Date.today()
+
         if options.get('from_currency'):
-            value = options['from_currency'].compute(value, display_currency)
+            value = options['from_currency']._convert_amount(value, display_currency, company, date)
 
         lang = self.user_lang()
         formatted_amount = lang.format(fmt, display_currency.round(value),

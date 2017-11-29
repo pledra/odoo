@@ -186,7 +186,7 @@ class account_journal(models.Model):
             query_results_drafts = self.env.cr.dictfetchall()
 
             today = datetime.today()
-            query = """SELECT amount_total, currency_id AS currency, type FROM account_invoice WHERE journal_id = %s AND date < %s AND state = 'open';"""
+            query = """SELECT amount_total, currency_id AS currency, type, date_invoice, company_id FROM account_invoice WHERE journal_id = %s AND date < %s AND state = 'open';"""
             self.env.cr.execute(query, (self.id, today))
             late_query_results = self.env.cr.dictfetchall()
             (number_waiting, sum_waiting) = self._count_results_and_sum_amounts(query_results_to_pay, currency)
@@ -215,7 +215,7 @@ class account_journal(models.Model):
         data as its first element, and the arguments dictionary to use to run
         it as its second.
         """
-        return ("""SELECT state, amount_total, currency_id AS currency
+        return ("""SELECT state, amount_total, currency_id AS currency, date_invoice, company_id
                   FROM account_invoice
                   WHERE journal_id = %(journal_id)s AND state = 'open';""", {'journal_id':self.id})
 
@@ -225,7 +225,7 @@ class account_journal(models.Model):
         gather the bills in draft state data, and the arguments
         dictionary to use to run it as its second.
         """
-        return ("""SELECT state, amount_total, currency_id AS currency
+        return ("""SELECT state, amount_total, currency_id AS currency, date_invoice, company_id
                   FROM account_invoice
                   WHERE journal_id = %(journal_id)s AND state = 'draft';""", {'journal_id':self.id})
 
@@ -237,8 +237,9 @@ class account_journal(models.Model):
         rslt_sum = 0.0
         for result in results_dict:
             cur = self.env['res.currency'].browse(result.get('currency'))
+            company = self.env['res.company'].browse(result.get('company_id'))
             rslt_count += 1
-            rslt_sum += cur.compute(result.get('amount_total'), target_currency)
+            rslt_sum += cur._convert_amount(result.get('amount_total'), target_currency, company, result.get('date'))
         return (rslt_count, rslt_sum)
 
     @api.multi

@@ -361,15 +361,12 @@ class ProductTemplate(models.Model):
         if not currency and self._context.get('currency'):
             currency = self.env['res.currency'].browse(self._context['currency'])
 
-        templates = self
-        if price_type == 'standard_price':
-            # standard_price field can only be seen by users in base.group_user
-            # Thus, in order to compute the sale price from the cost for users not in this group
-            # We fetch the standard price as the superuser
-            templates = self.with_context(force_company=company and company.id or self._context.get('force_company', self.env.user.company_id.id)).sudo()
+        if not company:
+            company = self._context.get('force_company', self.env.user.company_id.id)
+        date = self.env.context.get('date') or fields.Date.today()
 
         prices = dict.fromkeys(self.ids, 0.0)
-        for template in templates:
+        for template in self:
             prices[template.id] = template[price_type] or 0.0
 
             if uom:
@@ -378,7 +375,7 @@ class ProductTemplate(models.Model):
             # Convert from current user company currency to asked one
             # This is right cause a field cannot be in more than one currency
             if currency:
-                prices[template.id] = template.currency_id.compute(prices[template.id], currency)
+                prices[template.id] = template.currency_id._convert_amount(prices[template.id], currency, company, date)
 
         return prices
 

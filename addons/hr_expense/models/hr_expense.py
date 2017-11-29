@@ -76,7 +76,9 @@ class HrExpense(models.Model):
             amount = 0
             if expense.company_currency_id:
                 date_expense = expense.date
-                amount = expense.currency_id.with_context(date=date_expense, company_id=expense.company_id.id).compute(expense.total_amount, expense.company_currency_id)
+                amount = expense.currency_id._convert_amount(
+                    expense.total_amount, expense.company_currency_id,
+                    expense.company_id, date_expense or fields.Date.today())
             expense.total_amount_company = amount
 
     @api.multi
@@ -179,7 +181,8 @@ class HrExpense(models.Model):
             if self.currency_id != company_currency:
                 line['currency_id'] = self.currency_id.id
                 line['amount_currency'] = line['price']
-                line['price'] = self.currency_id.with_context(date=move_date or fields.Date.context_today(self)).compute(line['price'], company_currency)
+                date = move_date or fields.Date.context_today(self)
+                line['price'] = self.currency_id._convert_amount(line['price'], company_currency, line.company_id, date)
             total -= line['price']
             total_currency -= line['amount_currency'] or line['price']
         return total, total_currency, account_move_lines
