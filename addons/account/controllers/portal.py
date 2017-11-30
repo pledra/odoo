@@ -121,7 +121,6 @@ class PortalAccount(CustomerPortal):
     def portal_my_invoice_report(self, invoice_id, access_token=None, **kw):
         try:
             invoice_sudo = self._invoice_check_access(invoice_id, access_token)
-
         except AccessError:
             return request.redirect('/my')
 

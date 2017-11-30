@@ -79,25 +79,19 @@
                 <div class="col-md-3 hidden-print text-center">
                     <div class="bs-sidebar" style="background-color:#f8f8f8;">
                         <div>
-                            <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h4>Due in 1 days</h4>
+                            <t t-set="due_days" t-value="invoice._compute_due_days()"/>
+                            <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h4>Due in <span t-esc="due_days"/> days</h4>
                         </div>
                         <div style="padding: 5px">
                             <a t-if="invoice.amount_total" class="btn btn-primary btn-block" data-toggle="modal" data-target="#pay_with">
                                 Pay Now
                             </a>
                         </div>
-                        <div>
-                            <div class="button print col-md-6">
-                                <i class="fa fa-print fa-2x"></i>
-                            </div>
-                            <div class="col-md-6" style="padding: 5px" id="o_portal_account_actions">
-                                <a target="_blank" t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())" title="Download">
-                                    <i class="fa fa-download fa-2x" aria-hidden="true"/>
-                                </a>
-                            </div>
+                        <div class="text-center visible-xs visible-sm" style="padding: 10px">
+                            <a t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())"><h4><strong>print/download</strong></h4></a>
                         </div>
                         <div style="padding: 5px; text-align:left;">
-                            <strong>Invoice #</strong>
+                            <strong>Invoice: </strong>
                             <span t-field="invoice.number"/>
                         </div>
                         <div name="reference" t-if="invoice.reference" style="padding: 5px; text-align:left;">
@@ -118,7 +112,7 @@
                     </div>
                 </div>
                 <div id="invoice_content" class="col-md-9 hidden-print">
-                    <div class="o_portal_invoice" style="height:1130px; width:100%">
+                    <div class="o_portal_invoice hidden-xs hidden-sm" style="height:1130px; width:100%">
                         <iframe height="100%" width="100%" t-attf-src="/web/static/lib/pdfjs/web/viewer.html?file=/my/invoices/pdf/#{invoice.id}?access_token=#{invoice.access_token}" />
                     </div>
                     <div class="modal fade" id="pay_with" tabindex="-1" role="dialog">
