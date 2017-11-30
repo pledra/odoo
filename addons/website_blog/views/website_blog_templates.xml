@@ -393,17 +393,18 @@
 <!-- Option:Right Column: tags -->
 
 <template id="tag_category" name="Tags List">
-        <ul class="nav nav-pills nav-stacked">
+    <ul class="nav nav-pills nav-stacked">
+        <t t-if="nav_tag_category.tag_ids">
             <span t-field="nav_tag_category.name"/><br></br>
             <t t-foreach="nav_tag_category.tag_ids" t-as="category_tag">
-                <li t-att-class="category_tag.id in active_tag_ids and 'active' or None" style="display: inline-block;">
-                    <span t-esc="active_category_tag"/>
+                <li t-if="category_tag in tags" t-att-class="category_tag.id in active_tag_ids and 'active' or None" style="display: inline-block;">
                     <a t-attf-href="#{blog_url(tag=tags_list(active_tag_ids, category_tag.id))}">
                         <span t-field="category_tag.name"/>
                     </a>
                 </li>
             </t>
-        </ul>
+        </t>
+    </ul>
 </template>
 
 <template id="opt_blog_rc_tags" name="Tags"
