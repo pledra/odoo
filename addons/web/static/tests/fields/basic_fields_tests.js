@@ -129,7 +129,10 @@ QUnit.module('basic_fields', {
     QUnit.test('debounced fields do not trigger call _setValue once destroyed', function (assert) {
         var done = assert.async();
         assert.expect(4);
-
+        var initialDebounce = _.debounce;
+        _.debounce = function (f) {
+            return function () { var self = this; setTimeout(f.bind(self));};
+        };
         var def = $.Deferred();
         var _doAction = DebouncedField.prototype._doAction;
         DebouncedField.prototype._doAction = function () {
@@ -179,6 +182,7 @@ QUnit.module('basic_fields', {
 
             DebouncedField.prototype._doAction = _doAction;
             DebouncedField.prototype._setValue = _setValue;
+            _.debounce = initialDebounce;
             done();
         });
 
@@ -1474,6 +1478,10 @@ QUnit.module('basic_fields', {
         assert.expect(5);
 
         this.data.partner.fields.foo.type = 'text';
+        var initialDebounce = _.debounce;
+        _.debounce = function (f) {
+            return function () { var self = this; setTimeout(f.bind(self));};
+        };
 
         var def = $.Deferred();
         var nbNotifyChanges = 0;
@@ -1520,6 +1528,7 @@ QUnit.module('basic_fields', {
                 "no extra event should have been triggered");
 
             form.destroy();
+            _.debounce = initialDebounce;
             done();
         });
 
