@@ -2321,9 +2321,20 @@ QUnit.module('relational_fields', {
     });
 
     QUnit.test('onchange for embedded one2many with handle widget, onchange use same values', function (assert) {
-        assert.expect(1);
+        assert.expect(2);
 
-        this.data.partner.records[0].turtles = [1, 2, 3];
+        var ids = [];
+        for (var i=10; i<50; i++) {
+            var id = 10 + i;
+            ids.push(id);
+            this.data.turtle.records.push({
+                id: id,
+                turtle_int: 0,
+                turtle_foo: "#" + id,
+            });
+        }
+        ids.push(1, 2, 3);
+        this.data.partner.records[0].turtles = ids;
         this.data.partner.onchanges = {
             turtles: function (obj) {
                 obj.turtles = [[5]].concat(obj.turtles);
@@ -2350,6 +2361,7 @@ QUnit.module('relational_fields', {
         });
 
         form.$buttons.find('.o_form_button_edit').click();
+        form.$('.o_pager_next').click();
 
         form.$('.o_field_one2many .o_list_view tbody tr:first td:first').click();
         form.$('.o_field_one2many .o_list_view tbody tr:first input:first').val('blurp').trigger('input');
@@ -2361,9 +2373,132 @@ QUnit.module('relational_fields', {
             {position: 'top'}
         );
 
+        assert.strictEqual(form.$('.o_data_cell').text(), "blurpkawablip", "should display to record in 'turtle_int' order");
+
         form.$buttons.find('.o_form_button_save').click();
+        form.$('.o_pager_next').click();
 
         assert.strictEqual(form.$('.o_data_cell').text(), "blurpkawablip", "should display to record in 'turtle_int' order");
+
+        form.destroy();
+    });
+
+    QUnit.test('onchange following by edition on the second page', function (assert) {
+        assert.expect(20);
+
+        var ids = [];
+        for (var i=1; i<85; i++) {
+            var id = 10 + i;
+            ids.push(id);
+            this.data.turtle.records.push({
+                id: id,
+                turtle_int: id/3|0,
+                turtle_foo: "#" + i,
+            });
+        }
+        ids.splice(41, 0, 1, 2, 3);
+        this.data.partner.records[0].turtles = ids;
+        this.data.partner.onchanges = {
+            turtles: function (obj) {
+                obj.turtles = [[5]].concat(obj.turtles);
+            },
+        };
+
+        var form = createView({
+            View: FormView,
+            model: 'partner',
+            data: this.data,
+            arch:'<form string="Partners">' +
+                    '<sheet>' +
+                        '<group>' +
+                            '<field name="turtles">' +
+                                '<tree editable="top" default_order="turtle_int">' +
+                                    '<field name="turtle_int" widget="handle"/>' +
+                                    '<field name="turtle_foo"/>' +
+                                '</tree>' +
+                            '</field>' +
+                        '</group>' +
+                    '</sheet>' +
+                 '</form>',
+            res_id: 1,
+        });
+
+        form.$buttons.find('.o_form_button_edit').click();
+        form.$('.o_pager_next').click();
+
+        form.$('.o_field_one2many .o_list_view tbody tr:eq(1) td:first').click();
+        form.$('.o_field_one2many .o_list_view tbody tr:eq(1) input:first').val('value 1').trigger('input');
+        form.$('.o_field_one2many .o_list_view tbody tr:eq(2) td:first').click();
+        form.$('.o_field_one2many .o_list_view tbody tr:eq(2) input:first').val('value 2').trigger('input');
+
+        assert.strictEqual(form.$('.o_data_row').length, 40, "should display 40 records");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(yop))').index(), 0, "should display 'yop' at the first line");
+
+        form.$('.o_field_x2many_list_row_add a').click();
+
+        assert.strictEqual(form.$('.o_data_row').length, 40, "should display 39 records and the create line");
+        assert.strictEqual(form.$('.o_data_row:first .o_field_char').length, 1, "should display the create line in first position");
+        assert.strictEqual(form.$('.o_data_row:first .o_field_char').val(), "", "should an empty input");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(yop))').index(), 1, "should display 'yop' at the second line");
+
+        form.$('.o_data_row input:first').val('value 3').trigger('input');
+
+        assert.strictEqual(form.$('.o_data_row:first .o_field_char').length, 1, "should display the create line in first position after onchange");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(yop))').index(), 1, "should display 'yop' at the second line after onchange");
+
+        form.$('.o_field_x2many_list_row_add a').click();
+
+        assert.strictEqual(form.$('.o_data_row').length, 40, "should display 39 records and the create line");
+        assert.strictEqual(form.$('.o_data_row:first .o_field_char').length, 1, "should display the create line in first position");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(value 3))').index(), 1, "should display the created line at the second position");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(yop))').index(), 2, "should display 'yop' at the third line");
+
+        form.destroy();
+
+        // bottom order
+
+        form = createView({
+            View: FormView,
+            model: 'partner',
+            data: this.data,
+            arch:'<form string="Partners">' +
+                    '<sheet>' +
+                        '<group>' +
+                            '<field name="turtles">' +
+                                '<tree editable="bottom" default_order="turtle_int">' +
+                                    '<field name="turtle_int" widget="handle"/>' +
+                                    '<field name="turtle_foo"/>' +
+                                '</tree>' +
+                            '</field>' +
+                        '</group>' +
+                    '</sheet>' +
+                 '</form>',
+            res_id: 1,
+        });
+
+        form.$buttons.find('.o_form_button_edit').click();
+        form.$('.o_pager_next').click();
+
+        form.$('.o_field_one2many .o_list_view tbody tr:eq(1) td:first').click();
+        form.$('.o_field_one2many .o_list_view tbody tr:eq(1) input:first').val('value 1').trigger('input');
+        form.$('.o_field_one2many .o_list_view tbody tr:eq(2) td:first').click();
+        form.$('.o_field_one2many .o_list_view tbody tr:eq(2) input:first').val('value 2').trigger('input');
+
+        assert.strictEqual(form.$('.o_data_row').length, 40, "should display 40 records");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(#77))').index(), 39, "should display '#77' at the last line");
+
+        form.$('.o_field_x2many_list_row_add a').click();
+
+        assert.strictEqual(form.$('.o_data_row').length, 40, "should display 39 records and the create line");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(#76))').index(), 38, "should display '#76' at the penultimate line");
+        assert.strictEqual(form.$('.o_data_row:has(.o_field_char)').index(), 39, "should display the create line at the last position");
+
+        form.$('.o_data_row input:first').val('value 3').trigger('input');
+        form.$('.o_field_x2many_list_row_add a').click();
+
+        assert.strictEqual(form.$('.o_data_row').length, 40, "should display 39 records and the create line");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(#76))').index(), 38, "should display '#76' at the penultimate line");
+        assert.strictEqual(form.$('.o_data_row:has(.o_field_char)').index(), 39, "should display the create line at the last position");
 
         form.destroy();
     });
@@ -6695,7 +6830,8 @@ QUnit.module('relational_fields', {
         form.$('.o_field_x2many_list_row_add a').click();
 
         assert.strictEqual(form.$('tr.o_data_row').length, 3,
-            "should have 3 data rows on the current page");
+            "should have 3 data rows on the current page (2 records and the created line)");
+
         assert.ok(form.$('tr.o_data_row').first().hasClass('o_selected_row'),
             "first row should be selected");
 

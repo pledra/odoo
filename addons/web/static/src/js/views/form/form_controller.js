@@ -17,6 +17,8 @@ var FormController = BasicController.extend({
         button_clicked: '_onButtonClicked',
         open_record: '_onOpenRecord',
         toggle_column_order: '_onToggleColumnOrder',
+        freeze_order: '_onFreezeOrder',
+        unfreeze_order: '_onUnfreezeOrder',
     }),
     /**
      * @override
@@ -444,6 +446,16 @@ var FormController = BasicController.extend({
         this._setMode('edit');
     },
     /**
+     * This method is called when someone tries to freeze the order, most likely
+     * in a x2many list view
+     *
+     * @private
+     * @param {OdooEvent} event
+     */
+    _onFreezeOrder: function (event) {
+        this.model.freezeOrder(event.data.id);
+    },
+    /**
      * Opens a one2many record (potentially new) in a dialog. This handler is
      * o2m specific as in this case, the changes done on the related record
      * shouldn't be saved in DB when the user clicks on 'Save' in the dialog,
@@ -520,6 +532,16 @@ var FormController = BasicController.extend({
         var field = event.data.field;
         var state = this.model.get(this.handle);
         this.renderer.confirmChange(state, state.id, [field]);
+    },
+    /**
+     * This method is called when someone tries to unfreeze the order, most likely
+     * in a x2many list view
+     *
+     * @private
+     * @param {OdooEvent} event
+     */
+    _onUnfreezeOrder: function (event) {
+        this.model.unfreezeOrder(event.data.id);
     },
 });
 
