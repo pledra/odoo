@@ -30,7 +30,7 @@ class AccountAnalyticLine(models.Model):
     def unlink(self):
         sale_order_lines = self.sudo().mapped('so_line')
         res = super(AccountAnalyticLine, self).unlink()
-        sale_order_lines._analytic_compute_delivered_quantity()
+        sale_order_lines.with_context(sale_analytic_force_recompute=True)._analytic_compute_delivered_quantity()
         return res
 
     @api.model
