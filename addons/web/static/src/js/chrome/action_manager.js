@@ -164,9 +164,14 @@ var ActionManager = Widget.extend({
             return self._handleAction(action, options);
         });
     },
-
+    /**
+     * Compatibiliy with client actions that are still using do_push_state.
+     *
+     * @todo: convert all of them to trigger_up('push_state') instead.
+     * @param {Object} state
+     */
     do_push_state: function (state) {
-        // AAB: TODO
+        this.trigger_up('push_state', {state: state});
     },
     do_load_state: function (state) {
         return $.when(); // AAB: TODO
