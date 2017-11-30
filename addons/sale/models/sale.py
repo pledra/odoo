@@ -4,16 +4,12 @@
 import uuid
 
 from itertools import groupby
-from datetime import datetime, timedelta
-from werkzeug.urls import url_encode
+from datetime import datetime
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, AccessError
 from odoo.osv import expression
-from odoo.tools import float_is_zero, float_compare, DEFAULT_SERVER_DATETIME_FORMAT
-
-from odoo.tools.misc import formatLang
-
+from odoo.tools import float_is_zero, float_compare
 from odoo.addons import decimal_precision as dp
 
 
@@ -104,6 +100,12 @@ class SaleOrder(models.Model):
     def _get_default_team(self):
         return self.env['crm.team']._get_default_team_id()
 
+    @api.model
+    def _get_default_currency(self):
+        if self.pricelist_id:
+            return self.pricelist_id.currency
+        return self.env['product.pricelist']._get_default_currency_id()
+
     @api.onchange('fiscal_position_id')
     def _compute_tax_id(self):
         """
@@ -136,8 +138,8 @@ class SaleOrder(models.Model):
     partner_invoice_id = fields.Many2one('res.partner', string='Invoice Address', readonly=True, required=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)], 'sale': [('readonly', False)]}, help="Invoice address for current sales order.")
     partner_shipping_id = fields.Many2one('res.partner', string='Delivery Address', readonly=True, required=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)], 'sale': [('readonly', False)]}, help="Delivery address for current sales order.")
 
-    pricelist_id = fields.Many2one('product.pricelist', string='Pricelist', required=True, readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Pricelist for current sales order.")
-    currency_id = fields.Many2one("res.currency", related='pricelist_id.currency_id', string="Currency", readonly=True, required=True)
+    pricelist_id = fields.Many2one('product.pricelist', string='Pricelist', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="Pricelist for current sales order.")
+    currency_id = fields.Many2one("res.currency", default=_get_default_currency, string="Currency", readonly=True, required=True)
     analytic_account_id = fields.Many2one('account.analytic.account', 'Analytic Account', readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)]}, help="The analytic account related to a sales order.", copy=False, oldname='project_id')
 
     order_line = fields.One2many('sale.order.line', 'order_id', string='Order Lines', states={'cancel': [('readonly', True)], 'done': [('readonly', True)]}, copy=True, auto_join=True)
@@ -278,13 +280,17 @@ class SaleOrder(models.Model):
             else:
                 vals['name'] = self.env['ir.sequence'].next_by_code('sale.order') or _('New')
 
-        # Makes sure partner_invoice_id', 'partner_shipping_id' and 'pricelist_id' are defined
+        # Makes sure partner_invoice_id', 'partner_shipping_id' are defined
         if any(f not in vals for f in ['partner_invoice_id', 'partner_shipping_id', 'pricelist_id']):
             partner = self.env['res.partner'].browse(vals.get('partner_id'))
             addr = partner.address_get(['delivery', 'invoice'])
             vals['partner_invoice_id'] = vals.setdefault('partner_invoice_id', addr['invoice'])
             vals['partner_shipping_id'] = vals.setdefault('partner_shipping_id', addr['delivery'])
-            vals['pricelist_id'] = vals.setdefault('pricelist_id', partner.property_product_pricelist and partner.property_product_pricelist.id)
+            vals['pricelist_id'] = vals.setdefault(
+                'pricelist_id',
+                (partner.property_product_pricelist and
+                 partner.property_product_pricelist.id) or False
+            )
         result = super(SaleOrder, self).create(vals)
         return result
 
