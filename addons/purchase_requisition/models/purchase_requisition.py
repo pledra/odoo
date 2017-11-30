@@ -243,7 +243,7 @@ class PurchaseOrder(models.Model):
 
             # Compute price_unit in appropriate currency
             if requisition.company_id.currency_id != currency:
-                price_unit = requisition.company_id.currency_id._convert_amount(
+                price_unit = requisition.company_id.currency_id._convert(
                     price_unit, currency, line.company_id, line.date_order or fields.Date.today())
 
             # Create PO line

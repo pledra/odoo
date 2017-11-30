@@ -993,7 +993,7 @@ class SaleOrderLine(models.Model):
         base_price, currency_id = self.with_context(context_partner)._get_real_price_currency(self.product_id, rule_id, self.product_uom_qty, self.product_uom, self.order_id.pricelist_id.id)
         if currency_id != self.order_id.pricelist_id.currency_id.id:
             currency = self.env['res.currency'].browse(currency_id)
-            base_price = currency._convert_amount(
+            base_price = currency._convert(
                 base_price, self.order_id.pricelist_id.currency_id,
                 self.order_id.company_id, self.order_id.date_order or fields.Date.today())
         # negative discounts (= surcharge) are included in the display price
@@ -1165,7 +1165,7 @@ class SaleOrderLine(models.Model):
             if self.order_id.pricelist_id.currency_id.id != currency_id:
                 # we need new_list_price in the same currency as price, which is in the SO's pricelist's currency
                 currency = self.env['res.currency'].browse(currency_id)
-                new_list_price = currency._convert_amount(
+                new_list_price = currency._convert(
                     new_list_price, self.order_id.pricelist_id.currency_id,
                     self.order_id.company_id, self.order_id.date_order or fields.Date.today())
             discount = (new_list_price - price) / new_list_price * 100

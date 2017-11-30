@@ -58,7 +58,7 @@ class ProviderGrid(models.Model):
                     'error_message': e.name,
                     'warning_message': False}
         if order.company_id.currency_id.id != order.pricelist_id.currency_id.id:
-            price_unit = order.company_id.currency_id._convert_amount(
+            price_unit = order.company_id.currency_id._convert(
                 price_unit, order.pricelist_id.currency_id, order.company_id, order.date_order or fields.Date.today())
 
         return {'success': True,
@@ -83,7 +83,7 @@ class ProviderGrid(models.Model):
             quantity += qty
         total = (order.amount_total or 0.0) - total_delivery
 
-        total = order.currency_id._convert_amount(
+        total = order.currency_id._convert(
             total, order.company_id.currency_id, order.company_id, order.date_order or fields.Date.today())
 
         return self._get_price_from_picking(total, weight, volume, quantity)

@@ -65,7 +65,7 @@ class WebsiteSaleOptions(WebsiteSale):
         to_currency = pricelist.currency_id
         company = request.env['res.company'].browse(request.env.context.get('company_id')) or request.env['res.users']._get_company()
         date = request.env.context.get('date') or fields.Date.today()
-        compute_currency = lambda price: from_currency._convert_amount(
+        compute_currency = lambda price: from_currency._convert(
             price, to_currency, company, date)
         product = request.env['product.product'].with_context(product_context).browse(int(product_id))
 

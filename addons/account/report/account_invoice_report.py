@@ -23,9 +23,9 @@ class AccountInvoiceReport(models.Model):
         for record in self:
             date = record.date or fields.Date.today()
             company = record.company_id
-            record.user_currency_price_total = base_currency_id._convert_amount(record.price_total, user_currency_id, company, date)
-            record.user_currency_price_average = base_currency_id._convert_amount(record.price_average, user_currency_id, company, date)
-            record.user_currency_residual = base_currency_id._convert_amount(record.residual, user_currency_id, company, date)
+            record.user_currency_price_total = base_currency_id._convert(record.price_total, user_currency_id, company, date)
+            record.user_currency_price_average = base_currency_id._convert(record.price_average, user_currency_id, company, date)
+            record.user_currency_residual = base_currency_id._convert(record.residual, user_currency_id, company, date)
 
     date = fields.Date(readonly=True)
     product_id = fields.Many2one('product.product', string='Product', readonly=True)

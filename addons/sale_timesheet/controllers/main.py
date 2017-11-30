@@ -62,8 +62,8 @@ class SaleTimesheetController(http.Controller):
         # money_amount
         so_lines = values['timesheet_lines'].mapped('so_line')
         invoice_lines = so_lines.mapped('invoice_lines')
-        dashboard_values['money_amount']['invoiced'] = sum([inv_line.currency_id._convert_amount(inv_line.price_unit * inv_line.quantity, currency, inv_line.company_id, inv_line.invoice_id.date_invoice or fields.Date.today()) for inv_line in invoice_lines.filtered(lambda line: line.invoice_id.state in ['open', 'paid'])])
-        dashboard_values['money_amount']['to_invoice'] = sum([sol.currency_id._convert_amount(sol.price_unit * (1 - (sol.discount or 0.0) / 100.0) * sol.qty_to_invoice, currency, sol.company_id, fields.Date.today()) for sol in so_lines]) + sum([i.currency_id._convert_amount(i.price_unit * i.quantity, currency, i.company_id, i.invoice_id.date_invoice or fields.Date.today()) for i in invoice_lines.filtered(lambda line: line.invoice_id.state == 'draft')])
+        dashboard_values['money_amount']['invoiced'] = sum([inv_line.currency_id._convert(inv_line.price_unit * inv_line.quantity, currency, inv_line.company_id, inv_line.invoice_id.date_invoice or fields.Date.today()) for inv_line in invoice_lines.filtered(lambda line: line.invoice_id.state in ['open', 'paid'])])
+        dashboard_values['money_amount']['to_invoice'] = sum([sol.currency_id._convert(sol.price_unit * (1 - (sol.discount or 0.0) / 100.0) * sol.qty_to_invoice, currency, sol.company_id, fields.Date.today()) for sol in so_lines]) + sum([i.currency_id._convert(i.price_unit * i.quantity, currency, i.company_id, i.invoice_id.date_invoice or fields.Date.today()) for i in invoice_lines.filtered(lambda line: line.invoice_id.state == 'draft')])
         dashboard_values['money_amount']['cost'] = sum(values['timesheet_lines'].mapped('amount'))
         dashboard_values['money_amount']['total'] = sum([dashboard_values['money_amount'][item] for item in dashboard_values['money_amount'].keys()])
 

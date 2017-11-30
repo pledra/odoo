@@ -76,7 +76,7 @@ class HrExpense(models.Model):
             amount = 0
             if expense.company_currency_id:
                 date_expense = expense.date
-                amount = expense.currency_id._convert_amount(
+                amount = expense.currency_id._convert(
                     expense.total_amount, expense.company_currency_id,
                     expense.company_id, date_expense or fields.Date.today())
             expense.total_amount_company = amount
@@ -182,7 +182,7 @@ class HrExpense(models.Model):
                 line['currency_id'] = self.currency_id.id
                 line['amount_currency'] = line['price']
                 date = move_date or fields.Date.context_today(self)
-                line['price'] = self.currency_id._convert_amount(line['price'], company_currency, line.company_id, date)
+                line['price'] = self.currency_id._convert(line['price'], company_currency, line.company_id, date)
             total -= line['price']
             total_currency -= line['amount_currency'] or line['price']
         return total, total_currency, account_move_lines

@@ -954,12 +954,12 @@ class AccountBankStatementLine(models.Model):
                         aml_dict['credit'] = company_currency.round(aml_dict['credit'] / st_line_currency_rate)
                     elif self.currency_id and st_line_currency_rate:
                         # Statement is in foreign currency and the transaction is in another one
-                        aml_dict['debit'] = statement_currency._convert_amount(aml_dict['debit'] / st_line_currency_rate, company_currency, company, date)
-                        aml_dict['credit'] = statement_currency._convert_amount(aml_dict['credit'] / st_line_currency_rate, company_currency, company, date)
+                        aml_dict['debit'] = statement_currency._convert(aml_dict['debit'] / st_line_currency_rate, company_currency, company, date)
+                        aml_dict['credit'] = statement_currency._convert(aml_dict['credit'] / st_line_currency_rate, company_currency, company, date)
                     else:
                         # Statement is in foreign currency and no extra currency is given for the transaction
-                        aml_dict['debit'] = st_line_currency._convert_amount(aml_dict['debit'], company_currency, company, date)
-                        aml_dict['credit'] = st_line_currency._convert_amount(aml_dict['credit'], company_currency, company, date)
+                        aml_dict['debit'] = st_line_currency._convert(aml_dict['debit'], company_currency, company, date)
+                        aml_dict['credit'] = st_line_currency._convert(aml_dict['credit'], company_currency, company, date)
                 elif statement_currency.id != company_currency.id:
                     # Statement is in foreign currency but the transaction is in company currency
                     prorata_factor = (aml_dict['debit'] - aml_dict['credit']) / self.amount_currency
@@ -983,7 +983,7 @@ class AccountBankStatementLine(models.Model):
                 aml_dict['payment_id'] = payment and payment.id or False
                 if new_aml_currency and not aml_dict.get('currency_id'):
                     aml_dict['currency_id'] = new_aml_currency.id
-                    aml_dict['amount_currency'] = company_currency._convert_amount(aml_dict['debit'] - aml_dict['credit'], new_aml_currency, company, date)
+                    aml_dict['amount_currency'] = company_currency._convert(aml_dict['debit'] - aml_dict['credit'], new_aml_currency, company, date)
                 aml_obj.with_context(check_move_validity=False, apply_taxes=True).create(aml_dict)
 
             # Create counterpart move lines and reconcile them
@@ -996,7 +996,7 @@ class AccountBankStatementLine(models.Model):
                 counterpart_move_line = aml_dict.pop('move_line')
                 if counterpart_move_line.currency_id and counterpart_move_line.currency_id != company_currency and not aml_dict.get('currency_id'):
                     aml_dict['currency_id'] = counterpart_move_line.currency_id.id
-                    aml_dict['amount_currency'] = company_currency._convert_amount(aml_dict['debit'] - aml_dict['credit'], counterpart_move_line.currency_id, company, date)
+                    aml_dict['amount_currency'] = company_currency._convert(aml_dict['debit'] - aml_dict['credit'], counterpart_move_line.currency_id, company, date)
                 new_aml = aml_obj.with_context(check_move_validity=False).create(aml_dict)
 
                 (new_aml | counterpart_move_line).reconcile()

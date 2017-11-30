@@ -239,7 +239,8 @@ class account_journal(models.Model):
             cur = self.env['res.currency'].browse(result.get('currency'))
             company = self.env['res.company'].browse(result.get('company_id'))
             rslt_count += 1
-            rslt_sum += cur._convert_amount(result.get('amount_total'), target_currency, company, result.get('date'))
+            rslt_sum += cur._convert(
+                result.get('amount_total'), target_currency, company, result.get('date') or fields.Date.today())
         return (rslt_count, rslt_sum)
 
     @api.multi

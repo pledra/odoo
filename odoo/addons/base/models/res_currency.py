@@ -182,7 +182,15 @@ class Currency(models.Model):
         # print (currency_rates.get(to_currency.id), currency_rates.get(from_currency.id), res)
         return res
 
-    def _convert_amount(self, from_amount, to_currency, company, date, round=True):
+    def _convert(self, from_amount, to_currency, company, date, round=True):
+        """Returns the converted amount of ``from_amount``` from the currency
+           ``self`` to the currency ``to_currency`` for the given ``date`` and
+           company.
+
+           :param company: The company from which we retrieve the convertion rate
+           :param date: The nearest date from which we retriev the conversion rate.
+           :param round: Round the result or not
+        """
         self, to_currency = self or to_currency, to_currency or self
         assert self, "convert amount from unknown currency"
         assert to_currency, "convert amount to unknown currency"
@@ -198,17 +206,17 @@ class Currency(models.Model):
 
     @api.model
     def _compute(self, from_currency, to_currency, from_amount, round=True):
-        _logger.warning('The `_compute` method is deprecated. Use `_convert_amount` instead')
+        _logger.warning('The `_compute` method is deprecated. Use `_convert` instead')
         date = self._context.get('date') or fields.Date.today()
         company = self.env['res.company'].browse(self._context.get('company_id')) or self.env['res.users']._get_company()
-        return from_currency._convert_amount(from_amount, to_currency, company, date)
+        return from_currency._convert(from_amount, to_currency, company, date)
 
     @api.multi
     def compute(self, from_amount, to_currency, round=True):
-        _logger.warning('The `compute` method is deprecated. Use `_convert_amount` instead')
+        _logger.warning('The `compute` method is deprecated. Use `_convert` instead')
         date = self._context.get('date') or fields.Date.today()
         company = self.env['res.company'].browse(self._context.get('company_id')) or self.env['res.users']._get_company()
-        return self._convert_amount(from_amount, to_currency, company, date)
+        return self._convert(from_amount, to_currency, company, date)
 
     def _select_companies_rates(self):
         return """

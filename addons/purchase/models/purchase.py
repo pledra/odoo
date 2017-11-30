@@ -355,7 +355,7 @@ class PurchaseOrder(models.Model):
             # Deal with double validation process
             if order.company_id.po_double_validation == 'one_step'\
                     or (order.company_id.po_double_validation == 'two_step'\
-                        and order.amount_total < self.env.user.company_id.currency_id._convert_amount(
+                        and order.amount_total < self.env.user.company_id.currency_id._convert(
                             order.company_id.po_double_validation_amount, order.currency_id, order.company_id, order.date_order or fields.Date.today()))\
                     or order.user_has_groups('purchase.group_purchase_manager'):
                 order.button_approve()
@@ -459,7 +459,7 @@ class PurchaseOrder(models.Model):
                     'sequence': max(line.product_id.seller_ids.mapped('sequence')) + 1 if line.product_id.seller_ids else 1,
                     'product_uom': line.product_uom.id,
                     'min_qty': 0.0,
-                    'price': self.currency_id._convert_amount(line.price_unit, currency, line.company_id, line.date_order or fields.Date.today()),
+                    'price': self.currency_id._convert(line.price_unit, currency, line.company_id, line.date_order or fields.Date.today()),
                     'currency_id': currency.id,
                     'delay': 0,
                 }
@@ -690,7 +690,7 @@ class PurchaseOrderLine(models.Model):
         if line.product_uom.id != line.product_id.uom_id.id:
             price_unit *= line.product_uom.factor / line.product_id.uom_id.factor
         if order.currency_id != order.company_id.currency_id:
-            price_unit = order.currency_id._convert_amount(
+            price_unit = order.currency_id._convert(
                 price_unit, order.company_id.currency_id, self.company_id, self.date_order or fields.Date.today(), round=False)
         return price_unit
 
@@ -846,7 +846,7 @@ class PurchaseOrderLine(models.Model):
 
         price_unit = self.env['account.tax']._fix_tax_included_price_company(seller.price, self.product_id.supplier_taxes_id, self.taxes_id, self.company_id) if seller else 0.0
         if price_unit and seller and self.order_id.currency_id and seller.currency_id != self.order_id.currency_id:
-            price_unit = seller.currency_id._convert_amount(
+            price_unit = seller.currency_id._convert(
                 price_unit, self.order_id.currency_id, self.order_id.company_id, self.date_order or fields.Date.today())
 
         if seller and self.product_uom and seller.product_uom != self.product_uom:
@@ -930,7 +930,7 @@ class ProcurementRule(models.Model):
 
                     price_unit = self.env['account.tax']._fix_tax_included_price_company(seller.price, line.product_id.supplier_taxes_id, line.taxes_id, values['company_id']) if seller else 0.0
                     if price_unit and seller and po.currency_id and seller.currency_id != po.currency_id:
-                        price_unit = seller.currency_id._convert_amount(
+                        price_unit = seller.currency_id._convert(
                             price_unit, po.currency_id, po.company_id, po.date_order or fields.Date.today())
 
                     po_line = line.write({
@@ -978,7 +978,7 @@ class ProcurementRule(models.Model):
 
         price_unit = self.env['account.tax']._fix_tax_included_price_company(seller.price, product_id.supplier_taxes_id, taxes_id, values['company_id']) if seller else 0.0
         if price_unit and seller and po.currency_id and seller.currency_id != po.currency_id:
-            price_unit = seller.currency_id._convert_amount(
+            price_unit = seller.currency_id._convert(
                 price_unit, po.currency_id, po.company_id, po.date_order or fields.Date.today())
 
         product_lang = product_id.with_context({

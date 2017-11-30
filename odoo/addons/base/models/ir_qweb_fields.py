@@ -313,7 +313,7 @@ class MonetaryConverter(models.AbstractModel):
         date = options.get('date') or fields.Date.today()
 
         if options.get('from_currency'):
-            value = options['from_currency']._convert_amount(value, display_currency, company, date)
+            value = options['from_currency']._convert(value, display_currency, company, date)
 
         lang = self.user_lang()
         formatted_amount = lang.format(fmt, display_currency.round(value),

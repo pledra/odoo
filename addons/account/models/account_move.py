@@ -544,7 +544,7 @@ class AccountMoveLine(models.Model):
         for line in self:
             amount = line.amount_currency
             if line.currency_id and line.currency_id != line.company_currency_id:
-                amount = self.currency_id._convert_amount(amount, line.company_currency_id, line.company_id, line.date or fields.Date.today())
+                amount = self.currency_id._convert(amount, line.company_currency_id, line.company_id, line.date or fields.Date.today())
             line.debit = amount > 0 and amount or 0.0
             line.credit = amount < 0 and -amount or 0.0
 
@@ -868,8 +868,8 @@ class AccountMoveLine(models.Model):
                     amount_currency = line.currency_id and amount_currency or amount
                     company = line.account_id.company_id
                     date = target_date or line.date or fields.Date.today()
-                    amount = company_currency._convert_amount(amount, target_currency, company, date)
-                    total_amount = company_currency._convert_amount((line.debit - line.credit), target_currency, company, date)
+                    amount = company_currency._convert(amount, target_currency, company, date)
+                    total_amount = company_currency._convert((line.debit - line.credit), target_currency, company, date)
                     total_amount_currency = line.currency_id and line.amount_currency or (line.debit - line.credit)
 
             ret_line['debit'] = amount > 0 and amount or 0
@@ -920,8 +920,8 @@ class AccountMoveLine(models.Model):
             writeoff_currency = self[0].currency_id or company_currency
             for mv_line_dict in new_mv_line_dicts:
                 if writeoff_currency != company_currency:
-                    mv_line_dict['debit'] = writeoff_currency._convert_amount(mv_line_dict['debit'], company_currency, company, date)
-                    mv_line_dict['credit'] = writeoff_currency._convert_amount(mv_line_dict['credit'], company_currency, company, date)
+                    mv_line_dict['debit'] = writeoff_currency._convert(mv_line_dict['debit'], company_currency, company, date)
+                    mv_line_dict['credit'] = writeoff_currency._convert(mv_line_dict['credit'], company_currency, company, date)
                 writeoff_lines += self._create_writeoff(mv_line_dict)
 
             (self + writeoff_lines).reconcile()
@@ -1256,7 +1256,7 @@ class AccountMoveLine(models.Model):
             else:
                 company = account.company_id
                 currency = account.company_id.currency_id
-                vals['amount_currency'] = currency._convert_amount(amount, account.currency_id, company, vals.get('date') or fields.Date.today())
+                vals['amount_currency'] = currency._convert(amount, account.currency_id, company, vals.get('date') or fields.Date.today())
         if not ok:
             raise UserError(_('You cannot use this general account in this journal, check the tab \'Entry Controls\' on the related journal.'))
 
@@ -1299,7 +1299,7 @@ class AccountMoveLine(models.Model):
                         company = bank.company_id
                         bank_currency = bank.company_id.currency_id
                         temp['currency_id'] = bank.currency_id.id
-                        temp['amount_currency'] = bank_currency._convert_amount(tax_vals['amount'], bank.currency_id, company, vals.get('date') or fields.Date.today())
+                        temp['amount_currency'] = bank_currency._convert(tax_vals['amount'], bank.currency_id, company, vals.get('date') or fields.Date.today())
                     tax_lines_vals.append(temp)
 
         #Toggle the 'tax_exigible' field to False in case it is not yet given and the tax in 'tax_line_id' or one of
@@ -1442,12 +1442,12 @@ class AccountMoveLine(models.Model):
         company = self.env.context.get('company_id', False)
         if src_currency and src_currency != company_currency:
             amount_currency = amount
-            amount = src_currency._convert_amount(amount, company_currency, company, date)
+            amount = src_currency._convert(amount, company_currency, company, date)
             currency_id = src_currency.id
         debit = amount > 0 and amount or 0.0
         credit = amount < 0 and -amount or 0.0
         if invoice_currency and invoice_currency != company_currency and not amount_currency:
-            amount_currency = src_currency._convert_amount(amount, invoice_currency, company, date)
+            amount_currency = src_currency._convert(amount, invoice_currency, company, date)
             currency_id = invoice_currency.id
         return debit, credit, amount_currency, currency_id
 
@@ -1470,7 +1470,7 @@ class AccountMoveLine(models.Model):
         amount = (self.credit or 0.0) - (self.debit or 0.0)
         date = self.date or fields.Date.context_today(self)
         if self.analytic_account_id.currency_id:
-            amount = self.company_currency_id._convert_amount(amount, self.analytic_account_id.currency_id, self.company_id, date)
+            amount = self.company_currency_id._convert(amount, self.analytic_account_id.currency_id, self.company_id, date)
         return {
             'name': self.name,
             'date': self.date,
@@ -1806,7 +1806,7 @@ class AccountPartialReconcile(models.Model):
                         #aml.balance in that foreign currency
                         company = aml.company_id
                         company_currency = company.currency_id
-                        total_amount_currency += company_currency._convert_amount(aml.balance, partial_rec.currency_id, company, aml.date or fields.Date.today())
+                        total_amount_currency += company_currency._convert(aml.balance, partial_rec.currency_id, company, aml.date or fields.Date.today())
                 for x in aml.matched_debit_ids | aml.matched_credit_ids:
                     if x not in seen:
                         todo.add(x)

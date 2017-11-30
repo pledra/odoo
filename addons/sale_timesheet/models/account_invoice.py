@@ -70,16 +70,16 @@ class AccountInvoice(models.Model):
                         total_revenue_per_currency = dict.fromkeys(uninvoiced_timesheet_lines.mapped('company_currency_id').ids, 0.0)
                         for index, timesheet_line in enumerate(uninvoiced_timesheet_lines.sorted(key=lambda ts: (ts.date, ts.id))):
                             if index+1 != len(uninvoiced_timesheet_lines):
-                                line_revenue = invoice_line.currency_id._convert_amount(
+                                line_revenue = invoice_line.currency_id._convert(
                                     invoiced_price_per_hour, timesheet_line.company_currency_id,
                                     self.env.user.company_id, fields.Date.today()) * timesheet_line.unit_amount
                                 total_revenue_per_currency[timesheet_line.company_currency_id.id] += line_revenue
                             else:  # last line: add the difference to avoid rounding problem
-                                total_revenue = sum([self.env['res.currency'].browse(currency_id)._convert_amount(
+                                total_revenue = sum([self.env['res.currency'].browse(currency_id)._convert(
                                     amount, timesheet_line.company_currency_id,
                                     self.env.user.company_id, fields.Date.today()
                                 ) for currency_id, amount in total_revenue_per_currency.items()])
-                                line_revenue = invoice_line.currency_id._convert_amount(
+                                line_revenue = invoice_line.currency_id._convert(
                                     invoice_line.price_subtotal, timesheet_line.company_currency_id,
                                     self.env.user.company_id, fields.Date.today()
                                 ) - total_revenue
@@ -101,19 +101,19 @@ class AccountInvoice(models.Model):
 
                         for index, timesheet_line in enumerate(no_zero_timesheet_revenue.sorted(key=lambda ts: (ts.date, ts.id))):
                             if index+1 != len(no_zero_timesheet_revenue):
-                                price_subtotal_inv = invoice_line.currency_id._convert_amount(
+                                price_subtotal_inv = invoice_line.currency_id._convert(
                                     invoice_line.price_subtotal, timesheet_line.company_currency_id,
                                     self.env.user.company_id, fields.Date.today())
-                                price_subtotal_sol = timesheet_line.so_line.currency_id._convert_amount(
+                                price_subtotal_sol = timesheet_line.so_line.currency_id._convert(
                                     timesheet_line.so_line.price_subtotal, timesheet_line.company_currency_id,
                                     self.env.user.company_id, fields.Date.today())
                                 line_revenue = timesheet_line.timesheet_revenue * price_subtotal_inv / price_subtotal_sol
                                 total_revenue_per_currency[timesheet_line.company_currency_id.id] += line_revenue
                             else:  # last line: add the difference to avoid rounding problem
-                                last_price_subtotal_inv = invoice_line.currency_id._convert_amount(
+                                last_price_subtotal_inv = invoice_line.currency_id._convert(
                                     invoice_line.price_subtotal, timesheet_line.company_currency_id,
                                     self.env.user.company_id, fields.Date.today())
-                                total_revenue = sum([self.env['res.currency'].browse(currency_id)._convert_amount(
+                                total_revenue = sum([self.env['res.currency'].browse(currency_id)._convert(
                                     amount, timesheet_line.company_currency_id,
                                     self.env.user.company_id, fields.Date.today()
                                 ) for currency_id, amount in total_revenue_per_currency.items()])

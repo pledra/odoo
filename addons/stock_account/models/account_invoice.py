@@ -91,7 +91,7 @@ class AccountInvoiceLine(models.Model):
 
     def _get_price(self, company_currency, price_unit):
         if self.invoice_id.currency_id.id != company_currency.id:
-            price = company_currency._convert_amount(
+            price = company_currency._convert(
                 price_unit * self.quantity,
                 self.invoice_id.currency_id,
                 self.invoice_id.company_id,

@@ -168,7 +168,7 @@ class TestStockValuation(TransactionCase):
         move1 = picking1.move_lines[0]
 
         # convert the price unit in the company currency
-        price_unit_usd = po1.currency_id._convert_amount(
+        price_unit_usd = po1.currency_id._convert(
             po1.order_line.price_unit, po1.company_id.currency_id,
             self.env.user.company_id, fields.Date.today(), round=False)
 
@@ -184,7 +184,7 @@ class TestStockValuation(TransactionCase):
             'company_id': po1.company_id.id,
         })
         eur_currency._compute_current_rate()
-        price_unit_usd_new_rate = po1.currency_id._convert_amount(
+        price_unit_usd_new_rate = po1.currency_id._convert(
             po1.order_line.price_unit, po1.company_id.currency_id,
             self.env.user.company_id, fields.Date.today(), round=False)
 

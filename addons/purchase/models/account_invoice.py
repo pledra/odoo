@@ -52,7 +52,7 @@ class AccountInvoice(models.Model):
             'uom_id': line.product_uom.id,
             'product_id': line.product_id.id,
             'account_id': invoice_line.with_context({'journal_id': self.journal_id.id, 'type': 'in_invoice'})._default_account(),
-            'price_unit': line.order_id.currency_id._convert_amount(
+            'price_unit': line.order_id.currency_id._convert(
                 line.price_unit, self.currency_id, line.company_id, date or fields.Date.today(), round=False),
             'quantity': qty,
             'discount': 0.0,
@@ -93,7 +93,7 @@ class AccountInvoice(models.Model):
         for line in self.invoice_line_ids.filtered(lambda r: r.purchase_line_id):
             order_currency = line.purchase_id.currency_id
             price_unit = line.purchase_line_id.price_unit
-            line.price_unit = order_currency._convert_amount(
+            line.price_unit = order_currency._convert(
                 price_unit, self.currency_id, self.company_id, self.date_invoice or fields.Date.today(), round=False)
 
     @api.onchange('invoice_line_ids')
@@ -170,7 +170,7 @@ class AccountInvoice(models.Model):
                             valuation_price_unit = valuation_price_unit_total / valuation_total_qty
                             valuation_price_unit = i_line.product_id.uom_id._compute_price(valuation_price_unit, i_line.uom_id)
                     if inv.currency_id.id != company_currency.id:
-                            valuation_price_unit = company_currency._convert_amount(
+                            valuation_price_unit = company_currency._convert(
                                 valuation_price_unit, inv.currency_id, inv.company_id, inv.date_invoice or fields.Date.today(), round=False)
                     if valuation_price_unit != i_line.price_unit and line['price_unit'] == i_line.price_unit and acc:
                         # price with discount and without tax included

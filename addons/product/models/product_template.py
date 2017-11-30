@@ -375,7 +375,7 @@ class ProductTemplate(models.Model):
             # Convert from current user company currency to asked one
             # This is right cause a field cannot be in more than one currency
             if currency:
-                prices[template.id] = template.currency_id._convert_amount(prices[template.id], currency, company, date)
+                prices[template.id] = template.currency_id._convert(prices[template.id], currency, company, date)
 
         return prices
 

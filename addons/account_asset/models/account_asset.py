@@ -484,7 +484,7 @@ class AccountAssetDepreciationLine(models.Model):
             depreciation_date = self.env.context.get('depreciation_date') or line.depreciation_date or fields.Date.context_today(self)
             company_currency = line.asset_id.company_id.currency_id
             current_currency = line.asset_id.currency_id
-            amount = current_currency._convert_amount(line.amount, company_currency, line.asset_id.company_id, depreciation_date)
+            amount = current_currency._convert(line.amount, company_currency, line.asset_id.company_id, depreciation_date)
             asset_name = line.asset_id.name + ' (%s/%s)' % (line.sequence, len(line.asset_id.depreciation_line_ids))
             move_line_1 = {
                 'name': asset_name,
@@ -537,7 +537,7 @@ class AccountAssetDepreciationLine(models.Model):
             current_currency = line.asset_id.currency_id
             company = line.asset_id.company_id
             # TODO : Shouldn't we set the deprecieation date ?
-            amount += current_currency._convert_amount(line.amount, company_currency, company, fields.Date.today())
+            amount += current_currency._convert(line.amount, company_currency, company, fields.Date.today())
 
         name = category_id.name + _(' (grouped)')
         move_line_1 = {

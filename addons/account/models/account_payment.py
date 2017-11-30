@@ -93,7 +93,7 @@ class account_abstract_payment(models.AbstractModel):
             if inv.currency_id == payment_currency:
                 total += inv.residual_signed
             else:
-                total += inv.company_currency_id._convert_amount(
+                total += inv.company_currency_id._convert(
                     inv.residual_company_signed, payment_currency, inv.company_id, self.payment_date or fields.Date.today())
         return abs(total)
 
@@ -120,7 +120,7 @@ class account_register_payments(models.TransientModel):
             if inv.currency_id == payment_currency:
                 total += MAP_INVOICE_TYPE_PAYMENT_SIGN[inv.type] * inv.residual_company_signed
             else:
-                amount_residual = inv.company_currency_id._convert_amount(
+                amount_residual = inv.company_currency_id._convert(
                     inv.residual_company_signed, payment_currency, inv.company_id, self.payment_date or fields.Date.today())
                 total += MAP_INVOICE_TYPE_PAYMENT_SIGN[inv.type] * amount_residual
         return total
@@ -544,7 +544,7 @@ class account_payment(models.Model):
             # minus the payment amount in company currency, and not from the payment difference in the payment currency
             # to avoid loss of precision during the currency rate computations. See revision 20935462a0cabeb45480ce70114ff2f4e91eaf79 for a detailed example.
             total_residual_company_signed = sum(invoice.residual_company_signed for invoice in self.invoice_ids)
-            total_payment_company_signed = self.currency_id._convert_amount(self.amount, self.company_id.currency_id, self.company_id, self.payment_date or fields.Date.today())
+            total_payment_company_signed = self.currency_id._convert(self.amount, self.company_id.currency_id, self.company_id, self.payment_date or fields.Date.today())
             if self.invoice_ids[0].type in ['in_invoice', 'out_refund']:
                 amount_wo = total_payment_company_signed - total_residual_company_signed
             else:
@@ -593,7 +593,7 @@ class account_payment(models.Model):
         """
         aml_obj = self.env['account.move.line'].with_context(check_move_validity=False)
         debit, credit, amount_currency, dummy = aml_obj.with_context(date=self.payment_date, company_id=self.company_id).compute_amount_fields(amount, self.currency_id, self.company_id.currency_id)
-        amount_currency = self.destination_journal_id.currency_id and self.currency_id._convert_amount(amount, self.destination_journal_id.currency_id, self.company_id, self.payment_date or fields.Date.today()) or 0
+        amount_currency = self.destination_journal_id.currency_id and self.currency_id._convert(amount, self.destination_journal_id.currency_id, self.company_id, self.payment_date or fields.Date.today()) or 0
 
         dst_move = self.env['account.move'].create(self._get_move_vals(self.destination_journal_id))
 
@@ -690,7 +690,7 @@ class account_payment(models.Model):
 
         # If the journal has a currency specified, the journal item need to be expressed in this currency
         if self.journal_id.currency_id and self.currency_id != self.journal_id.currency_id:
-            amount = self.currency_id._convert_amount(amount, self.journal_id.currency_id, self.company_id, self.payment_date or fields.Date.today())
+            amount = self.currency_id._convert(amount, self.journal_id.currency_id, self.company_id, self.payment_date or fields.Date.today())
             debit, credit, amount_currency, dummy = self.env['account.move.line'].with_context(date=self.payment_date, company_id=self.company_id).compute_amount_fields(amount, self.journal_id.currency_id, self.company_id.currency_id)
             vals.update({
                 'amount_currency': amount_currency,
