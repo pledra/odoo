@@ -96,19 +96,19 @@
                                 </a>
                             </div>
                         </div>
-                        <div style="padding: 5px">
+                        <div style="padding: 5px; text-align:left;">
                             <strong>Invoice #</strong>
                             <span t-field="invoice.number"/>
                         </div>
-                        <div name="reference" t-if="invoice.reference">
+                        <div name="reference" t-if="invoice.reference" style="padding: 5px; text-align:left;">
                             <strong>Reference: </strong>
                             <span t-field="invoice.reference"/>
                         </div>
-                        <div style="padding: 5px">
+                        <div style="padding: 5px; text-align:left;">
                             <strong>Issued: </strong>
                             <span t-field="invoice.date_invoice"/>
                         </div>
-                        <div style="padding: 5px">
+                        <div style="padding: 5px; text-align:left">
                             <strong>Due: </strong>
                             <span t-field="invoice.date_due"/>
                         </div>
@@ -118,14 +118,28 @@
                     </div>
                 </div>
                 <div id="invoice_content" class="col-md-9 hidden-print">
-                    <div class="o_portal_invoice">
-                        <iframe width="100%" height="500px" t-attf-src="/my/invoices/pdf/#{invoice.id}?access_token=#{invoice.access_token}"/>
+                    <div class="o_portal_invoice" style="height:1130px; width:100%">
+                        <iframe height="100%" width="100%" t-attf-src="/web/static/lib/pdfjs/web/viewer.html?file=/my/invoices/pdf/#{invoice.id}?access_token=#{invoice.access_token}" />
+                    </div>
+                    <div class="modal fade" id="pay_with" tabindex="-1" role="dialog">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&amp;times;</button>
+                                <h3 class="modal-title">Pay with</h3>
+                            </div>
+                            <div class="modal-body">
+                                <div style="padding: 5px"><label class="radio-inline"><input type="radio" name="paypal" value="paypal"/> Paypal</label></div>
+                                <div style="padding: 5px"><label class="radio-inline"><input type="radio" name="wire_transfer" value="wire_transfer"/> Wire Transfer</label></div>
+                                <div style="padding: 5px"><button type="button" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-lock"/> Pay Now</button></div>
+                            </div>
+                         </div>
+                    </div>
                     </div>
                 </div>
                 </div>
             </div>
-        <div class="oe_structure mb32"/>
-        </body>
+            </body>
         </t>
     </template>
 
