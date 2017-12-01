@@ -482,14 +482,14 @@ def can_import(module):
 class TagsError(Exception):
     pass
 
-def set_tags(*tags):
+def tagged(*tags):
     """
     A decorator to tag TestCase objects
     Tags are stored in a set that can be accessed from a 'test_tags' attribute
-    Tags must not contains '+' or '-' signs
+    Tags must only contains alaphanumeric chars
     """
     def tags_decorator(obj):
-        unallowed_chars_re = re.compile('[\-\+]')
+        unallowed_chars_re = re.compile('\W')
         for t in tags:
             if unallowed_chars_re.search(t):
                 raise TagsError("Illegal character '{}' found in test tag".format(unallowed_chars_re.search(t).group()))
@@ -500,28 +500,28 @@ def set_tags(*tags):
     return tags_decorator
 
 
-def check_tags(obj, to_test_tags, no_test_tags):
-    """
-    Check if object 'obj' has to be executed based on to_test_tags and
-    no_tesg_tags.
-    to_test_tags is a set of tags to select test
-    no_test_tags is a set of tags to deselect test
-    Obj is considered to have the tag 'standard' by default.
-    """
-    if not to_test_tags and not no_test_tags:
-        to_test_tags = {'standard'}
+class TagsTestSelector(object):
+    """ Test selector based on tags. """
 
-    if no_test_tags is None:
-        no_test_tags = set()
+    def __init__(self, spec):
+        """ Parse the spec to determine tags to include and exclude. """
+        clean_tags = {t.strip() for t in spec.split(',') if t.strip() != ''}
+        if clean_tags == set():
+            clean_tags = {'standard'}
+        self.exclude = {t[1:] for t in clean_tags if t.startswith('-')}
+        self.include = {t.replace('+', '') for t in clean_tags if not t.startswith('-')}
 
-    obj_tags = getattr(obj, 'test_tags', set(('standard',)))
-
-    inter_no_test = obj_tags.intersection(no_test_tags)
-    if bool(inter_no_test):
-        _logger.info("Test '{}' deselected because of following tag(s): '{}'".format(obj, inter_no_test))
-        return False
-    inter_to_test = obj_tags.intersection(to_test_tags)
-    if bool(inter_to_test) is False:
-        _logger.info("Test '{}' deselected because it was not tagged with '{}'".format(obj, to_test_tags))
-        return False
-    return True
+    def __call__(self, arg):
+        """ Return whether ``arg`` matches the specification: it must have at
+            least one tag in ``self.include`` and none in ``self.exclude``.
+        """
+        tags = getattr(arg, 'test_tags', ('standard',))
+        inter_no_test = self.exclude.intersection(tags)
+        if bool(inter_no_test):
+            _logger.debug("Test '{}' deselected because of following tag(s): '{}'".format(arg, inter_no_test))
+            return False
+        inter_to_test = self.include.intersection(tags)
+        if bool(inter_to_test) is False:
+            _logger.debug("Test '{}' deselected because it was not tagged with '{}'".format(arg, self.include))
+            return False
+        return True

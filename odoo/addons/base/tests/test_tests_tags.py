@@ -3,17 +3,16 @@
 
 import unittest
 
-from odoo.tests.common import set_tags, check_tags, TagsError
-from odoo.tools.config import parse_pico_lang
+from odoo.tests.common import tagged, TagsTestSelector, TagsError
 
 
-@set_tags('nodatabase')
+@tagged('nodatabase')
 class TestSetTags(unittest.TestCase):
 
     def test_set_tags_empty(self):
         """Test the set_tags decorator with an empty set of tags"""
 
-        @set_tags()
+        @tagged()
         class FakeClass():
             pass
 
@@ -25,7 +24,7 @@ class TestSetTags(unittest.TestCase):
     def test_set_tags_single_tag(self):
         """Test the set_tags decorator with a single tag"""
 
-        @set_tags('slow')
+        @tagged('slow')
         class FakeClass():
             pass
 
@@ -36,7 +35,7 @@ class TestSetTags(unittest.TestCase):
     def test_set_tags_multiple_tags(self):
         """Test the set_tags decorator with multiple tags"""
 
-        @set_tags('slow', 'nightly')
+        @tagged('slow', 'nightly')
         class FakeClass():
             pass
 
@@ -48,48 +47,76 @@ class TestSetTags(unittest.TestCase):
         """Test the set_tags decorator with unallowed chars"""
 
         with self.assertRaises(TagsError):
-            @set_tags('+slow')
+            @tagged('+slow')
             class FakeClass:
                 pass
             
         with self.assertRaises(TagsError):
-            @set_tags('js+slow')
+            @tagged('js+slow')
             class FakeClass:
                 pass
 
-@set_tags('nodatabase')
-class TestPicoLang(unittest.TestCase):
-    
-    def test_pico_language(self):
-        """Test the pico language for selecting deselecting tags"""
-        
-        self.assertEqual(({'slow',}, set()), parse_pico_lang('+slow'))
-        self.assertEqual(({'slow', 'nightly'}, set()), parse_pico_lang('+slow,nightly'))
-        self.assertEqual(({'slow'}, {'standard'}), parse_pico_lang('+slow,-standard'))
-        self.assertEqual(({'slow'}, {'standard'}), parse_pico_lang('+slow, -standard'))
-        self.assertEqual(({'slow'}, {'standard'}), parse_pico_lang('+slow , -standard'))
-        self.assertEqual(({'slow', 'js'},{'standard'}), parse_pico_lang('slow,-standard,+js'))
-        self.assertEqual(({'slow'},set()), parse_pico_lang('slow, '))
-        self.assertEqual(({'slow'}, {'standard'}), parse_pico_lang('+slow,-standard, slow,-standard'))
-        self.assertEqual((set(),set()), parse_pico_lang(''))
+@tagged('nodatabase')
+class TestSelector(unittest.TestCase):
 
-@set_tags('nodatabase')
-class TestCheckTags(unittest.TestCase):
+    def test_selector_parser(self):
+        """Test the parser part of the TagsTestSelector class"""
 
-    def test_check_tags(self):
+        selector = TagsTestSelector('+slow')
+        self.assertEqual({'slow', }, selector.include)
+        self.assertEqual(set(), selector.exclude)
+
+        selector = TagsTestSelector('+slow,nightly')
+        self.assertEqual({'slow', 'nightly'}, selector.include)
+        self.assertEqual(set(), selector.exclude)
+
+        selector = TagsTestSelector('+slow,-standard')
+        self.assertEqual({'slow', }, selector.include)
+        self.assertEqual({'standard', }, selector.exclude)
+
+        # same with space after the comma
+        selector = TagsTestSelector('+slow, -standard')
+        self.assertEqual({'slow', }, selector.include)
+        self.assertEqual({'standard', }, selector.exclude)
+
+        # same with space befaore and after the comma
+        selector = TagsTestSelector('+slow , -standard')
+        self.assertEqual({'slow', }, selector.include)
+        self.assertEqual({'standard', }, selector.exclude)
+
+        selector = TagsTestSelector('+slow ,-standard,+js')
+        self.assertEqual({'slow', 'js', }, selector.include)
+        self.assertEqual({'standard', }, selector.exclude)
+
+        selector = TagsTestSelector('slow, ')
+        self.assertEqual({'slow', }, selector.include)
+        self.assertEqual(set(), selector.exclude)
+
+        selector = TagsTestSelector('+slow,-standard, slow,-standard ')
+        self.assertEqual({'slow', }, selector.include)
+        self.assertEqual({'standard', }, selector.exclude)
+
+        selector = TagsTestSelector('')
+        self.assertEqual({'standard', }, selector.include)
+        self.assertEqual(set(), selector.exclude)
+
+@tagged('nodatabase')
+class TestSelectorSelection(unittest.TestCase):
+
+    def test_selector_selection(self):
         """Test check_tags use cases"""
         class Test_A():
             pass
 
-        @set_tags('stock')
+        @tagged('stock')
         class Test_B():
             pass
 
-        @set_tags('stock', 'slow')
+        @tagged('stock', 'slow')
         class Test_C():
             pass
 
-        @set_tags('standard', 'slow')
+        @tagged('standard', 'slow')
         class Test_D():
             pass
 
@@ -104,46 +131,104 @@ class TestCheckTags(unittest.TestCase):
         # selectected along with another test tag
 
         # same as no "--test-tags" parameters:
-        self.assertTrue(check_tags(no_tags_obj, None, None))
-        self.assertTrue(check_tags(no_tags_obj, set(), set()))
+        selector = TagsTestSelector('')
+        self.assertTrue(selector(no_tags_obj))
 
         # same as "--test-tags '+slow'":
-        self.assertFalse(check_tags(no_tags_obj, {'slow'}, set()))
+        selector = TagsTestSelector('+slow')
+        self.assertFalse(selector(no_tags_obj))
+
         # same as "--test-tags '+slow,+fake'":
-        self.assertFalse(check_tags(no_tags_obj, {'slow', 'fake'}, set()))
+        selector = TagsTestSelector('+slow,fake')
+        self.assertFalse(selector(no_tags_obj))
+
         # same as "--test-tags '+slow,+standard'":
-        self.assertTrue(check_tags(no_tags_obj, {'slow', 'standard'}, set()))
+        selector = TagsTestSelector('slow,standard')
+        self.assertTrue(no_tags_obj)
+
         # same as "--test-tags '+slow,-standard'":
-        self.assertFalse(check_tags(no_tags_obj, {'slow'}, {'standard'}))
+        selector = TagsTestSelector('slow,-standard')
+        self.assertFalse(selector(no_tags_obj))
+
         # same as "--test-tags '-slow,-standard'":
-        self.assertFalse(check_tags(no_tags_obj, set(), {'slow', 'standard'}))
+        selector = TagsTestSelector('-slow,-standard')
+        self.assertFalse(selector(no_tags_obj))
+
         # same as "--test-tags '-slow,+standard'":
-        self.assertTrue(check_tags(no_tags_obj, {'standard'}, {'slow'}))
+        selector = TagsTestSelector('-slow,+standard')
+        self.assertTrue(selector(no_tags_obj))
 
-        self.assertFalse(check_tags(stock_tag_obj, set(), set()))
-        self.assertFalse(check_tags(stock_tag_obj, {'slow'}, set()))
-        self.assertFalse(check_tags(stock_tag_obj, {'standard'}, set()))
-        self.assertFalse(check_tags(stock_tag_obj, {'slow', 'standard'}, set()))
-        self.assertFalse(check_tags(stock_tag_obj, {'slow'}, {'standard'}))
-        self.assertTrue(check_tags(stock_tag_obj, {'stock'}, set()))
-        self.assertTrue(check_tags(stock_tag_obj, {'stock', 'fake'}, set()))
-        self.assertTrue(check_tags(stock_tag_obj, {'stock'}, {'standard'}))
-        self.assertFalse(check_tags(stock_tag_obj, set(), {'stock'}))
+        selector = TagsTestSelector('')
+        self.assertFalse(selector(stock_tag_obj))
 
-        self.assertFalse(check_tags(multiple_tags_obj, set(), set()))
-        self.assertFalse(check_tags(multiple_tags_obj, set(), {'stock'}))
-        self.assertFalse(check_tags(multiple_tags_obj, set(), {'slow'}))
-        self.assertTrue(check_tags(multiple_tags_obj, {'slow'}, set()))
-        self.assertTrue(check_tags(multiple_tags_obj, {'slow', 'stock'}, set()))
-        self.assertFalse(check_tags(multiple_tags_obj, {'stock'}, {'slow'}))
-        self.assertFalse(check_tags(multiple_tags_obj, {'stock', 'slow'}, {'slow'}))
+        selector = TagsTestSelector('slow')
+        self.assertFalse(selector(stock_tag_obj))
 
-        self.assertTrue(check_tags(multiple_tags_standard_obj, set(), set()))
-        self.assertTrue(check_tags(multiple_tags_standard_obj, {'standard'}, set()))
-        self.assertTrue(check_tags(multiple_tags_standard_obj, {'slow'}, set()))
-        self.assertTrue(check_tags(multiple_tags_standard_obj, {'slow', 'fake'}, set()))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, set(), {'slow'}))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, set(), {'standard'}))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, set(), {'standard', 'slow'}))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, {'standard'}, {'slow'}))
-        self.assertFalse(check_tags(multiple_tags_standard_obj, {'slow'}, {'standard'}))
+        selector = TagsTestSelector('standard')
+        self.assertFalse(selector(stock_tag_obj))
+
+        selector = TagsTestSelector('slow,standard')
+        self.assertFalse(selector(stock_tag_obj))
+
+        selector = TagsTestSelector('slow,-standard')
+        self.assertFalse(selector(stock_tag_obj))
+
+        selector = TagsTestSelector('+stock')
+        self.assertTrue(selector(stock_tag_obj))
+
+        selector = TagsTestSelector('stock,fake')
+        self.assertTrue(selector(stock_tag_obj))
+
+        selector = TagsTestSelector('stock,standard')
+        self.assertTrue(selector(stock_tag_obj))
+
+        selector = TagsTestSelector('-stock')
+        self.assertFalse(selector(stock_tag_obj))
+
+        selector = TagsTestSelector('')
+        self.assertFalse(selector(multiple_tags_obj))
+
+        selector = TagsTestSelector('-stock')
+        self.assertFalse(selector(multiple_tags_obj))
+
+        selector = TagsTestSelector('-slow')
+        self.assertFalse(selector(multiple_tags_obj))
+
+        selector = TagsTestSelector('slow')
+        self.assertTrue(selector(multiple_tags_obj))
+
+        selector = TagsTestSelector('slow,stock')
+        self.assertTrue(selector(multiple_tags_obj))
+
+        selector = TagsTestSelector('-slow,stock')
+        self.assertFalse(selector(multiple_tags_obj))
+
+        selector = TagsTestSelector('slow,stock,-slow')
+        self.assertFalse(selector(multiple_tags_obj))
+
+        selector = TagsTestSelector('')
+        self.assertTrue(selector(multiple_tags_standard_obj))
+
+        selector = TagsTestSelector('standard')
+        self.assertTrue(selector(multiple_tags_standard_obj))
+
+        selector = TagsTestSelector('slow')
+        self.assertTrue(selector(multiple_tags_standard_obj))
+
+        selector = TagsTestSelector('slow,fake')
+        self.assertTrue(selector(multiple_tags_standard_obj))
+
+        selector = TagsTestSelector('-slow')
+        self.assertFalse(selector(multiple_tags_standard_obj))
+
+        selector = TagsTestSelector('-standard')
+        self.assertFalse(selector(multiple_tags_standard_obj))
+
+        selector = TagsTestSelector('-slow,-standard')
+        self.assertFalse(selector(multiple_tags_standard_obj))
+
+        selector = TagsTestSelector('stantard,-slow')
+        self.assertFalse(selector(multiple_tags_standard_obj))
+
+        selector = TagsTestSelector('slow,-standard')
+        self.assertFalse(selector(multiple_tags_standard_obj))

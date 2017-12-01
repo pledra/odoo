@@ -24,7 +24,7 @@ import odoo.tools as tools
 import odoo.release as release
 from odoo import SUPERUSER_ID, api
 from odoo.tools import pycompat
-from odoo.tests.common import check_tags
+from odoo.tests.common import TagsTestSelector
 
 MANIFEST_NAMES = ('__manifest__.py', '__openerp__.py')
 README = ['README.rst', 'README.md', 'README.txt']
@@ -502,10 +502,11 @@ def run_unit_tests(module_name, dbname, position=runs_at_install):
     current_test = module_name
     mods = get_test_modules(module_name)
     threading.currentThread().testing = True
+    test_selector = TagsTestSelector(tools.config['test_tags'])
     r = True
     for m in mods:
         tests = unwrap_suite(unittest.TestLoader().loadTestsFromModule(m))
-        suite = unittest.TestSuite(t for t in tests if position(t) and check_tags(t, tools.config['to_test_tags'], tools.config['no_test_tags']))
+        suite = unittest.TestSuite(t for t in tests if position(t) and test_selector(t))
 
         if suite.countTestCases():
             t0 = time.time()

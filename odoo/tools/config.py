@@ -61,13 +61,6 @@ def _deduplicate_loggers(loggers):
         for logger, level in dict(it.split(':') for it in loggers).items()
     )
 
-def parse_pico_lang(test_tags):
-    # parsing the test_tags pico language for selecting or deselecting tests
-    pico_tags = {t.strip() for t in test_tags.split(',') if t.strip() != ''}
-    no_test_tags = {t[1:] for t in pico_tags if t.startswith('-')}
-    to_test_tags = {t.replace('+', '') for t in pico_tags if not t.startswith('-')}
-    return (to_test_tags, no_test_tags)
-
 class configmanager(object):
     def __init__(self, fname=None):
         """Constructor.
@@ -492,10 +485,6 @@ class configmanager(object):
         if self.options.get('language', False):
             if len(self.options['language']) > 5:
                 raise Exception('ERROR: The Lang name must take max 5 chars, Eg: -lfr_BE')
-
-        if self.options.get('test_tags'):
-            # parsing the test_tags pico language for selecting or deselecting tests
-            self.options['to_test_tags'], self.options['no_test_tags'] = parse_pico_lang(self.options.get('test_tags'))
 
         if opt.save:
             self.save()
