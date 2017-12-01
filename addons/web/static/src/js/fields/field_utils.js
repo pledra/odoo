@@ -578,6 +578,7 @@ return {
         reference: formatMany2one,
         selection: formatSelection,
         text: formatChar,
+        toggle_float: formatFloat,
     },
     parse: {
         binary: _.identity,
@@ -596,6 +597,7 @@ return {
         reference: parseMany2one,
         selection: _.identity, // todo
         text: _.identity, // todo
+        toggle_float: parseFloat,
     },
 };
 
