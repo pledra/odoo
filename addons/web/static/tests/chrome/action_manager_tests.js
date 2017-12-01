@@ -172,6 +172,46 @@ QUnit.module('ActionManager', {
         actionManager.destroy();
     });
 
+    QUnit.test('no widget memory leaks when doing some action stuff', function (assert) {
+        assert.expect(1);
+
+        var delta = 0;
+        var oldInit = Widget.prototype.init;
+        var oldDestroy = Widget.prototype.destroy;
+        Widget.prototype.init = function () {
+            delta++;
+            oldInit.apply(this, arguments);
+        };
+        Widget.prototype.destroy = function () {
+            delta--;
+            oldDestroy.apply(this, arguments);
+        };
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+        });
+        actionManager.do_action(7);
+
+        var n = delta;
+        actionManager.do_action(4);
+        // kanban view is loaded, switch to list view
+        $('.o_control_panel .o_cp_switch_list').click();
+        // open a record in form view
+        actionManager.$('.o_list_view .o_data_row:first').click();
+        // go back to action 7 in breadcrumbs
+        $('.o_control_panel .breadcrumb a:first').click();
+
+        assert.strictEqual(delta, n,
+            "should have properly destroyed all other widgets");
+        actionManager.destroy();
+        Widget.prototype.init = oldInit;
+        Widget.prototype.destroy = oldDestroy;
+    });
+
+    QUnit.module('Push State');
+
     QUnit.test('properly push state', function (assert) {
         assert.expect(3);
 
@@ -280,42 +320,196 @@ QUnit.module('ActionManager', {
         actionManager.destroy();
     });
 
-    QUnit.test('no widget memory leaks when doing some action stuff', function (assert) {
-        assert.expect(1);
+    QUnit.module('Load State');
 
-        var delta = 0;
-        var oldInit = Widget.prototype.init;
-        var oldDestroy = Widget.prototype.destroy;
-        Widget.prototype.init = function () {
-            delta++;
-            oldInit.apply(this, arguments);
-        };
-        Widget.prototype.destroy = function () {
-            delta--;
-            oldDestroy.apply(this, arguments);
-        };
+    QUnit.test('should not crash on invalid state', function (assert) {
+        assert.expect(2);
 
         var actionManager = createActionManager({
             actions: this.actions,
             archs: this.archs,
             data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                return this._super.apply(this, arguments);
+            },
         });
-        actionManager.do_action(7);
+        actionManager.loadState({
+            res_model: 'partner', // the valid key for the model is 'model', not 'res_model'
+        });
 
-        var n = delta;
-        actionManager.do_action(4);
-        // kanban view is loaded, switch to list view
-        $('.o_control_panel .o_cp_switch_list').click();
-        // open a record in form view
-        actionManager.$('.o_list_view .o_data_row:first').click();
-        // go back to action 7 in breadcrumbs
-        $('.o_control_panel .breadcrumb a:first').click();
+        assert.strictEqual(actionManager.$el.text(), '', "should display nothing");
+        assert.verifySteps([]);
 
-        assert.strictEqual(delta, n,
-            "should have properly destroyed all other widgets");
         actionManager.destroy();
-        Widget.prototype.init = oldInit;
-        Widget.prototype.destroy = oldDestroy;
+    });
+
+    QUnit.test('properly load client actions', function (assert) {
+        assert.expect(2);
+
+        var ClientAction = Widget.extend({
+            className: 'o_client_action_test',
+            start: function () {
+                this.$el.text('Hello World');
+            },
+        });
+        core.action_registry.add('HelloWorldTest', ClientAction);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                return this._super.apply(this, arguments);
+            },
+        });
+        actionManager.loadState({
+            action: 'HelloWorldTest',
+        });
+
+        assert.strictEqual(actionManager.$('.o_client_action_test').text(),
+            'Hello World', "should have correctly rendered the client action");
+
+        assert.verifySteps([]);
+
+        actionManager.destroy();
+        delete core.action_registry.map.HelloWorldTest;
+    });
+
+    QUnit.test('properly load act window actions', function (assert) {
+        assert.expect(6);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                return this._super.apply(this, arguments);
+            },
+        });
+        actionManager.loadState({
+            action: 1,
+        });
+
+        assert.strictEqual($('.o_control_panel').length, 1,
+            "should have rendered a control panel");
+        assert.strictEqual(actionManager.$('.o_kanban_view').length, 1,
+            "should have rendered a kanban view");
+
+        assert.verifySteps([
+            '/web/action/load',
+            'load_views',
+            '/web/dataset/search_read',
+        ]);
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('properly load records', function (assert) {
+        assert.expect(5);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                return this._super.apply(this, arguments);
+            },
+        });
+        actionManager.loadState({
+            id: 2,
+            model: 'partner',
+        });
+
+        assert.strictEqual(actionManager.$('.o_form_view').length, 1,
+            "should have rendered a form view");
+        assert.strictEqual($('.o_control_panel .breadcrumb li').text(), 'Second record',
+            "should have opened the second record");
+
+        assert.verifySteps([
+            'load_views',
+            'read',
+        ]);
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('load requested view for act window actions', function (assert) {
+        assert.expect(6);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                return this._super.apply(this, arguments);
+            },
+        });
+        actionManager.loadState({
+            action: 3,
+            viewType: 'kanban',
+        });
+
+        assert.strictEqual(actionManager.$('.o_list_view').length, 0,
+            "should not have rendered a list view");
+        assert.strictEqual(actionManager.$('.o_kanban_view').length, 1,
+            "should have rendered a kanban view");
+
+        assert.verifySteps([
+            '/web/action/load',
+            'load_views',
+            '/web/dataset/search_read',
+        ]);
+
+        actionManager.destroy();
+    });
+
+    QUnit.test('lazy load multi record view if mono record one is requested', function (assert) {
+        assert.expect(11);
+
+        var actionManager = createActionManager({
+            actions: this.actions,
+            archs: this.archs,
+            data: this.data,
+            mockRPC: function (route, args) {
+                assert.step(args.method || route);
+                return this._super.apply(this, arguments);
+            },
+        });
+        actionManager.loadState({
+            action: 3,
+            id: 2,
+            viewType: 'form',
+        });
+
+        assert.strictEqual(actionManager.$('.o_list_view').length, 0,
+            "should not have rendered a list view");
+        assert.strictEqual(actionManager.$('.o_form_view').length, 1,
+            "should have rendered a form view");
+        assert.strictEqual($('.o_control_panel .breadcrumb li').length, 2,
+            "there should be two controllers in the breadcrumbs");
+        assert.strictEqual($('.o_control_panel .breadcrumb li:last').text(), 'Second record',
+            "breadcrumbs should contain the display_name of the opened record");
+
+        // go back to Lst
+        $('.o_control_panel .breadcrumb a').click();
+        assert.strictEqual(actionManager.$('.o_list_view').length, 1,
+            "should now display the list view");
+        assert.strictEqual(actionManager.$('.o_form_view').length, 0,
+            "should not display the form view anymore");
+
+        assert.verifySteps([
+            '/web/action/load',
+            'load_views',
+            'read', // read the opened record
+            '/web/dataset/search_read', // search read when coming back to List
+        ]);
+
+        actionManager.destroy();
     });
 
     QUnit.module('Concurrency management');

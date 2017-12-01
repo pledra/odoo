@@ -165,7 +165,7 @@ var ActionManager = Widget.extend({
         });
     },
     /**
-     * Compatibiliy with client actions that are still using do_push_state.
+     * Compatibility with client actions that are still using do_push_state.
      *
      * @todo: convert all of them to trigger_up('push_state') instead.
      * @param {Object} state
@@ -173,8 +173,13 @@ var ActionManager = Widget.extend({
     do_push_state: function (state) {
         this.trigger_up('push_state', {state: state});
     },
+    /**
+     * Backward compatibility.
+     *
+     * @todo: remove as soon as the calls from webclients have been changed.
+     */
     do_load_state: function (state) {
-        return $.when(); // AAB: TODO
+        return this.loadState(state);
     },
     /**
      * Returns the last controller in the controllerStack, i.e. the currently
@@ -198,7 +203,62 @@ var ActionManager = Widget.extend({
     get_breadcrumbs: function () {
         return this._getBreadcrumbs();
     },
-
+    /**
+     * Updates the UI according to the given state, for instance, executes a new
+     * action, or updates the state of the current action.
+     *
+     * @param {Object} state
+     * @param {integer|string} [state.action] the action to execute (given its
+     *   id or tag for client actions)
+     * @returns {Deferred} resolved when the UI has been updated
+     */
+    loadState: function (state) {
+        var action;
+        var options;
+        if (state.action) {
+            if (_.isString(state.action) && core.action_registry.contains(state.action)) {
+                action = {
+                    _push_me: state._push_me,
+                    params: state,
+                    tag: state.action,
+                    type: 'ir.actions.client',
+                };
+            } else {
+                var add_context = {};
+                if (state.active_id) {
+                    add_context.active_id = state.active_id;
+                }
+                if (state.active_ids) {
+                    // jQuery's BBQ plugin does some parsing on values that are valid integers
+                    // which means that if there's only one item, it will do parseInt() on it,
+                    // otherwise it will keep the comma seperated list as string
+                    add_context.active_ids = state.active_ids.toString().split(',').map(function (id) {
+                        return parseInt(id, 10) || id;
+                    });
+                } else if (state.active_id) {
+                    add_context.active_ids = [state.active_id];
+                }
+                add_context.params = state;
+                action = state.action;
+                options = {
+                    additional_context: add_context,
+                    res_id: state.id,
+                    view_type: state.view_type,
+                };
+            }
+        } else if (state.model && state.id) {
+            action = {
+                res_model: state.model,
+                res_id: state.id,
+                type: 'ir.actions.act_window',
+                views: [[_.isNumber(state.view_id) ? state.view_id : false, 'form']],
+            };
+        }
+        if (action) {
+            return this.do_action(action, _.extend(options || {}, {clear_breadcrumbs: true}));
+        }
+        return $.when();
+    },
     /**
      * Sets the scroll position of the current controller, if there is one.
      *
