@@ -64,6 +64,15 @@ Best Regards,''')
     account_setup_coa_done = fields.Boolean(string='Chart of Account Checked', help="Technical field holding the status of the chart of account setup step.")
     account_setup_bar_closed = fields.Boolean(string='Setup Bar Closed', help="Technical field set to True when setup bar has been closed by the user.")
 
+    has_accounting_entries = fields.Boolean(compute='_compute_has_chart_of_accounts')
+    has_chart_of_accounts = fields.Boolean(compute='_compute_has_chart_of_accounts', string='Company has a chart of accounts')
+
+    @api.depends('chart_template_id')
+    def _compute_has_chart_of_accounts(self):
+        self.has_chart_of_accounts = bool(self.chart_template_id)
+        self.chart_template_id = self.chart_template_id or False
+        self.has_accounting_entries = self.env['wizard.multi.charts.accounts'].existing_accounting(self)
+
     @api.model
     def _verify_fiscalyear_last_day(self, company_id, last_day, last_month):
         company = self.browse(company_id)

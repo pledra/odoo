@@ -20,12 +20,14 @@
                     </footer>
                 </xpath>
                 <xpath expr="//field[@name='currency_id']" position="after">
-                    <label attrs="{'invisible': [('chart_template_id','!=',False)]}" string="Fiscal Localization"/><br />
-                    <span attrs="{'invisible': [('chart_template_id','!=',False)]}" class="text-muted" colspan="2">
+                    <field name="has_chart_of_accounts" invisible="1"/>
+                    <field name="has_accounting_entries" invisible="1"/>
+                    <label attrs="{'invisible': [('has_accounting_entries','!=',False)]}" string="Fiscal Localization"/><br />
+                    <span attrs="{'invisible': [('has_accounting_entries','!=',False)]}" class="text-muted" colspan="2">
                       Taxes, fiscal positions, chart of accounts &amp; legal statements for your country
                     </span>
-                    <label attrs="{'invisible': [('chart_template_id','!=',False)]}" for="chart_template_id" string="Package"/>
-                    <div attrs="{'invisible': [('chart_template_id','!=',False)]}">
+                    <label attrs="{'invisible': [('has_accounting_entries','!=',False)]}" for="chart_template_id" string="Package"/>
+                    <div attrs="{'invisible': [('has_accounting_entries','!=',False)]}">
                         <field name="chart_template_id" nolabel="1" options="{'no_quick_create':True,'no_create_edit':True}"/>
                         <button name="218" icon="fa-arrow-right" type="action" string="Install More Packages" class="btn-link pull-right"/>
                     </div>
