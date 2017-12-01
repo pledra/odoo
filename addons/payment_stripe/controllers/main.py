@@ -39,7 +39,19 @@ class StripeController(http.Controller):
             tx = TX.sudo().browse(int(tx_id))
         if not tx:
             raise werkzeug.exceptions.NotFound()
-        response = tx._create_stripe_charge(tokenid=post['tokenid'], email=post['email'])
+
+        stripe_token = post['token']
+        response = None
+        if tx.type == 'form_save' and tx.sale_order_id:
+            payment_token_id = request.env['payment.token'].sudo().create({
+                'acquirer_id': tx.acquirer_id.id,
+                'partner_id': tx.sale_order_id.partner_id.id,
+                'stripe_token': stripe_token
+            })
+            tx.payment_token_id = payment_token_id
+            response = tx._create_stripe_charge(acquirer_ref=payment_token_id.acquirer_ref, email=stripe_token['email'])
+        else:
+            response = tx._create_stripe_charge(tokenid=stripe_token['id'], email=stripe_token['email'])
         _logger.info('Stripe: entering form_feedback with post data %s', pprint.pformat(response))
         if response:
             request.env['payment.transaction'].sudo().with_context(lang=None).form_feedback(response, 'stripe')
