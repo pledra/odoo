@@ -1766,13 +1766,25 @@ class _RelationalMulti(_Relational):
             comodel = record.env[self.comodel_name]
             # determine the value ids; by convention empty on new records
             ids = OrderedSet(record[self.name].ids if record.id else ())
+            # for updating records
+            if record.env.in_onchange:
+                def update(id, vals):
+                    # optimized to avoid the overhead of rec._cache
+                    rec = comodel.browse(id)
+                    cache = record.env.cache
+                    for key, val in vals.items():
+                        field = comodel._fields[key]
+                        cache[field][id] = field.convert_to_cache(val, rec)
+            else:
+                def update(id, vals):
+                    comodel.browse(id).write(vals)
             # modify ids with the commands
             for command in value:
                 if isinstance(command, (tuple, list)):
                     if command[0] == 0:
                         ids.add(comodel.new(command[2]).id)
                     elif command[0] == 1:
-                        comodel.browse(command[1]).update(command[2])
+                        update(command[1], command[2])
                         ids.add(command[1])
                     elif command[0] == 2:
                         # note: the record will be deleted by write()
