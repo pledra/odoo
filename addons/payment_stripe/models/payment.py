@@ -2,6 +2,7 @@
 
 import logging
 import requests
+import pprint
 
 from odoo import api, fields, models, _
 from odoo.addons.payment.models.payment_acquirer import ValidationError
@@ -209,7 +210,7 @@ class PaymentTokenStripe(models.Model):
         if not token:
             raise Exception('stripe_create: No token provided!')
 
-        res = self.stripe_create_customer(token, description, payment_acquirer.id)
+        res = self._stripe_create_customer(token, description, payment_acquirer.id)
 
         # pop credit card info to info sent to create
         for field_name in ["cc_number", "cvc", "cc_holder_name", "cc_expiry", "cc_brand", "stripe_token"]:
@@ -217,15 +218,18 @@ class PaymentTokenStripe(models.Model):
         return res
 
 
-    def stripe_create_customer(self, token, description=None, acquirer_id=None):
-        if token.get('object', '').lower() != 'token':
-            raise Exception('payment.token.stripe_create_customer: Cannot create a customer for object type {}'.format(token.get('object')))
+    def _stripe_create_customer(self, token, description=None, acquirer_id=None):
+        if token['object'] != 'token':
+            _logger.error('payment.token.stripe_create_customer: Cannot create a customer for object type "%s"', token.get('object'))
+            raise Exception('We are unable to process your credit card information.')
 
-        if token.get('type', '').lower() != 'card':
-            raise Exception('payment.token.stripe_create_customer: Cannot create a customer for token type {}'.format(token.get('type')))
+        if token['type'] != 'card':
+            _logger.error('payment.token.stripe_create_customer: Cannot create a customer for token type "%s"', token.get('type'))
+            raise Exception('We are unable to process your credit card information.')
 
         if token.get('error'):
-            raise Exception('payment.token.stripe_create_customer: Token error "%s"', token['error']['message'])
+            _logger.error('payment.token.stripe_create_customer: Token error:\n%s', pprint.pformat(token['error']))
+            raise Exception(token['error']['message'])
 
         payment_acquirer = self.env['payment.acquirer'].browse(acquirer_id or self.acquirer_id.id)
         url_customer = 'https://%s/customers' % payment_acquirer._get_stripe_api_url()
@@ -240,6 +244,11 @@ class PaymentTokenStripe(models.Model):
                         params=customer_params,
                         headers=STRIPE_HEADERS)
         customer = r.json()
+
+        if customer.get('error'):
+            _logger.error('payment.token.stripe_create_customer: Customer error:\n%s', pprint.pformat(customer['error']))
+            raise Exception(customer['error']['message'])
+
         values = {
             'acquirer_ref': customer['id'],
             'name': 'XXXXXXXXXXXX%s - %s' % (token['card']['last4'], token['email'])

@@ -21,8 +21,18 @@ class StripeController(http.Controller):
     def stripe_s2s_create(self, **post):
         acquirer_id = int(post.get('acquirer_id'))
         acquirer = request.env['payment.acquirer'].browse(acquirer_id)
-        acquirer.s2s_process(post)
-        return werkzeug.utils.redirect(post.get('return_url', '/'))
+        error = None
+        try:
+            acquirer.s2s_process(post)
+        except Exception as e:
+            error = e.message
+
+        return_url = post.get('return_url', '/')
+        if error:
+            separator = '?' if werkzeug.urls.url_parse(return_url).query == '' else '&'
+            return_url += '{}error={}'.format(separator, error)
+
+        return werkzeug.utils.redirect(return_url)
 
     @http.route(['/payment/stripe/create_charge'], type='json', auth='public')
     def stripe_create_charge(self, **post):
@@ -42,10 +52,10 @@ class StripeController(http.Controller):
 
         stripe_token = post['token']
         response = None
-        if tx.type == 'form_save' and tx.sale_order_id:
+        if tx.type == 'form_save' and tx.partner_id:
             payment_token_id = request.env['payment.token'].sudo().create({
                 'acquirer_id': tx.acquirer_id.id,
-                'partner_id': tx.sale_order_id.partner_id.id,
+                'partner_id': tx.partner_id.id,
                 'stripe_token': stripe_token
             })
             tx.payment_token_id = payment_token_id
