@@ -82,13 +82,13 @@
                             <t t-set="due_days" t-value="invoice._compute_due_days()"/>
                             <h3><strong><span t-field="invoice.amount_total"/></strong><br/></h3><h4>Due in <span t-esc="due_days"/> days</h4>
                         </div>
-                        <div style="padding: 5px">
+                        <div id="o_portal_account_actions" style="padding: 5px">
                             <a t-if="invoice.amount_total" class="btn btn-primary btn-block" data-toggle="modal" data-target="#pay_with">
                                 Pay Now
                             </a>
                         </div>
                         <div class="text-center visible-xs visible-sm" style="padding: 10px">
-                            <a t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())"><h4><strong>print/download</strong></h4></a>
+                            <a t-att-href="'/my/invoices/pdf/%s?%s' % (invoice.id, keep_query())"><i class="fa fa-download fa-2x"/></a>
                         </div>
                         <div style="padding: 5px; text-align:left;">
                             <strong>Invoice: </strong>
