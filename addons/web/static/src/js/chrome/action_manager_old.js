@@ -592,7 +592,7 @@ var ActionManager = Widget.extend({
                 views: [[_.isNumber(state.view_id) ? state.view_id : false, 'form']]
             };
             action_loaded = this.do_action(action);
-        } else if (state.sa) {
+        } else if (state.sa) { // this is dead code
             // load session action
             if (warm) {
                 this.null_action();

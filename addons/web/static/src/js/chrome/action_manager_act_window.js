@@ -27,6 +27,72 @@ ActionManager.include({
     }),
 
     //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
+
+    /**
+     * Overrides to handle the case where an 'ir.actions.act_window' has to be
+     * loaded.
+     *
+     * @override
+     * @param {Object} state
+     * @param {integer} [state.action] the id of the action to execute
+     * @param {integer} [state.active_id]
+     * @param {string} [state.active_ids]
+     * @param {integer} [state.id]
+     * @param {integer} [state.view_id]
+     * @param {string} [state.view_type]
+     */
+    loadState: function (state) {
+        var action, options;
+        if (state.action && _.isNumber(state.action)) {
+            var currentController = this.getCurrentController();
+            var currentAction = currentController && this.actions[currentController.actionID];
+            if (currentAction && currentAction.id === state.action) {
+                // the action to load is already the current one, so update it
+                this._closeDialog(); // there may be a currently opened dialog, close it
+                currentAction.env.currentId = state.id;
+                var viewType = state.view_type || currentController.viewType;
+                return this._switchController(currentAction, viewType);
+            } else {
+                // the action to load isn't the current one, so execute it
+                var context = {};
+                if (state.active_id) {
+                    context.active_id = state.active_id;
+                }
+                if (state.active_ids) {
+                    // jQuery's BBQ plugin does some parsing on values that are valid integers
+                    // which means that if there's only one item, it will do parseInt() on it,
+                    // otherwise it will keep the comma seperated list as string
+                    context.active_ids = state.active_ids.split(',').map(function (id) {
+                        return parseInt(id, 10) || id;
+                    });
+                } else if (state.active_id) {
+                    context.active_ids = [state.active_id];
+                }
+                context.params = state;
+                action = state.action;
+                options = {
+                    additional_context: context,
+                    resID: state.id,
+                    viewType: state.view_type,
+                };
+            }
+        } else if (state.model && state.id) {
+            action = {
+                res_model: state.model,
+                res_id: state.id,
+                type: 'ir.actions.act_window',
+                views: [[_.isNumber(state.view_id) ? state.view_id : false, 'form']],
+            };
+        }
+        if (action) {
+            return this.do_action(action, options);
+        }
+        return this._super.apply(this, arguments);
+    },
+
+    //--------------------------------------------------------------------------
     // Private
     //--------------------------------------------------------------------------
 
@@ -79,16 +145,19 @@ ActionManager.include({
      * @param {Object} action.env
      * @param {string} viewType
      * @param {Object} options
+     * @param {boolean} [lazy=false] set to true to differ the initialization of
+     *   the controller's widget
      * @returns {Deferred<AbstractController>} resolved with the created
      *   controller
      */
-    _createViewController: function (action, viewType, options) {
+    _createViewController: function (action, viewType, options, lazy) {
         var self = this;
         var controllerID = _.uniqueId('controller_');
         var controller = {
             actionID: action.jsID,
             className: 'o_act_window', // used to remove the padding in dialogs
             jsID: controllerID,
+            title: action.display_name,
             viewType: viewType,
             widget: controller,
         };
@@ -98,17 +167,22 @@ ActionManager.include({
         });
         var viewDescr = _.findWhere(action.views, {type: viewType});
         var view = new viewDescr.Widget(viewDescr.fieldsView, options);
-        action.controllers[viewType] = view.getController(this).then(function (widget) {
-            // AAB: change this logic to stop using the properties mixin
-            widget.on("change:title", this, function () {
-                if (!action.flags.headless) {
-                    var breadcrumbs = self._getBreadcrumbs();
-                    self.controlPanel.update({breadcrumbs: breadcrumbs}, {clear: false});
-                }
+        if (!lazy) {
+            action.controllers[viewType] = view.getController(this).then(function (widget) {
+                // AAB: change this logic to stop using the properties mixin
+                widget.on("change:title", this, function () {
+                    if (!action.flags.headless) {
+                        var breadcrumbs = self._getBreadcrumbs();
+                        self.controlPanel.update({breadcrumbs: breadcrumbs}, {clear: false});
+                    }
+                });
+                controller.widget = widget;
+
+                return controller;
             });
-            controller.widget = widget;
-            return self.controllers[controllerID];
-        });
+        } else {
+            action.controllers[viewType] = $.when(controller);
+        }
         return action.controllers[viewType];
     },
     /**
@@ -118,6 +192,8 @@ ActionManager.include({
      * @param {Object} action the description of the action to execute
      * @param {Array} action.views list of tuples [viewID, viewType]
      * @param {Object} options @see do_action for details
+     * @param {interger} [options.resID] the current res ID
+     * @param {string} [options.viewType] the view to open
      * @returns {Deferred} resolved when the action is appended to the DOM
      */
     _executeWindowAction: function (action, options) {
@@ -139,7 +215,6 @@ ActionManager.include({
             // their fields_view
             var views = [];
             _.each(action.views, function (view) {
-                // AAB: wrong order
                 var viewType = view[1];
                 var fieldsView = fieldsViews[viewType];
                 var View = view_registry.get(fieldsView.arch.attrs.js_class || viewType);
@@ -162,9 +237,18 @@ ActionManager.include({
             if (fieldsViews.search) {
                 action.searchFieldsView = fieldsViews.search;
             }
+            action.controllers = {};
 
             // select the first view to display
-            var firstView = views[0];
+            var lazyLoad = false;
+            var firstView = options.viewType && _.findWhere(views, {type: options.viewType});
+            if (firstView) {
+                if (!firstView.multiRecord && views[0].multiRecord) {
+                    lazyLoad = true;
+                }
+            } else {
+                firstView = views[0];
+            }
             if (config.device.isMobile && !firstView.isMobileFriendly) {
                 firstView = _.findWhere(action.views, {isMobileFriendly: true}) || firstView;
             }
@@ -174,16 +258,16 @@ ActionManager.include({
             if (typeof actionGroupBy === 'string') {
                 actionGroupBy = [actionGroupBy];
             }
+            var resID = options.resID || action.res_id;
             action.env = {
                 modelName: action.res_model,
-                ids: action.res_id ? [action.res_id] : undefined,
-                currentId: action.res_id || undefined,
+                ids: resID ? [resID] : undefined,
+                currentId: resID || undefined,
                 domain: undefined,
                 context: action.context,
                 groupBy: actionGroupBy,
             };
 
-            action.controllers = {};
             options.action = action;
 
             var def;
@@ -196,11 +280,23 @@ ActionManager.include({
             }
             return $.when(def)
                 .then(function () {
-                    return self._createViewController(action, firstView.type, options);
+                    var defs = [];
+                    defs.push(self._createViewController(action, firstView.type, options));
+                    if (lazyLoad) {
+                        defs.push(self._createViewController(action, views[0].type, options, true));
+                    }
+                    return $.when.apply($, defs);
                 })
-                .then(function (controller) {
+                .then(function (controller, lazyLoadedController) {
                     action.controller = controller;
-                    return self._executeAction(action, options);
+                    return self._executeAction(action, options).done(function () {
+                        if (lazyLoadedController) {
+                            self.controllerStack.unshift(lazyLoadedController.jsID);
+                            self.controlPanel.update({
+                                breadcrumbs: self._getBreadcrumbs(),
+                            }, {clear: false});
+                        }
+                    });
                 });
         });
     },
@@ -241,9 +337,9 @@ ActionManager.include({
      * @returns {Deferred}
      */
     _loadViews: function (action) {
-        // AAB: handle toolbar options
         var options = {
             action_id: action.id,
+            toolbar: action.flags.hasSidebar,
         };
         var views = action.views.slice(0);
         if (action.flags.hasSearchView) {
@@ -288,7 +384,9 @@ ActionManager.include({
         if (action.type === 'ir.actions.act_window') {
             _.each(action.controllers, function (controllerDef) {
                 controllerDef.then(function (controller) {
-                    controller.widget.destroy();
+                    if (controller.widget) {
+                        controller.widget.destroy();
+                    }
                     delete self.controllers[controller.jsID];
                 });
             });
@@ -317,11 +415,7 @@ ActionManager.include({
         var action = this.actions[controller.actionID];
         if (action.type === 'ir.actions.act_window') {
             return this._clearUncommittedChanges().then(function () {
-                var reloadDef = controller.widget.reload(action.env);
-                return self.dp.add(reloadDef).then(function () {
-                    var index = _.indexOf(self.controllerStack, controllerID);
-                    self._pushController(controller, {index: index});
-                });
+                return self._switchController(action, controller.viewType);
             });
         }
         return this._super.apply(this, arguments);
@@ -335,27 +429,72 @@ ActionManager.include({
      * @param {Object} options
      * @return {Deferred} resolved when the new controller is in the DOM
      */
-    _switchController: function (controller, options) {
+    _switchController: function (action, viewType, options) {
         var self = this;
-        var action = this.actions[controller.actionID];
-        var view = _.findWhere(action.views, {type: controller.viewType});
-        var index;
-        if (view.multiRecord) {
-            // remove other controllers linked to the same action from the stack
-            index = _.findIndex(this.controllerStack, function (controllerID) {
-                return self.controllers[controllerID].actionID === action.jsID;
+        options = options || {};
+        options.action = action;
+        _.extend(options, action.env);
+
+        var newController = function () {
+            // AAB: missing options
+            return self
+                ._createViewController(action, viewType, options)
+                .then(function (controller) {
+                    // AAB: this will be moved to the Controller
+                    var widget = controller.widget;
+                    if (widget.need_control_panel) {
+                        // set the ControlPanel bus on the controller to allow it to
+                        // communicate its status
+                        widget.set_cp_bus(self.controlPanel.get_bus());
+                    }
+                    return self._startController(controller).then(function () {
+                        return controller;
+                    });
+                });
+        };
+
+        var controllerDef = action.controllers[viewType];
+        if (!controllerDef) {
+            controllerDef = newController();
+        } else {
+            controllerDef = controllerDef.then(function (controller) {
+                if (!controller.widget) {
+                    // lazy loaded -> load it now
+                    return newController().then(function (newController) {
+                        delete self.controllers[newController.jsID];
+                        newController.jsID = controller.jsID;
+                        self.controllers[newController.jsID] = newController;
+                        return newController;
+                    });
+                } else {
+                    return controller.widget.reload(options).then(function () {
+                        return controller;
+                    });
+                }
             });
         }
-        var currentController = this.getCurrentController();
-        if (currentController) {
-            if (currentController.actionID === action.jsID &&
-                !_.findWhere(action.views, {type: currentController.viewType}).multiRecord) {
-                // replace the last controller by the new one if they are from the
-                // same action and if they both are mono record
-                index = this.controllerStack.length;
+
+        return this.dp.add(controllerDef).then(function (controller) {
+            var view = _.findWhere(action.views, {type: viewType});
+            var index;
+            if (view.multiRecord) {
+                // remove other controllers linked to the same action from the stack
+                index = _.findIndex(self.controllerStack, function (controllerID) {
+                    return self.controllers[controllerID].actionID === action.jsID;
+                });
+            } else {
+                var currentController = self.getCurrentController();
+                if (currentController) {
+                    if (currentController.actionID === action.jsID &&
+                        !_.findWhere(action.views, {type: currentController.viewType}).multiRecord) {
+                        // replace the last controller by the new one if they are from the
+                        // same action and if they both are mono record
+                        index = self.controllerStack.length - 1;
+                    }
+                }
             }
-        }
-        return this._pushController(controller, _.extend(options, {index: index}));
+            return self._pushController(controller, _.extend(options, {index: index}));
+        });
     },
 
     //--------------------------------------------------------------------------
@@ -486,7 +625,6 @@ ActionManager.include({
      */
     _onSwitchView: function (ev) {
         ev.stopPropagation();
-        var self = this;
         var viewType = ev.data.view_type;
         // retrieve the correct action using the currentController (AAB: is it
         // enough robust?)
@@ -502,35 +640,7 @@ ActionManager.include({
             options.mode = ev.data.mode;
         }
 
-        options.action = action;
-        _.extend(options, action.env);
-        var controllerDef = action.controllers[viewType];
-        if (!controllerDef) {
-            // AAB: missing options
-            controllerDef = this
-                ._createViewController(action, viewType, options)
-                .then(function (controller) {
-                    // AAB: this will be moved to the Controller
-                    var widget = controller.widget;
-                    if (widget.need_control_panel) {
-                        // set the ControlPanel bus on the controller to allow it to
-                        // communicate its status
-                        widget.set_cp_bus(self.controlPanel.get_bus());
-                    }
-                    return self._startController(controller).then(function () {
-                        return controller;
-                    });
-                });
-        } else {
-            controllerDef = controllerDef.then(function (controller) {
-                return controller.widget.reload(options).then(function () {
-                    return controller;
-                });
-            });
-        }
-        this.dp.add(controllerDef).then(function (controller) {
-            self._switchController(controller, options);
-        });
+        this._switchController(action, viewType, options);
     },
     /**
      * This handler is probably called by a form view when the user clicks on

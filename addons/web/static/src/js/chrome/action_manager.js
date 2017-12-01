@@ -165,7 +165,7 @@ var ActionManager = Widget.extend({
         });
     },
     /**
-     * Compatibiliy with client actions that are still using do_push_state.
+     * Compatibility with client actions that are still using do_push_state.
      *
      * @todo: convert all of them to trigger_up('push_state') instead.
      * @param {Object} state
@@ -173,8 +173,13 @@ var ActionManager = Widget.extend({
     do_push_state: function (state) {
         this.trigger_up('push_state', {state: state});
     },
+    /**
+     * Backward compatibility.
+     *
+     * @todo: remove as soon as the calls from webclients have been changed.
+     */
     do_load_state: function (state) {
-        return $.when(); // AAB: TODO
+        return this.loadState(state);
     },
     /**
      * Returns the last controller in the controllerStack, i.e. the currently
@@ -198,7 +203,32 @@ var ActionManager = Widget.extend({
     get_breadcrumbs: function () {
         return this._getBreadcrumbs();
     },
-
+    /**
+     * Updates the UI according to the given state, for instance, executes a new
+     * action, or updates the state of the current action.
+     *
+     * @param {Object} state
+     * @param {integer|string} [state.action] the action to execute (given its
+     *   id or tag for client actions)
+     * @returns {Deferred} resolved when the UI has been updated
+     */
+    loadState: function (state) {
+        var action;
+        if (!state.action) {
+            return $.when();
+        }
+        if (_.isString(state.action) && core.action_registry.contains(state.action)) {
+            action = {
+                _push_me: state._push_me,
+                params: state,
+                tag: state.action,
+                type: 'ir.actions.client',
+            };
+        } else {
+            action = state.action;
+        }
+        return this.do_action(action, {clear_breadcrumbs: true});
+    },
     /**
      * Sets the scroll position of the current controller, if there is one.
      *
@@ -526,7 +556,9 @@ var ActionManager = Widget.extend({
      */
     _getControllerTitle: function (controllerID) {
         var controller = this.controllers[controllerID];
-        var title = controller.widget.getTitle && controller.widget.getTitle();
+        var title = controller.widget ?
+                    (controller.widget.getTitle && controller.widget.getTitle()) :
+                    controller.title;
         if (!title) {
             title = controller.widget.get('title');
             if (!title) {
