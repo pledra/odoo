@@ -2,8 +2,11 @@ odoo.define('website_sale.add_product', function (require) {
 'use strict';
 
 var core = require('web.core');
+var Widget = require('web.Widget');
+var widget = require('web_editor.widget');
 var wUtils = require('website.utils');
 var WebsiteNewMenu = require('website.newMenu');
+var websiteRootData = require('website.WebsiteRoot');
 
 var _t = core._t;
 
@@ -44,6 +47,29 @@ WebsiteNewMenu.include({
         return def;
     },
 });
+
+var DefaultImage = Widget.extend({
+    /**
+     * @override
+     */
+    start: function () {
+        var self = this;
+        this._super.apply(this, arguments);
+        var $image = self.$el.find('img');
+        self.$el.find('img').attr('src', '/website_sale/static/src/img/default_img.png');
+        var $button = $('<button class="set_default_img" style="position:relative;bottom:250px;left:250px;">Click to set a picture</button>');
+        $button.appendTo(self.$el);
+
+        $('#product_detail').on('click', '.set_default_img', function () {
+            var editor = new widget.MediaDialog(self.getParent(), {only_images: true}, $image, $image[0]).open();
+            editor.on("save", self, function (event, img) {
+                $button.remove();
+            });
+        });
+    },
+});
+
+websiteRootData.websiteRootRegistry.add(DefaultImage, '#o_default_image');
 });
 
 //==============================================================================

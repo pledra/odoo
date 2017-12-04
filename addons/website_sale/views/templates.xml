@@ -410,7 +410,8 @@
                     </div>
                     <div class="row">
                         <div class="col-sm-7">
-                            <span itemprop="image" t-attf-content="{{request.httprequest.url_root}}web/image/product.template/{{product.id}}/image" t-field="product.image" t-options="{'widget': 'image', 'class': 'product_detail_img', 'alt-field': 'name', 'zoom': 'image'}" groups="!website_sale.group_website_multi_image"/>
+                            <span t-if="product.image" itemprop="image" t-attf-content="{{request.httprequest.url_root}}web/image/product.template/{{product.id}}/image" t-field="product.image" t-options="{'widget': 'image', 'class': 'product_detail_img', 'alt-field': 'name', 'zoom': 'image'}" groups="!website_sale.group_website_multi_image"/>
+                            <span id="o_default_image" t-if="not product.image" itemprop="image" t-attf-content="{{request.httprequest.url_root}}web/image/product.template/{{product.id}}/image" t-field="product.image" t-options="{'widget': 'image', 'class': 'product_detail_img', 'alt-field': 'name', 'zoom': 'image'}" groups="!website_sale.group_website_multi_image"/>
                             <t groups="website_sale.group_website_multi_image">
                                 <t t-set="variant_img" t-value="product.product_variant_id.image_variant"/>
                                 <t t-set="image_ids"  t-value="product.product_image_ids"/>
