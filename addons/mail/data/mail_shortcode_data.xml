@@ -4,12 +4,20 @@
 
         <!-- Smileys -->
         <record id="mail_smiley_grinning_face" model="mail.shortcode">
-            <field name="source">:grinning:</field>
+            <field name="source">:grinning</field>
             <field name="unicode_source">😀</field>
             <field name="substitution">&lt;img src='/mail/static/src/img/smiley/grinning_face.png' alt='😀'/&gt;</field>
             <field name="description">Grinning Face</field>
             <field name="shortcode_type">image</field>
         </record>
+        <record id="mail_smiley_bug" model="mail.shortcode">
+            <field name="source">:bug</field>
+            <field name="unicode_source">🐞</field>
+            <field name="substitution">&lt;img src='/mail/static/src/img/smiley/bug.png' alt='🐞'/&gt;</field>
+            <field name="description">Bug</field>
+            <field name="shortcode_type">image</field>
+        </record>
+
 
     </data>
 </odoo>
