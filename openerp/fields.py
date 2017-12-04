@@ -821,7 +821,7 @@ class Field(object):
         record.ensure_one()
 
         try:
-            return record._cache[self]
+            return record.env.cache[self][record.id]
         except KeyError:
             pass
 
@@ -834,7 +834,7 @@ class Field(object):
             self.determine_draft_value(record)
 
         # the result should be in cache now
-        return record._cache[self]
+        return record.env.cache[self][record.id]
 
     def __set__(self, record, value):
         """ set the value of field ``self`` on ``record`` """
@@ -851,11 +851,11 @@ class Field(object):
             spec = self.modified_draft(record)
 
             # set value in cache, inverse field, and mark record as dirty
-            record._cache[self] = value
+            env.cache[self][record.id] = value
             if env.in_onchange:
                 for invf in record._field_inverses[self]:
                     invf._update(value, record)
-                record._set_dirty(self.name)
+                env.dirty[record].add(self.name)
 
             # determine more dependent fields, and invalidate them
             if self.relational:
@@ -867,7 +867,7 @@ class Field(object):
             record.write({self.name: self.convert_to_write(value)})
             # Update the cache unless value contains a new record
             if all(getattr(value, '_ids', ())):
-                record._cache[self] = value
+                env.cache[self][record.id] = value
 
     ############################################################################
     #
