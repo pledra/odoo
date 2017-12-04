@@ -101,11 +101,12 @@ odoo.define('payment.payment_form', function (require) {
                                 form.submit();
                             }
                         }
-                        // if the server has returned false, we display an error
-                        else {
+                        // if the server has returned false/error, we display an error
+                        if (data.error || (!data.result && !data.error)) {
                             self.displayError(
                                 _t('Server Error'),
-                                _t('e.g. Your credit card details are wrong. Please verify.'));
+                                _t(data.error ? data.error : 'e.g. Your credit card details are wrong. Please verify.')
+                            );
                         }
                     }).fail(function (message, data) {
                         self.displayError(
@@ -248,11 +249,11 @@ odoo.define('payment.payment_form', function (require) {
                             }
                         }
                     }
-                    // if the server has returned false, we display an error
-                    else {
+                    // if the server has returned false/error, we display an error
+                    if (data.error || (!data.result && !data.error)) {
                         self.displayError(
                             _t('Server Error'),
-                            _t("<p>We are not able to add your payment method at the moment.</p>")
+                            _t(data.error ? data.error : 'e.g. Your credit card details are wrong. Please verify.')
                         );
                     }
                 }).fail(function (message, data) {
