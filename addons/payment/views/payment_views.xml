@@ -217,8 +217,6 @@
             <field name="arch" type="xml">
                 <form string="Payment Transactions">
                     <header>
-                        <button type="object" name="action_capture" states="authorized" string="Capture Transaction" class="oe_highlight"/>
-                        <button type="object" name="action_void" states="authorized" string="Void Transaction"/>
                         <field name="state" widget="statusbar" clickable="True"/>
                     </header>
                     <sheet>
@@ -248,10 +246,12 @@
                             <group>
                                 <field name="acquirer_id"/>
                                 <field name="provider" invisible="1"/>
+                                <field name="pending" invisible="1"/>
+                                <field name="authorized" invisible="1"/>
                                 <field name="payment_token_id" options="{'no_create': True}"/>
                                 <field name="acquirer_reference" readonly="1"/>
                                 <field name="create_date"/>
-                                <field name="date_validate"/>
+                                <field name="payment_date"/>
                             </group>
                         </group>
                         <group string="Message">

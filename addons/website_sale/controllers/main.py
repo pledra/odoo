@@ -436,7 +436,7 @@ class WebsiteSale(http.Controller):
 
         # if transaction pending / done: redirect to confirmation
         tx = request.env.context.get('website_sale_transaction')
-        if tx and tx.state != 'draft':
+        if tx and tx.pending:
             return request.redirect('/shop/payment/confirmation/%s' % order.id)
 
     def checkout_values(self, **kw):
@@ -884,18 +884,18 @@ class WebsiteSale(http.Controller):
         if not order or (order.amount_total and not tx):
             return request.redirect('/shop')
 
-        if (not order.amount_total and not tx) or tx.state in ['pending', 'done', 'authorized']:
+        if (not order.amount_total and not tx) or (tx.pending and tx.state != 'cancelled'):
             if (not order.amount_total and not tx):
                 # Orders are confirmed by payment transactions, but there is none for free orders,
                 # (e.g. free events), so confirm immediately
                 order.with_context(send_email=True).action_confirm()
-        elif tx and tx.state == 'cancel':
+        elif tx and tx.state == 'cancelled':
             # cancel the quotation
             order.action_cancel()
 
         # clean context and session, then redirect to the confirmation page
         request.website.sale_reset()
-        if tx and tx.state == 'draft':
+        if tx and not tx.pending:
             return request.redirect('/shop')
 
         return request.redirect('/shop/confirmation')

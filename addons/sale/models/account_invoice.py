@@ -25,6 +25,7 @@ class AccountInvoice(models.Model):
         readonly=True,
         states={'draft': [('readonly', False)]},
         help="Delivery address for current invoice.")
+    sale_order_ids = fields.Many2many('sale.order', 'invoice_ids', string='Sales orders', readonly=True)
 
     @api.onchange('partner_shipping_id')
     def _onchange_partner_shipping_id(self):

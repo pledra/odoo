@@ -1031,12 +1031,9 @@ Weight: 31 grams</field>
         </record>
 
         <record id="website_payment_transaction_2" model="payment.transaction">
-            <field name="create_date" eval="datetime.now()"/>
             <field name="acquirer_id" ref="payment.payment_acquirer_transfer"/>
-            <field name="sale_order_id" ref="website_sale_order_13"/>
-            <field name="reference" ref="website_sale_order_13"/>
+            <field name="sale_order_ids" eval="[(4, ref('website_sale.website_sale_order_13'))]"/>
             <field name="type">form</field>
-            <field name="state">pending</field>
             <field name="amount">1799.0</field>
             <field name="currency_id" ref="base.USD"/>
             <field name="partner_id" ref="base.res_partner_3"/>
