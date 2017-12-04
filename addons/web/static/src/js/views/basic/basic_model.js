@@ -3466,6 +3466,80 @@ var BasicModel = AbstractModel.extend({
         });
     },
     /**
+     * Read data from server for all missing fields
+     *
+     * @param {Object} list a valid resource object
+     * @param {interger[]} resIds
+     * @param {string[]} fieldNames to check and read if missing
+     * @returns {Deferred<Object>}
+     */
+    _readDatas: function (list, resIds, fieldNames) {
+        var self = this;
+
+        var missingIds = [];
+        for (var i = 0, len = resIds.length; i < len; i++) {
+            var resId = resIds[i];
+            var dataPointID = list._cache[resId];
+            if (!dataPointID) {
+                missingIds.push(resId);
+                continue;
+            }
+            var record = self.localData[dataPointID];
+            var data = _.extend({}, record.data, record._changes);
+            if (_.difference(fieldNames, _.keys(data)).length) {
+                missingIds.push(resId);
+            }
+        }
+
+        var def;
+        if (missingIds.length) {
+            if (fieldNames.length) {
+                def = self._rpc({
+                    model: list.model,
+                    method: 'read',
+                    args: [missingIds, fieldNames],
+                    context: list.getContext(),
+                });
+            } else {
+                def = $.when(_.map(missingIds, function (id) {
+                    return {id:id};
+                }));
+            }
+        } else {
+            def = $.when();
+        }
+        return def.then(function (records) {
+            list.data = [];
+            _.each(resIds, function (id) {
+                var dataPoint;
+                if (id in list._cache) {
+                    dataPoint = self.localData[list._cache[id]];
+                } else {
+                    dataPoint = self._makeDataPoint({
+                        context: list.context,
+                        data: _.findWhere(records, {id: id}),
+                        fieldsInfo: list.fieldsInfo,
+                        fields: list.fields,
+                        modelName: list.model,
+                        parentID: list.id,
+                        viewType: list.viewType,
+                    });
+
+                    // add many2one records
+                    self._parseServerData(fieldNames, dataPoint, dataPoint.data);
+                    list._cache[id] = dataPoint.id;
+                }
+                // set the dataPoint id in potential 'ADD' operation adding the current record
+                _.each(list._changes, function (change) {
+                    if (change.operation === 'ADD' && !change.id && change.resID === id) {
+                        change.id = dataPoint.id;
+                    }
+                });
+            });
+            return list;
+        });
+    },
+    /**
      * For a grouped list resource, this method fetches all group data by
      * performing a /read_group. It also tries to read open subgroups if they
      * were open before.
@@ -3569,43 +3643,6 @@ var BasicModel = AbstractModel.extend({
             });
     },
     /**
-     * For x2many, read missing informations used to sort the list then
-     * sort the res_ids list
-     *
-     * @param {Object} list a valid resource object
-     * @returns {Deferred<Object>}
-     */
-    _readOrderByDatas: function (list) {
-        var self = this;
-        var fieldNames = _.pluck(list.orderedBy, 'name');
-        var missingIds = [];
-        for (var i = 0, len = list.res_ids.length; i < len; i++) {
-            var resId = list.res_ids[i];
-            var dataPointID = list._cache[resId];
-            if (!dataPointID) {
-                missingIds.push(resId);
-                continue;
-            }
-            var record = this.localData[dataPointID];
-            var fields = _.keys(_.extend({}, record.data, record._changes));
-            if (_.difference(fieldNames, fields).length) {
-                missingIds.push(resId);
-            }
-        }
-        var def = $.when();
-        if (missingIds.length) {
-            def = this._rpc({
-                model: list.model,
-                method: 'read',
-                args: [missingIds, fieldNames],
-                context: list.getContext(),
-            });
-        }
-        return def.then(function () {
-            self._sortList(list);
-        });
-    },
-    /**
      * For 'static' list, such as one2manys in a form view, we can do a /read
      * instead of a /search_read.
      *
@@ -3616,13 +3653,14 @@ var BasicModel = AbstractModel.extend({
         var self = this;
         var def = $.when();
         if (list.res_ids.length > list.limit) {
-            def = this._readOrderByDatas(list);
+            var fieldNames = _.pluck(list.orderedBy, 'name');
+            def = this._readDatas(list, list.res_ids, fieldNames).then(function () {
+                self._sortList(list);
+            });
         }
-
         return def.then(function () {
             var def;
-            var ids = [];
-            var missingIds = [];
+            var resIds = [];
             // generate the current count and res_ids list by applying the changes
             var listWithChanges = self._applyX2ManyOperations(list);
             var currentCount = listWithChanges.count;
@@ -3631,65 +3669,18 @@ var BasicModel = AbstractModel.extend({
             var fieldNames = list.getFieldNames();
             for (var i = list.offset; i < upper_bound; i++) {
                 var resId = currentResIDs[i];
-                ids.push(resId);
-                var dataPointID = list._cache[resId];
-                if (!dataPointID) {
-                    missingIds.push(resId);
-                    continue;
-                }
-                var record = self.localData[dataPointID];
-                if (_.difference(fieldNames, _.keys(record.data)).length) {
-                    missingIds.push(resId);
-                }
+                resIds.push(resId);
             }
-            if (missingIds.length) {
-                if (fieldNames.length) {
-                    def = self._rpc({
-                        model: list.model,
-                        method: 'read',
-                        args: [missingIds, fieldNames],
-                        context: list.getContext(),
-                    });
-                } else {
-                    def = $.when(_.map(missingIds, function (id) {
-                        return {id:id};
-                    }));
+            return self._readDatas(list, resIds, fieldNames).then(function () {
+                for (var i = 0, len = resIds.length; i < len; i++) {
+                    var resId = resIds[i];
+                    if (_.contains(list.res_ids, resId)) {
+                        list.data.push(list._cache[resId]);
+                    }
                 }
-            } else {
-                def = $.when();
-            }
-            return def.then(function (records) {
-                list.data = [];
-                _.each(ids, function (id) {
-                    var dataPoint;
-                    if (id in list._cache) {
-                        dataPoint = self.localData[list._cache[id]];
-                    } else {
-                        dataPoint = self._makeDataPoint({
-                            context: list.context,
-                            data: _.findWhere(records, {id: id}),
-                            fieldsInfo: list.fieldsInfo,
-                            fields: list.fields,
-                            modelName: list.model,
-                            parentID: list.id,
-                            viewType: list.viewType,
-                        });
-
-                        // add many2one records
-                        self._parseServerData(fieldNames, dataPoint, dataPoint.data);
-                        list._cache[id] = dataPoint.id;
-                    }
-                    // set the dataPoint id in potential 'ADD' operation adding the current record
-                    _.each(list._changes, function (change) {
-                        if (change.operation === 'ADD' && !change.id && change.resID === id) {
-                            change.id = dataPoint.id;
-                        }
-                    });
-                    if (_.contains(list.res_ids, id)) {
-                        list.data.push(dataPoint.id);
-                    }
-                });
-                self._sortList(list);
+                if (list.res_ids.length <= list.limit) {
+                    self._sortList(list);
+                }
                 return list;
             });
         });
