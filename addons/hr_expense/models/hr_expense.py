@@ -379,11 +379,9 @@ class HrExpense(models.Model):
         product = default_product
         exp_products = self.env['product.product'].search([('product_tmpl_id.can_be_expensed', '=', True)])
         # Below code will check for each product name/code if its present or not in expense description
-        prod_name = expense_description.split(' ')[0]
-        if '[' and ']' in expense_description:
-            start_index = expense_description.index('[') + 1
-            end_index = expense_description.index(']')
-            prod_name = expense_description[start_index:end_index]
+        prod_pattern = '^.*\[(.*)\].*$'
+        product_name = re.findall(prod_pattern, expense_description)
+        prod_name = product_name[-1][0] if product_name else expense_description.split(' ')[0]
         for each_exp_prod in exp_products:
             if each_exp_prod.name.lower() in prod_name.lower():
                 product = each_exp_prod
@@ -391,7 +389,6 @@ class HrExpense(models.Model):
             elif each_exp_prod.code and each_exp_prod.code.lower() in prod_name.lower():
                 product = each_exp_prod
                 break
-
         pattern = '[-+]?(\d+(\.\d*)?|\.\d+)([eE][-+]?\d+)?'
         # Match the last occurence of a float in the string
         # Example: '[foo] 50.3 bar 34.5' becomes '34.5'. This is potentially the price
