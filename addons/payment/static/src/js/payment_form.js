@@ -79,7 +79,7 @@ odoo.define('payment.payment_form', function (require) {
                     }
 
                     $(button).attr('disabled', true);
-                    $(button).prepend('<span class="o_loader"><i class="fa fa-refresh fa-spin"></i>&nbsp;</span>');
+                    $(button).find("i").toggleClass("fa-lock fa-refresh fa-spin");
 
                     var verify_validity = this.$el.find('input[name="verify_validity"]');
 
@@ -107,14 +107,7 @@ odoo.define('payment.payment_form', function (require) {
                                 _t('Server Error'),
                                 _t('e.g. Your credit card details are wrong. Please verify.'));
                         }
-                        // here we remove the 'processing' icon from the 'add a new payment' button
-                        $(button).attr('disabled', false);
-                        $(button).find('span.o_loader').remove();
                     }).fail(function (message, data) {
-                        // if the rpc fails, pretty obvious
-                        $(button).attr('disabled', false);
-                        $(button).find('span.o_loader').remove();
-
                         self.displayError(
                             _t('Server Error'),
                             _t("<p>We are not able to add your payment method at the moment.</p>") +
@@ -230,7 +223,7 @@ odoo.define('payment.payment_form', function (require) {
                 }
                 // We add a 'processing' icon into the 'add a new payment' button
                 $(button).attr('disabled', true);
-                $(button).prepend('<span class="o_loader"><i class="fa fa-refresh fa-spin"></i>&nbsp;</span>');
+                $(button).find("i").toggleClass("fa-plus-circle fa-refresh fa-spin");
 
                 // we force the check when adding a card trough here
                 form_data.verify_validity = true;
@@ -262,14 +255,7 @@ odoo.define('payment.payment_form', function (require) {
                             _t("<p>We are not able to add your payment method at the moment.</p>")
                         );
                     }
-                    // here we remove the 'processing' icon from the 'add a new payment' button
-                    $(button).attr('disabled', false);
-                    $(button).find('span.o_loader').remove();
                 }).fail(function (message, data) {
-                    // if the rpc fails, pretty obvious
-                    $(button).attr('disabled', false);
-                    $(button).find('span.o_loader').remove();
-
                     self.displayError(
                         _t('Server error'),
                         _t("<p>We are not able to add your payment method at the moment.</p>") +
@@ -401,6 +387,14 @@ odoo.define('payment.payment_form', function (require) {
                 message = $(message).addClass('o_payment_error');
             }
             acquirer_form.append(message);
+            // here we remove the 'processing' icon from the 'add a new payment/ pay now' button
+            var button = this.$el.find('button#o_payment_form_add_pm:visible, button#o_payment_form_pay:visible');
+            if ($('button#o_payment_form_add_pm:visible').length) {
+                $(button).find('i').toggleClass('fa-refresh fa-plus-circle').removeClass('fa-spin');
+            } else {
+                $(button).find('i').toggleClass('fa-refresh fa-lock').removeClass('fa-spin');
+            }
+            $(button).attr('disabled', false);
         },
         getFormData: function ($form) {
             var unindexed_array = $form.serializeArray();
