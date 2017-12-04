@@ -143,4 +143,4 @@ class AccountAnalyticLine(models.Model):
                 so_line._compute_tax_id()
 
             if so_line:  # if so line found or created, then update AAL (this will trigger the recomputation of qty delivered on SO line)
-                analytic_line.write({'so_line': so_line.id})
+                analytic_line.with_context(sale_analytic_norecompute=True).write({'so_line': so_line.id})
