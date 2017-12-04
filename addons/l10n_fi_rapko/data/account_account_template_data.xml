@@ -1,1533 +1,1501 @@
 <odoo>
-    <record model="account.account.template" id="a10002">
+    <record id="a10002" model="account.account.template">
         <field name="code">10002</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10003">
+    <record id="a10003" model="account.account.template">
         <field name="code">10003</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10100">
+    <record id="a10100" model="account.account.template">
         <field name="code">10100</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Tutkimusmenot / ei nettovarallisuutta</field>
     </record>
-    <record model="account.account.template" id="a10102">
+    <record id="a10102" model="account.account.template">
         <field name="code">10102</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10104">
+    <record id="a10104" model="account.account.template">
         <field name="code">10104</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10200">
+    <record id="a10200" model="account.account.template">
         <field name="code">10200</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Kehitt&#228;mismenot / ei nettovarallisuutta</field>
     </record>
-    <record model="account.account.template" id="a10201">
+    <record id="a10201" model="account.account.template">
         <field name="code">10201</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a10202">
+    <record id="a10202" model="account.account.template">
         <field name="code">10202</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10204">
+    <record id="a10204" model="account.account.template">
         <field name="code">10204</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10210">
+    <record id="a10210" model="account.account.template">
         <field name="code">10210</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Kehitt&#228;mismenot</field>
     </record>
-    <record model="account.account.template" id="a10211">
+    <record id="a10211" model="account.account.template">
         <field name="code">10211</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a10212">
+    <record id="a10212" model="account.account.template">
         <field name="code">10212</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10214">
+    <record id="a10214" model="account.account.template">
         <field name="code">10214</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10300">
+    <record id="a10300" model="account.account.template">
         <field name="code">10300</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Aineettomat oikeudet</field>
     </record>
-    <record model="account.account.template" id="a10301">
+    <record id="a10301" model="account.account.template">
         <field name="code">10301</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a10302">
+    <record id="a10302" model="account.account.template">
         <field name="code">10302</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10303">
+    <record id="a10303" model="account.account.template">
         <field name="code">10303</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella tai avustuksella</field>
     </record>
-    <record model="account.account.template" id="a10304">
+    <record id="a10304" model="account.account.template">
         <field name="code">10304</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10305">
+    <record id="a10305" model="account.account.template">
         <field name="code">10305</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a10306">
+    <record id="a10306" model="account.account.template">
         <field name="code">10306</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a10307">
+    <record id="a10307" model="account.account.template">
         <field name="code">10307</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a10400">
+    <record id="a10400" model="account.account.template">
         <field name="code">10400</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Liikearvo tilikauden alussa</field>
     </record>
-    <record model="account.account.template" id="a10401">
+    <record id="a10401" model="account.account.template">
         <field name="code">10401</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a10402">
+    <record id="a10402" model="account.account.template">
         <field name="code">10402</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10404">
+    <record id="a10404" model="account.account.template">
         <field name="code">10404</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10410">
+    <record id="a10410" model="account.account.template">
         <field name="code">10410</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Fuusioaktiiva</field>
     </record>
-    <record model="account.account.template" id="a10411">
+    <record id="a10411" model="account.account.template">
         <field name="code">10411</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a10412">
+    <record id="a10412" model="account.account.template">
         <field name="code">10412</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10414">
+    <record id="a10414" model="account.account.template">
         <field name="code">10414</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10500">
+    <record id="a10500" model="account.account.template">
         <field name="code">10500</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Konserniliikearvo</field>
     </record>
-    <record model="account.account.template" id="a10501">
+    <record id="a10501" model="account.account.template">
         <field name="code">10501</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a10502">
+    <record id="a10502" model="account.account.template">
         <field name="code">10502</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10504">
+    <record id="a10504" model="account.account.template">
         <field name="code">10504</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
-        <field name="reconcile" eval="False"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10600">
+    <record id="a10600" model="account.account.template">
         <field name="code">10600</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Muut pitk&#228;vaikutteiset menot</field>
     </record>
-    <record model="account.account.template" id="a10601">
+    <record id="a10601" model="account.account.template">
         <field name="code">10601</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a10602">
+    <record id="a10602" model="account.account.template">
         <field name="code">10602</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10604">
+    <record id="a10604" model="account.account.template">
         <field name="code">10604</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10605">
+    <record id="a10605" model="account.account.template">
         <field name="code">10605</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a10606">
+    <record id="a10606" model="account.account.template">
         <field name="code">10606</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a10607">
+    <record id="a10607" model="account.account.template">
         <field name="code">10607</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a10610">
+    <record id="a10610" model="account.account.template">
         <field name="code">10610</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Aktivoidut markkinointikulut</field>
     </record>
-    <record model="account.account.template" id="a10611">
+    <record id="a10611" model="account.account.template">
         <field name="code">10611</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a10612">
+    <record id="a10612" model="account.account.template">
         <field name="code">10612</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10614">
+    <record id="a10614" model="account.account.template">
         <field name="code">10614</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10615">
+    <record id="a10615" model="account.account.template">
         <field name="code">10615</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a10616">
+    <record id="a10616" model="account.account.template">
         <field name="code">10616</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a10617">
+    <record id="a10617" model="account.account.template">
         <field name="code">10617</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a10620">
+    <record id="a10620" model="account.account.template">
         <field name="code">10620</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Atk-ohjelmistot</field>
     </record>
-    <record model="account.account.template" id="a10621">
+    <record id="a10621" model="account.account.template">
         <field name="code">10621</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a10622">
+    <record id="a10622" model="account.account.template">
         <field name="code">10622</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a10624">
+    <record id="a10624" model="account.account.template">
         <field name="code">10624</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a10625">
+    <record id="a10625" model="account.account.template">
         <field name="code">10625</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a10626">
+    <record id="a10626" model="account.account.template">
         <field name="code">10626</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a10627">
+    <record id="a10627" model="account.account.template">
         <field name="code">10627</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a1070">
+    <record id="a1070" model="account.account.template">
         <field name="code">1070</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Ennakkomaksut</field>
     </record>
-    <record model="account.account.template" id="a110000">
+    <record id="a110000" model="account.account.template">
         <field name="code">110000</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Maa- ja vesialueet</field>
     </record>
-    <record model="account.account.template" id="a110001">
+    <record id="a110001" model="account.account.template">
         <field name="code">110001</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a110002">
+    <record id="a110002" model="account.account.template">
         <field name="code">110002</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a110010">
+    <record id="a110010" model="account.account.template">
         <field name="code">110010</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Maa- ja vesialueet; Liittymismaksut</field>
     </record>
-    <record model="account.account.template" id="a110011">
+    <record id="a110011" model="account.account.template">
         <field name="code">110011</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a110012">
+    <record id="a110012" model="account.account.template">
         <field name="code">110012</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a110020">
+    <record id="a110020" model="account.account.template">
         <field name="code">110020</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Arvonkorotukset</field>
     </record>
-    <record model="account.account.template" id="a110030">
+    <record id="a110030" model="account.account.template">
         <field name="code">110030</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Maa- ja vesialueet; TVL-tulol&#228;hde</field>
     </record>
-    <record model="account.account.template" id="a110031">
+    <record id="a110031" model="account.account.template">
         <field name="code">110031</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a110032">
+    <record id="a110032" model="account.account.template">
         <field name="code">110032</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a110040">
+    <record id="a110040" model="account.account.template">
         <field name="code">110040</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Maa- ja vesialueet; Liittymismaksut; TVL-tulol&#228;hde</field>
     </record>
-    <record model="account.account.template" id="a110041">
+    <record id="a110041" model="account.account.template">
         <field name="code">110041</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a110042">
+    <record id="a110042" model="account.account.template">
         <field name="code">110042</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a110050">
+    <record id="a110050" model="account.account.template">
         <field name="code">110050</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Arvonkorotukset</field>
     </record>
-    <record model="account.account.template" id="a110100">
+    <record id="a110100" model="account.account.template">
         <field name="code">110100</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Maanvuokraoikeudet</field>
     </record>
-    <record model="account.account.template" id="a110101">
+    <record id="a110101" model="account.account.template">
         <field name="code">110101</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a110102">
+    <record id="a110102" model="account.account.template">
         <field name="code">110102</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a110104">
+    <record id="a110104" model="account.account.template">
         <field name="code">110104</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a110150">
+    <record id="a110150" model="account.account.template">
         <field name="code">110150</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Maanvuokraoikeudet; TVL-tulol&#228;hde</field>
     </record>
-    <record model="account.account.template" id="a110151">
+    <record id="a110151" model="account.account.template">
         <field name="code">110151</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a110152">
+    <record id="a110152" model="account.account.template">
         <field name="code">110152</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a110154">
+    <record id="a110154" model="account.account.template">
         <field name="code">110154</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a111000">
+    <record id="a111000" model="account.account.template">
         <field name="code">111000</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Rakennukset ja rakennelmat EVL 7 %</field>
     </record>
-    <record model="account.account.template" id="a111001">
+    <record id="a111001" model="account.account.template">
         <field name="code">111001</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a111002">
+    <record id="a111002" model="account.account.template">
         <field name="code">111002</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a111003">
+    <record id="a111003" model="account.account.template">
         <field name="code">111003</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a111004">
+    <record id="a111004" model="account.account.template">
         <field name="code">111004</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a111005">
+    <record id="a111005" model="account.account.template">
         <field name="code">111005</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a111006">
+    <record id="a111006" model="account.account.template">
         <field name="code">111006</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a111007">
+    <record id="a111007" model="account.account.template">
         <field name="code">111007</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a111009">
+    <record id="a111009" model="account.account.template">
         <field name="code">111009</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Arvonkorotukset (jo tehdyt)</field>
     </record>
-    <record model="account.account.template" id="a111010">
+    <record id="a111010" model="account.account.template">
         <field name="code">111010</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Rakennukset ja rakennelmat EVL 4 %</field>
     </record>
-    <record model="account.account.template" id="a111011">
+    <record id="a111011" model="account.account.template">
         <field name="code">111011</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a111012">
+    <record id="a111012" model="account.account.template">
         <field name="code">111012</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a111013">
+    <record id="a111013" model="account.account.template">
         <field name="code">111013</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a111014">
+    <record id="a111014" model="account.account.template">
         <field name="code">111014</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a111015">
+    <record id="a111015" model="account.account.template">
         <field name="code">111015</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a111016">
+    <record id="a111016" model="account.account.template">
         <field name="code">111016</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a111017">
+    <record id="a111017" model="account.account.template">
         <field name="code">111017</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a111019">
+    <record id="a111019" model="account.account.template">
         <field name="code">111019</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Arvonkorotukset (jo tehdyt)</field>
     </record>
-    <record model="account.account.template" id="a111020">
+    <record id="a111020" model="account.account.template">
         <field name="code">111020</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Rakennelmat EVL 25 %</field>
     </record>
-    <record model="account.account.template" id="a111021">
+    <record id="a111021" model="account.account.template">
         <field name="code">111021</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a111022">
+    <record id="a111022" model="account.account.template">
         <field name="code">111022</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a111023">
+    <record id="a111023" model="account.account.template">
         <field name="code">111023</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a111024">
+    <record id="a111024" model="account.account.template">
         <field name="code">111024</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a111025">
+    <record id="a111025" model="account.account.template">
         <field name="code">111025</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a111026">
+    <record id="a111026" model="account.account.template">
         <field name="code">111026</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a111027">
+    <record id="a111027" model="account.account.template">
         <field name="code">111027</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a111029">
+    <record id="a111029" model="account.account.template">
         <field name="code">111029</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Arvonkorotukset (jo tehdyt)</field>
     </record>
-    <record model="account.account.template" id="a111030">
+    <record id="a111030" model="account.account.template">
         <field name="code">111030</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Rakennelmat EVL 20 %</field>
     </record>
-    <record model="account.account.template" id="a111031">
+    <record id="a111031" model="account.account.template">
         <field name="code">111031</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a111032">
+    <record id="a111032" model="account.account.template">
         <field name="code">111032</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a111033">
+    <record id="a111033" model="account.account.template">
         <field name="code">111033</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a111034">
+    <record id="a111034" model="account.account.template">
         <field name="code">111034</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a111035">
+    <record id="a111035" model="account.account.template">
         <field name="code">111035</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a111036">
+    <record id="a111036" model="account.account.template">
         <field name="code">111036</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a111037">
+    <record id="a111037" model="account.account.template">
         <field name="code">111037</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a111039">
+    <record id="a111039" model="account.account.template">
         <field name="code">111039</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Arvonkorotukset (jo tehdyt)</field>
     </record>
-    <record model="account.account.template" id="a111050">
+    <record id="a111050" model="account.account.template">
         <field name="code">111050</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Rakennukset ja rakennelmat EVL 7 % TVL-tulol&#228;hde</field>
     </record>
-    <record model="account.account.template" id="a111051">
+    <record id="a111051" model="account.account.template">
         <field name="code">111051</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a111052">
+    <record id="a111052" model="account.account.template">
         <field name="code">111052</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a111053">
+    <record id="a111053" model="account.account.template">
         <field name="code">111053</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a111054">
+    <record id="a111054" model="account.account.template">
         <field name="code">111054</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a111055">
+    <record id="a111055" model="account.account.template">
         <field name="code">111055</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a111056">
+    <record id="a111056" model="account.account.template">
         <field name="code">111056</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a111057">
+    <record id="a111057" model="account.account.template">
         <field name="code">111057</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a111060">
+    <record id="a111060" model="account.account.template">
         <field name="code">111060</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Rakennukset ja rakennelmat EVL 4 % TVL-tulol&#228;hde</field>
     </record>
-    <record model="account.account.template" id="a111061">
+    <record id="a111061" model="account.account.template">
         <field name="code">111061</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a111062">
+    <record id="a111062" model="account.account.template">
         <field name="code">111062</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a111063">
+    <record id="a111063" model="account.account.template">
         <field name="code">111063</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a111064">
+    <record id="a111064" model="account.account.template">
         <field name="code">111064</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a111065">
+    <record id="a111065" model="account.account.template">
         <field name="code">111065</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a111066">
+    <record id="a111066" model="account.account.template">
         <field name="code">111066</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a111067">
+    <record id="a111067" model="account.account.template">
         <field name="code">111067</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a111070">
+    <record id="a111070" model="account.account.template">
         <field name="code">111070</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Rakennelmat EVL 25 %TVL-tulol&#228;hde</field>
     </record>
-    <record model="account.account.template" id="a111071">
+    <record id="a111071" model="account.account.template">
         <field name="code">111071</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a111072">
+    <record id="a111072" model="account.account.template">
         <field name="code">111072</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a111073">
+    <record id="a111073" model="account.account.template">
         <field name="code">111073</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a111074">
+    <record id="a111074" model="account.account.template">
         <field name="code">111074</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a111075">
+    <record id="a111075" model="account.account.template">
         <field name="code">111075</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poisto</field>
     </record>
-    <record model="account.account.template" id="a111076">
+    <record id="a111076" model="account.account.template">
         <field name="code">111076</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a111077">
+    <record id="a111077" model="account.account.template">
         <field name="code">111077</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a111080">
+    <record id="a111080" model="account.account.template">
         <field name="code">111080</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Tuotannolliset rakennusinvestoinnit korotetuin poistoin</field>
     </record>
-    <record model="account.account.template" id="a111081">
+    <record id="a111081" model="account.account.template">
         <field name="code">111081</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a111082">
+    <record id="a111082" model="account.account.template">
         <field name="code">111082</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a111084">
+    <record id="a111084" model="account.account.template">
         <field name="code">111084</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a111085">
+    <record id="a111085" model="account.account.template">
         <field name="code">111085</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Korotettu poisto</field>
     </record>
-    <record model="account.account.template" id="a111086">
+    <record id="a111086" model="account.account.template">
         <field name="code">111086</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a111087">
+    <record id="a111087" model="account.account.template">
         <field name="code">111087</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a11400">
+    <record id="a11400" model="account.account.template">
         <field name="code">11400</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Rakennusten vuokraoikeudet</field>
     </record>
-    <record model="account.account.template" id="a11401">
+    <record id="a11401"model="account.account.template">
         <field name="code">11401</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a11402">
+    <record id="a11402" model="account.account.template">
         <field name="code">11402</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a11404">
+    <record id="a11404" model="account.account.template">
         <field name="code">11404</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a11410">
+    <record id="a11410" model="account.account.template">
         <field name="code">11410</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Rakennusten vuokraoikeudet TVL-tulol&#228;hde</field>
     </record>
-    <record model="account.account.template" id="a11411">
+    <record id="a11411" model="account.account.template">
         <field name="code">11411</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a11412">
+    <record id="a11412" model="account.account.template">
         <field name="code">11412</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a11414">
+    <record id="a11414" model="account.account.template">
         <field name="code">11414</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a116000">
+    <record id="a116000" model="account.account.template">
         <field name="code">116000</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Koneet ja kalusto</field>
     </record>
-    <record model="account.account.template" id="a116001">
+    <record id="a116001" model="account.account.template">
         <field name="code">116001</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a116002">
+    <record id="a116002" model="account.account.template">
         <field name="code">116002</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a116003">
+    <record id="a116003" model="account.account.template">
         <field name="code">116003</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a116004">
+    <record id="a116004" model="account.account.template">
         <field name="code">116004</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a116005">
+    <record id="a116005" model="account.account.template">
         <field name="code">116005</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poistot</field>
     </record>
-    <record model="account.account.template" id="a116006">
+    <record id="a116006" model="account.account.template">
         <field name="code">116006</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a116007">
+    <record id="a116007" model="account.account.template">
         <field name="code">116007</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a116100">
+    <record id="a116100" model="account.account.template">
         <field name="code">116100</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Tietokoneet, palvelimet, oheislaitteet</field>
     </record>
-    <record model="account.account.template" id="a116101">
+    <record id="a116101" model="account.account.template">
         <field name="code">116101</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a116102">
+    <record id="a116102" model="account.account.template">
         <field name="code">116102</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a116103">
+    <record id="a116103" model="account.account.template">
         <field name="code">116103</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a116104">
+    <record id="a116104" model="account.account.template">
         <field name="code">116104</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a116105">
+    <record id="a116105" model="account.account.template">
         <field name="code">116105</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poistot</field>
     </record>
-    <record model="account.account.template" id="a116106">
+    <record id="a116106" model="account.account.template">
         <field name="code">116106</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a116107">
+    <record id="a116107" model="account.account.template">
         <field name="code">116107</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a116200">
+    <record model="account.account.template">
         <field name="code">116200</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Televiestint&#228;- ,audio- ,video, muut ICT</field>
     </record>
-    <record model="account.account.template" id="a116201">
+    <record id="a116201" model="account.account.template">
         <field name="code">116201</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a116202">
+    <record id="a116202" model="account.account.template">
         <field name="code">116202</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a116203">
+    <record id="a116203" model="account.account.template">
         <field name="code">116203</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a116204">
+    <record id="a116204" model="account.account.template">
         <field name="code">116204</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a116205">
+    <record id="a116205" model="account.account.template">
         <field name="code">116205</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poistot</field>
     </record>
-    <record model="account.account.template" id="a116206">
+    <record id="a116206" model="account.account.template">
         <field name="code">116206</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a116207">
+    <record id="a116207" model="account.account.template">
         <field name="code">116207</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a116300">
+    <record id="a116300" model="account.account.template">
         <field name="code">116300</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Ajoneuvot</field>
     </record>
-    <record model="account.account.template" id="a116301">
+    <record id="a116301" model="account.account.template">
         <field name="code">116301</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a116302">
+    <record id="a116302" model="account.account.template">
         <field name="code">116302</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a116303">
+    <record id="a116303" model="account.account.template">
         <field name="code">116303</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a116304">
+    <record id="a116304" model="account.account.template">
         <field name="code">116304</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a116305">
+    <record id="a116305" model="account.account.template">
         <field name="code">116305</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poistot</field>
     </record>
-    <record model="account.account.template" id="a116306">
+    <record id="a116306" model="account.account.template">
         <field name="code">116306</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a116307">
+    <record id="a116307" model="account.account.template">
         <field name="code">116307</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a116400">
+    <record id="a116400" model="account.account.template">
         <field name="code">116400</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Tuotannolliset investoinnit koneisiin ja kalustoon korotetuin poistoin</field>
     </record>
-    <record model="account.account.template" id="a116401">
+    <record id="a116401" model="account.account.template">
         <field name="code">116401</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a116402">
+    <record id="a116402" model="account.account.template">
         <field name="code">116402</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a116404">
+    <record id="a116404" model="account.account.template">
         <field name="code">116404</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a116405">
+    <record id="a116405" model="account.account.template">
         <field name="code">116405</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Korotetut poistot</field>
     </record>
-    <record model="account.account.template" id="a117000">
+    <record id="a117000" model="account.account.template">
         <field name="code">117000</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Muut aineelliset hy&#246;dykkeet</field>
     </record>
-    <record model="account.account.template" id="a117001">
+    <record id="a117001" model="account.account.template">
         <field name="code">117001</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a117002">
+    <record id="a117002" model="account.account.template">
         <field name="code">117002</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a117003">
+    <record id="a117003" model="account.account.template">
         <field name="code">117003</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a117004">
+    <record id="a117004" model="account.account.template">
         <field name="code">117004</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a117005">
+    <record id="a117005" model="account.account.template">
         <field name="code">117005</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poistot</field>
     </record>
-    <record model="account.account.template" id="a117006">
+    <record id="a117006" model="account.account.template">
         <field name="code">117006</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a117007">
+    <record id="a117007" model="account.account.template">
         <field name="code">117007</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a117100">
+    <record id="a117100" model="account.account.template">
         <field name="code">117100</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Muu TVL-omaisuus</field>
     </record>
-    <record model="account.account.template" id="a117101">
+    <record id="a117101" model="account.account.template">
         <field name="code">117101</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a117102">
+    <record id="a117102" model="account.account.template">
         <field name="code">117102</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a117103">
+    <record id="a117103" model="account.account.template">
         <field name="code">117103</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;lleenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a117104">
+    <record id="a117104" model="account.account.template">
         <field name="code">117104</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistot</field>
     </record>
-    <record model="account.account.template" id="a117105">
+    <record id="a117105" model="account.account.template">
         <field name="code">117105</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;poistot</field>
     </record>
-    <record model="account.account.template" id="a117106">
+    <record id="a117106" model="account.account.template">
         <field name="code">117106</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoeron muutos</field>
     </record>
-    <record model="account.account.template" id="a117107">
+    <record id="a117107" model="account.account.template">
         <field name="code">117107</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Poistoero</field>
     </record>
-    <record model="account.account.template" id="a11800">
+    <record id="a11800" model="account.account.template">
         <field name="code">11800</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Ennakkomaksut, rakennukset</field>
     </record>
-    <record model="account.account.template" id="a11801">
+    <record id="a11801" model="account.account.template">
         <field name="code">11801</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a11802">
+    <record id="a11802" model="account.account.template">
         <field name="code">11802</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a11810">
+    <record id="a11810" model="account.account.template">
         <field name="code">11810</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Ennakkomaksut, kalusto</field>
     </record>
-    <record model="account.account.template" id="a11811">
+    <record id="a11811" model="account.account.template">
         <field name="code">11811</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a11812">
+    <record id="a11812" model="account.account.template">
         <field name="code">11812</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a11820">
+    <record id="a11820" model="account.account.template">
         <field name="code">11820</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Ennakkomaksut, muut</field>
     </record>
-    <record model="account.account.template" id="a11821">
+    <record id="a11821" model="account.account.template">
         <field name="code">11821</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a11822">
+    <record id="a11822" model="account.account.template">
         <field name="code">11822</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a1400">
+    <record id="a1400" model="account.account.template">
         <field name="code">1400</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Sijoitusten arvonkorotukset</field>
     </record>
-    <record model="account.account.template" id="a14100">
+    <record id="a14100" model="account.account.template">
         <field name="code">14100</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Osuudet saman konsernin yrityksiss&#228;; sijoitukset</field>
     </record>
-    <record model="account.account.template" id="a14101">
+    <record id="a14101" model="account.account.template">
         <field name="code">14101</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a14102">
+    <record id="a14102" model="account.account.template">
         <field name="code">14102</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a14200">
+    <record id="a14200" model="account.account.template">
         <field name="code">14200</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Osuudet osakkuusyrityksiss&#228;</field>
     </record>
-    <record model="account.account.template" id="a14201">
+    <record id="a14201" model="account.account.template">
         <field name="code">14201</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a14202">
+    <record id="a14202" model="account.account.template">
         <field name="code">14202</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a14300">
+    <record id="a14300" model="account.account.template">
         <field name="code">14300</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Osuudet omistusyhteysyrityksiss&#228;; sijoitukset</field>
     </record>
-    <record model="account.account.template" id="a14301">
+    <record id="a14301" model="account.account.template">
         <field name="code">14301</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a14302">
+    <record id="a14302" model="account.account.template">
         <field name="code">14302</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a14400">
+    <record id="a14400" model="account.account.template">
         <field name="code">14400</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Muut osakkeet ja osuudet; sijoitukset</field>
     </record>
-    <record model="account.account.template" id="a14401">
+    <record id="a14401" model="account.account.template">
         <field name="code">14401</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a14402">
+    <record id="a14402" model="account.account.template">
         <field name="code">14402</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennys</field>
     </record>
-    <record model="account.account.template" id="a14403">
+    <record id="a14403" model="account.account.template">
         <field name="code">14403</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Katettu j&#228;llenhankintavarauksella</field>
     </record>
-    <record model="account.account.template" id="a14450">
+    <record id="a14450" model="account.account.template">
         <field name="code">14450</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Muut osakkeet ja osuudet; sijoitukset; TVL-tulol&#228;hde</field>
     </record>
-    <record model="account.account.template" id="a14451">
+    <record id="a14451" model="account.account.template">
         <field name="code">14451</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Lis&#228;ykset</field>
     </record>
-    <record model="account.account.template" id="a14452">
+    <record id="a14452" model="account.account.template">
         <field name="code">14452</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">V&#228;hennykset</field>
     </record>
-    <record model="account.account.template" id="a1450">
+    <record id="a1450" model="account.account.template">
         <field name="code">1450</field>
         <field name="user_type_id" ref="account.data_account_type_receivable"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="reconcile" eval="True"/>
         <field name="name">Saamiset saman konsernin yrityksilt&#228;; sijoitukset</field>
     </record>
-    <record model="account.account.template" id="a1460">
+    <record id="a1460" model="account.account.template">
         <field name="code">1460</field>
         <field name="user_type_id" ref="account.data_account_type_receivable"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="reconcile" eval="True"/>
         <field name="name">Saamiset osakkuusyrityksilt&#228;; sijoitukset</field>
     </record>
-    <record model="account.account.template" id="a1470">
+    <record id="a1470" model="account.account.template">
         <field name="code">1470</field>
         <field name="user_type_id" ref="account.data_account_type_receivable"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="reconcile" eval="True"/>
         <field name="name">Saamiset omistusyhteysyrityksilt&#228;; sijoitukset</field>
     </record>
-    <record model="account.account.template" id="a1480">
+    <record id="a1480" model="account.account.template">
         <field name="code">1480</field>
         <field name="user_type_id" ref="account.data_account_type_receivable"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="reconcile" eval="True"/>
         <field name="name">Muut saamiset; sijoitukset</field>
     </record>
-    <record model="account.account.template" id="a1510">
+    <record id="a1510" model="account.account.template">
         <field name="code">1510</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Aineet ja tarvikkeet</field>
     </record>
-    <record model="account.account.template" id="a1511">
+    <record id="a1511" model="account.account.template">
         <field name="code">1511</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Kauppatavarat</field>
     </record>
-    <record model="account.account.template" id="a1512">
+    <record id="a1512" model="account.account.template">
         <field name="code">1512</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Tuotannon poltto- ja voiteluaineet</field>
     </record>
-    <record model="account.account.template" id="a1520">
+    <record id="a1520" model="account.account.template">
         <field name="code">1520</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Keskener&#228;iset tuotteet</field>
     </record>
-    <record model="account.account.template" id="a1530">
+    <record id="a1530" model="account.account.template">
         <field name="code">1530</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Valmiit tuotteet</field>
     </record>
-    <record model="account.account.template" id="a1540">
+    <record id="a1540" model="account.account.template">
         <field name="code">1540</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Vaihto-omaisuus; kiinteist&#246;t</field>
     </record>
-    <record model="account.account.template" id="a1541">
+    <record id="a1541" model="account.account.template">
         <field name="code">1541</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Vaihto-omaisuus; arvopaperit</field>
     </record>
-    <record model="account.account.template" id="a1542">
+    <record id="a1542" model="account.account.template">
         <field name="code">1542</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Muu vaihto-omaisuus</field>
     </record>
-    <record model="account.account.template" id="a1550">
+    <record id="a1550" model="account.account.template">
         <field name="code">1550</field>
         <field name="user_type_id" ref="account.data_account_type_current_assets"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="name">Ennakkomaksut</field>
     </record>
-    <record model="account.account.template" id="a1600">
+    <record id="a1600" model="account.account.template">
         <field name="code">1600</field>
         <field name="user_type_id" ref="account.data_account_type_receivable"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="reconcile" eval="True"/>
         <field name="name">Myyntisaamiset; pitk&#228;aikaiset</field>
     </record>
-    <record model="account.account.template" id="a1610">
+    <record id="a1610" model="account.account.template">
         <field name="code">1610</field>
         <field name="user_type_id" ref="account.data_account_type_receivable"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="reconcile" eval="True"/>
         <field name="name">Saamiset saman konsernin yrityksilt&#228;; pitk&#228;aikaiset</field>
     </record>
-    <record model="account.account.template" id="a1611">
+    <record id="a1611" model="account.account.template">
         <field name="code">1611</field>
         <field name="user_type_id" ref="account.data_account_type_receivable"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="reconcile" eval="True"/>
         <field name="name">Myyntisaamiset saman konsernin yrityksilt&#228;</field>
     </record>
-    <record model="account.account.template" id="a1630">
+    <record id="a1630" model="account.account.template">
         <field name="code">1630</field>
         <field name="user_type_id" ref="account.data_account_type_receivable"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>
         <field name="reconcile" eval="True"/>
         <field name="name">Saamiset omistusyhteysyrityksilt&#228;; pitk&#228;aikaiset</field>
     </record>
-    <record model="account.account.template" id="a16400">
+    <record id="a16400" model="account.account.template">
         <field name="code">16400</field>
         <field name="user_type_id" ref="account.data_account_type_receivable"/>
         <field name="chart_template_id" ref="chart_template_fi_rapko"/>

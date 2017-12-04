@@ -2,13 +2,12 @@
 <odoo noupdate="1">
 
     <!-- Root -->
-
     <record model="account.account.tag" id="tax_tag_root">
         <field name="applicability">taxes</field>
         <field name="name">Company</field>
     </record>
-    <!-- Sales and Purchase Base -->
 
+    <!-- Sales and Purchase Base -->
     <record model="account.account.tag" id="tax_tag_base">
         <field name="applicability">taxes</field>
         <field name="name">Verojen perusteet</field>
@@ -83,7 +82,6 @@
         <field name="name">307: Kohdekuukauden v&#228;hennett&#228;v&#228; vero
         </field>
     </record>
-
 
     <!-- Intra-Community and Other Bases -->
     <record model="account.account.tag" id="tax_tag_vat0">
