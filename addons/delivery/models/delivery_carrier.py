@@ -183,6 +183,13 @@ class DeliveryCarrier(models.Model):
             except psycopg2.Error:
                 pass
 
+    def get_default_custom_package_code(self):
+        self.ensure_one()
+        if hasattr(self, '%s_get_default_custom_package_code' % self.delivery_type):
+            return getattr(self, '%s_get_default_custom_package_code' % self.delivery_type)()
+        else:
+            return False
+
     # ------------------------------------------------ #
     # Fixed price shipping, aka a very simple provider #
     # ------------------------------------------------ #
