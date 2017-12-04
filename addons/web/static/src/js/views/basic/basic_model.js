@@ -417,8 +417,6 @@ var BasicModel = AbstractModel.extend({
 
         // apply potential changes (only for x2many lists)
         element = this._applyX2ManyOperations(element);
-        // this._sortList(element);
-        // this._selectDataList(element);
 
         if (!element.resIdsOrder && element._changes) {
             _.each(element._changes, function (change) {
@@ -1685,6 +1683,7 @@ var BasicModel = AbstractModel.extend({
             }
         });
 
+        this._sortList(list);
         this._selectDataList(list);
         return list;
     },
@@ -3492,43 +3491,39 @@ var BasicModel = AbstractModel.extend({
         }
 
         var def;
-        if (missingIds.length) {
-            if (fieldNames.length) {
-                def = self._rpc({
-                    model: list.model,
-                    method: 'read',
-                    args: [missingIds, fieldNames],
-                    context: list.getContext(),
-                });
-            } else {
-                def = $.when(_.map(missingIds, function (id) {
-                    return {id:id};
-                }));
-            }
+        if (missingIds.length && fieldNames.length) {
+            def = self._rpc({
+                model: list.model,
+                method: 'read',
+                args: [missingIds, fieldNames],
+                context: list.getContext(),
+            });
         } else {
-            def = $.when();
+            def = $.when(_.map(missingIds, function (id) {
+                return {id:id};
+            }));
         }
         return def.then(function (records) {
-            list.data = [];
             _.each(resIds, function (id) {
                 var dataPoint;
+                var data = _.findWhere(records, {id: id});
                 if (id in list._cache) {
                     dataPoint = self.localData[list._cache[id]];
+                    _.extend(dataPoint.data, data);
                 } else {
                     dataPoint = self._makeDataPoint({
                         context: list.context,
-                        data: _.findWhere(records, {id: id}),
+                        data: data,
                         fieldsInfo: list.fieldsInfo,
                         fields: list.fields,
                         modelName: list.model,
                         parentID: list.id,
                         viewType: list.viewType,
                     });
-
-                    // add many2one records
-                    self._parseServerData(fieldNames, dataPoint, dataPoint.data);
-                    list._cache[id] = dataPoint.id;
                 }
+                // add many2one records
+                self._parseServerData(fieldNames, dataPoint, dataPoint.data);
+                list._cache[id] = dataPoint.id;
                 // set the dataPoint id in potential 'ADD' operation adding the current record
                 _.each(list._changes, function (change) {
                     if (change.operation === 'ADD' && !change.id && change.resID === id) {
@@ -3653,10 +3648,14 @@ var BasicModel = AbstractModel.extend({
         var self = this;
         var def = $.when();
         if (list.res_ids.length > list.limit) {
-            var fieldNames = _.pluck(list.orderedBy, 'name');
-            def = this._readDatas(list, list.res_ids, fieldNames).then(function () {
+            if (list.resIdsOrder) {
                 self._sortList(list);
-            });
+            } else {
+                var fieldNames = _.pluck(list.orderedBy, 'name');
+                def = this._readDatas(list, _.filter(list.res_ids, _.isNumber), fieldNames).then(function () {
+                    self._sortList(list);
+                });
+            }
         }
         return def.then(function () {
             var def;
@@ -3665,22 +3664,19 @@ var BasicModel = AbstractModel.extend({
             var listWithChanges = self._applyX2ManyOperations(list);
             var currentCount = listWithChanges.count;
             var currentResIDs = listWithChanges.res_ids;
-            var upper_bound = list.limit ? Math.min(list.offset + list.limit, currentCount) : currentCount;
+            var upperBound = list.limit ? Math.min(list.offset + list.limit, currentCount) : currentCount;
             var fieldNames = list.getFieldNames();
-            for (var i = list.offset; i < upper_bound; i++) {
+            for (var i = list.offset; i < upperBound; i++) {
                 var resId = currentResIDs[i];
-                resIds.push(resId);
+                if (_.isNumber(resId)) {
+                    resIds.push(resId);
+                }
             }
             return self._readDatas(list, resIds, fieldNames).then(function () {
-                for (var i = 0, len = resIds.length; i < len; i++) {
-                    var resId = resIds[i];
-                    if (_.contains(list.res_ids, resId)) {
-                        list.data.push(list._cache[resId]);
-                    }
-                }
                 if (list.res_ids.length <= list.limit) {
                     self._sortList(list);
                 }
+                self._selectDataList(list);
                 return list;
             });
         });
@@ -3812,13 +3808,9 @@ var BasicModel = AbstractModel.extend({
                 }
                 return index1 - index2;
             });
-            this._selectDataList(list);
         } else if (list.orderedBy.length) {
-            var data = list.data;
-            var res_ids = list.res_ids;
-
             // sort records according to ordered_by[0]
-            var compareRecords = function (record1ID, record2ID, level) {
+            var compareRecords = function (resId1, resId2, level) {
                 if(!level) {
                     level = 0;
                 }
@@ -3826,6 +3818,14 @@ var BasicModel = AbstractModel.extend({
                     return 0;
                 }
                 var order = list.orderedBy[level];
+                var record1ID = list._cache[resId1];
+                var record2ID = list._cache[resId2];
+                if (!record1ID) {
+                    return Infinity;
+                }
+                if (!record2ID) {
+                    return -Infinity;
+                }
                 var r1 = self.localData[record1ID];
                 var r2 = self.localData[record2ID];
                 var data1 = _.extend({}, r1.data, r1._changes);
@@ -3838,17 +3838,9 @@ var BasicModel = AbstractModel.extend({
                 }
                 return compareRecords(record1ID, record2ID, level + 1);
             };
-            data.sort(compareRecords);
-
-            // sort res_ids accordingly (only the current range of ids, the one
-            // mapping the data, needs to be sorted)
-            var preRangeIDs = res_ids.slice(0, list.offset); // resIDs before the range
-            var postRangeIDs = res_ids.slice(list.offset + list.limit); // resIDs after the range
-            var rangeIDs = _.map(data, function (dataPointID) {
-                return self.localData[dataPointID].res_id;
-            });
-            list.res_ids = preRangeIDs.concat(rangeIDs).concat(postRangeIDs);
+            list.res_ids.sort(compareRecords);
         }
+        this._selectDataList(list);
     },
     /**
      * Updates the res_ids of the parent of a given element of type list.

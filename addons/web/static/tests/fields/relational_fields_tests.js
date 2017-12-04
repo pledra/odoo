@@ -152,6 +152,10 @@ QUnit.module('relational_fields', {
                 }]
             },
         };
+    },
+    afterEach: function () {
+        $('body > *:not(#qunit, #qunit-fixture, script)').remove();
+        $('body').removeAttr('class').removeAttr('style');
     }
 }, function () {
 
@@ -2441,26 +2445,26 @@ QUnit.module('relational_fields', {
         form.$('.o_field_one2many .o_list_view tbody tr:eq(2) input:first').val('value 2').trigger('input');
 
         assert.strictEqual(form.$('.o_data_row').length, 40, "should display 40 records");
-        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(yop))').index(), 0, "should display 'yop' at the first line");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(#39))').index(), 0, "should display '#39' at the first line");
 
         form.$('.o_field_x2many_list_row_add a').click();
 
         assert.strictEqual(form.$('.o_data_row').length, 40, "should display 39 records and the create line");
         assert.strictEqual(form.$('.o_data_row:first .o_field_char').length, 1, "should display the create line in first position");
         assert.strictEqual(form.$('.o_data_row:first .o_field_char').val(), "", "should an empty input");
-        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(yop))').index(), 1, "should display 'yop' at the second line");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(#39))').index(), 1, "should display '#39' at the second line");
 
         form.$('.o_data_row input:first').val('value 3').trigger('input');
 
         assert.strictEqual(form.$('.o_data_row:first .o_field_char').length, 1, "should display the create line in first position after onchange");
-        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(yop))').index(), 1, "should display 'yop' at the second line after onchange");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(#39))').index(), 1, "should display '#39' at the second line after onchange");
 
         form.$('.o_field_x2many_list_row_add a').click();
 
         assert.strictEqual(form.$('.o_data_row').length, 40, "should display 39 records and the create line");
         assert.strictEqual(form.$('.o_data_row:first .o_field_char').length, 1, "should display the create line in first position");
         assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(value 3))').index(), 1, "should display the created line at the second position");
-        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(yop))').index(), 2, "should display 'yop' at the third line");
+        assert.strictEqual(form.$('.o_data_row:has(.o_data_cell:contains(#39))').index(), 2, "should display '#39' at the third line");
 
         form.destroy();
 

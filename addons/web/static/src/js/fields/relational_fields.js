@@ -1089,7 +1089,7 @@ var FieldX2Many = AbstractField.extend({
                 operation: 'UPDATE',
                 id: rowID,
                 data: _.object([event.data.handleField], [event.data.offset + rowIDs.length]),
-            }).then(function () {
+            }).always(function () {
                 self.trigger_up('toggle_column_order', {
                     id: self.value.id,
                     field: self.name,
