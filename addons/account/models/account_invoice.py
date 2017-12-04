@@ -589,10 +589,7 @@ class AccountInvoice(models.Model):
         return super(AccountInvoice, self.with_context(mail_post_autofollow=True)).message_post(**kwargs)
 
     @api.model
-    def message_new(self, msg_dict, custom_values=None):
-        # bill_description = msg_dict.get('subject', '')
-        if custom_values is None:
-            custom_values = {}
+    def message_new(self, msg_dict, custom_values={}):
         email_address = email_split(msg_dict.get('email_from', False))[0]
         partner = self.env['res.partner'].search([('email', 'ilike', email_address)], limit=1)
         custom_values.update({
