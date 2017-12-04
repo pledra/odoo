@@ -48,13 +48,38 @@ class TestSetTags(unittest.TestCase):
 
         with self.assertRaises(TagsError):
             @tagged('+slow')
-            class FakeClass:
+            class FakeClassA:
                 pass
-            
+
         with self.assertRaises(TagsError):
             @tagged('js+slow')
-            class FakeClass:
+            class FakeClassB:
                 pass
+
+        with self.assertRaises(TagsError):
+            @tagged('')
+            class FakeClassC:
+                pass
+
+        with self.assertRaises(TagsError):
+            @tagged('js ')
+            class FakeClassD:
+                pass
+
+    def test_inheritance(self):
+        """Test inheritance when using the 'tagged' decorator"""
+
+        @tagged('slow')
+        class FakeClassA():
+            pass
+
+        @tagged('nightly')
+        class FakeClassB(FakeClassA):
+            pass
+
+        fc = FakeClassB()
+        self.assertEqual(fc.test_tags, {'slow', 'nightly'})
+
 
 @tagged('nodatabase')
 class TestSelector(unittest.TestCase):
@@ -62,43 +87,43 @@ class TestSelector(unittest.TestCase):
     def test_selector_parser(self):
         """Test the parser part of the TagsTestSelector class"""
 
-        selector = TagsTestSelector('+slow')
-        self.assertEqual({'slow', }, selector.include)
-        self.assertEqual(set(), selector.exclude)
+        select = TagsTestSelector('+slow')
+        self.assertEqual({'slow', }, select.include)
+        self.assertEqual(set(), select.exclude)
 
-        selector = TagsTestSelector('+slow,nightly')
-        self.assertEqual({'slow', 'nightly'}, selector.include)
-        self.assertEqual(set(), selector.exclude)
+        select = TagsTestSelector('+slow,nightly')
+        self.assertEqual({'slow', 'nightly'}, select.include)
+        self.assertEqual(set(), select.exclude)
 
-        selector = TagsTestSelector('+slow,-standard')
-        self.assertEqual({'slow', }, selector.include)
-        self.assertEqual({'standard', }, selector.exclude)
+        select = TagsTestSelector('+slow,-standard')
+        self.assertEqual({'slow', }, select.include)
+        self.assertEqual({'standard', }, select.exclude)
 
         # same with space after the comma
-        selector = TagsTestSelector('+slow, -standard')
-        self.assertEqual({'slow', }, selector.include)
-        self.assertEqual({'standard', }, selector.exclude)
+        select = TagsTestSelector('+slow, -standard')
+        self.assertEqual({'slow', }, select.include)
+        self.assertEqual({'standard', }, select.exclude)
 
         # same with space befaore and after the comma
-        selector = TagsTestSelector('+slow , -standard')
-        self.assertEqual({'slow', }, selector.include)
-        self.assertEqual({'standard', }, selector.exclude)
+        select = TagsTestSelector('+slow , -standard')
+        self.assertEqual({'slow', }, select.include)
+        self.assertEqual({'standard', }, select.exclude)
 
-        selector = TagsTestSelector('+slow ,-standard,+js')
-        self.assertEqual({'slow', 'js', }, selector.include)
-        self.assertEqual({'standard', }, selector.exclude)
+        select = TagsTestSelector('+slow ,-standard,+js')
+        self.assertEqual({'slow', 'js', }, select.include)
+        self.assertEqual({'standard', }, select.exclude)
 
-        selector = TagsTestSelector('slow, ')
-        self.assertEqual({'slow', }, selector.include)
-        self.assertEqual(set(), selector.exclude)
+        select = TagsTestSelector('slow, ')
+        self.assertEqual({'slow', }, select.include)
+        self.assertEqual(set(), select.exclude)
 
-        selector = TagsTestSelector('+slow,-standard, slow,-standard ')
-        self.assertEqual({'slow', }, selector.include)
-        self.assertEqual({'standard', }, selector.exclude)
+        select = TagsTestSelector('+slow,-standard, slow,-standard ')
+        self.assertEqual({'slow', }, select.include)
+        self.assertEqual({'standard', }, select.exclude)
 
-        selector = TagsTestSelector('')
-        self.assertEqual({'standard', }, selector.include)
-        self.assertEqual(set(), selector.exclude)
+        select = TagsTestSelector('')
+        self.assertEqual({'standard', }, select.include)
+        self.assertEqual(set(), select.exclude)
 
 @tagged('nodatabase')
 class TestSelectorSelection(unittest.TestCase):
@@ -131,104 +156,104 @@ class TestSelectorSelection(unittest.TestCase):
         # selectected along with another test tag
 
         # same as no "--test-tags" parameters:
-        selector = TagsTestSelector('')
-        self.assertTrue(selector(no_tags_obj))
+        select = TagsTestSelector('')
+        self.assertTrue(select(no_tags_obj))
 
         # same as "--test-tags '+slow'":
-        selector = TagsTestSelector('+slow')
-        self.assertFalse(selector(no_tags_obj))
+        select = TagsTestSelector('+slow')
+        self.assertFalse(select(no_tags_obj))
 
         # same as "--test-tags '+slow,+fake'":
-        selector = TagsTestSelector('+slow,fake')
-        self.assertFalse(selector(no_tags_obj))
+        select = TagsTestSelector('+slow,fake')
+        self.assertFalse(select(no_tags_obj))
 
         # same as "--test-tags '+slow,+standard'":
-        selector = TagsTestSelector('slow,standard')
+        select = TagsTestSelector('slow,standard')
         self.assertTrue(no_tags_obj)
 
         # same as "--test-tags '+slow,-standard'":
-        selector = TagsTestSelector('slow,-standard')
-        self.assertFalse(selector(no_tags_obj))
+        select = TagsTestSelector('slow,-standard')
+        self.assertFalse(select(no_tags_obj))
 
         # same as "--test-tags '-slow,-standard'":
-        selector = TagsTestSelector('-slow,-standard')
-        self.assertFalse(selector(no_tags_obj))
+        select = TagsTestSelector('-slow,-standard')
+        self.assertFalse(select(no_tags_obj))
 
         # same as "--test-tags '-slow,+standard'":
-        selector = TagsTestSelector('-slow,+standard')
-        self.assertTrue(selector(no_tags_obj))
+        select = TagsTestSelector('-slow,+standard')
+        self.assertTrue(select(no_tags_obj))
 
-        selector = TagsTestSelector('')
-        self.assertFalse(selector(stock_tag_obj))
+        select = TagsTestSelector('')
+        self.assertFalse(select(stock_tag_obj))
 
-        selector = TagsTestSelector('slow')
-        self.assertFalse(selector(stock_tag_obj))
+        select = TagsTestSelector('slow')
+        self.assertFalse(select(stock_tag_obj))
 
-        selector = TagsTestSelector('standard')
-        self.assertFalse(selector(stock_tag_obj))
+        select = TagsTestSelector('standard')
+        self.assertFalse(select(stock_tag_obj))
 
-        selector = TagsTestSelector('slow,standard')
-        self.assertFalse(selector(stock_tag_obj))
+        select = TagsTestSelector('slow,standard')
+        self.assertFalse(select(stock_tag_obj))
 
-        selector = TagsTestSelector('slow,-standard')
-        self.assertFalse(selector(stock_tag_obj))
+        select = TagsTestSelector('slow,-standard')
+        self.assertFalse(select(stock_tag_obj))
 
-        selector = TagsTestSelector('+stock')
-        self.assertTrue(selector(stock_tag_obj))
+        select = TagsTestSelector('+stock')
+        self.assertTrue(select(stock_tag_obj))
 
-        selector = TagsTestSelector('stock,fake')
-        self.assertTrue(selector(stock_tag_obj))
+        select = TagsTestSelector('stock,fake')
+        self.assertTrue(select(stock_tag_obj))
 
-        selector = TagsTestSelector('stock,standard')
-        self.assertTrue(selector(stock_tag_obj))
+        select = TagsTestSelector('stock,standard')
+        self.assertTrue(select(stock_tag_obj))
 
-        selector = TagsTestSelector('-stock')
-        self.assertFalse(selector(stock_tag_obj))
+        select = TagsTestSelector('-stock')
+        self.assertFalse(select(stock_tag_obj))
 
-        selector = TagsTestSelector('')
-        self.assertFalse(selector(multiple_tags_obj))
+        select = TagsTestSelector('')
+        self.assertFalse(select(multiple_tags_obj))
 
-        selector = TagsTestSelector('-stock')
-        self.assertFalse(selector(multiple_tags_obj))
+        select = TagsTestSelector('-stock')
+        self.assertFalse(select(multiple_tags_obj))
 
-        selector = TagsTestSelector('-slow')
-        self.assertFalse(selector(multiple_tags_obj))
+        select = TagsTestSelector('-slow')
+        self.assertFalse(select(multiple_tags_obj))
 
-        selector = TagsTestSelector('slow')
-        self.assertTrue(selector(multiple_tags_obj))
+        select = TagsTestSelector('slow')
+        self.assertTrue(select(multiple_tags_obj))
 
-        selector = TagsTestSelector('slow,stock')
-        self.assertTrue(selector(multiple_tags_obj))
+        select = TagsTestSelector('slow,stock')
+        self.assertTrue(select(multiple_tags_obj))
 
-        selector = TagsTestSelector('-slow,stock')
-        self.assertFalse(selector(multiple_tags_obj))
+        select = TagsTestSelector('-slow,stock')
+        self.assertFalse(select(multiple_tags_obj))
 
-        selector = TagsTestSelector('slow,stock,-slow')
-        self.assertFalse(selector(multiple_tags_obj))
+        select = TagsTestSelector('slow,stock,-slow')
+        self.assertFalse(select(multiple_tags_obj))
 
-        selector = TagsTestSelector('')
-        self.assertTrue(selector(multiple_tags_standard_obj))
+        select = TagsTestSelector('')
+        self.assertTrue(select(multiple_tags_standard_obj))
 
-        selector = TagsTestSelector('standard')
-        self.assertTrue(selector(multiple_tags_standard_obj))
+        select = TagsTestSelector('standard')
+        self.assertTrue(select(multiple_tags_standard_obj))
 
-        selector = TagsTestSelector('slow')
-        self.assertTrue(selector(multiple_tags_standard_obj))
+        select = TagsTestSelector('slow')
+        self.assertTrue(select(multiple_tags_standard_obj))
 
-        selector = TagsTestSelector('slow,fake')
-        self.assertTrue(selector(multiple_tags_standard_obj))
+        select = TagsTestSelector('slow,fake')
+        self.assertTrue(select(multiple_tags_standard_obj))
 
-        selector = TagsTestSelector('-slow')
-        self.assertFalse(selector(multiple_tags_standard_obj))
+        select = TagsTestSelector('-slow')
+        self.assertFalse(select(multiple_tags_standard_obj))
 
-        selector = TagsTestSelector('-standard')
-        self.assertFalse(selector(multiple_tags_standard_obj))
+        select = TagsTestSelector('-standard')
+        self.assertFalse(select(multiple_tags_standard_obj))
 
-        selector = TagsTestSelector('-slow,-standard')
-        self.assertFalse(selector(multiple_tags_standard_obj))
+        select = TagsTestSelector('-slow,-standard')
+        self.assertFalse(select(multiple_tags_standard_obj))
 
-        selector = TagsTestSelector('stantard,-slow')
-        self.assertFalse(selector(multiple_tags_standard_obj))
+        select = TagsTestSelector('stantard,-slow')
+        self.assertFalse(select(multiple_tags_standard_obj))
 
-        selector = TagsTestSelector('slow,-standard')
-        self.assertFalse(selector(multiple_tags_standard_obj))
+        select = TagsTestSelector('slow,-standard')
+        self.assertFalse(select(multiple_tags_standard_obj))

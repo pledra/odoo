@@ -39,6 +39,9 @@ except ImportError:
 import odoo
 from odoo import api
 
+TAGS_RE = re.compile('^\w+$')
+TAGS_UNALLOWED_RE = re.compile('\W|^$')
+
 _logger = logging.getLogger(__name__)
 
 # The odoo library is supposed already configured.
@@ -489,10 +492,9 @@ def tagged(*tags):
     Tags must only contains alaphanumeric chars
     """
     def tags_decorator(obj):
-        unallowed_chars_re = re.compile('\W')
         for t in tags:
-            if unallowed_chars_re.search(t):
-                raise TagsError("Illegal character '{}' found in test tag".format(unallowed_chars_re.search(t).group()))
+            if not TAGS_RE.match(t):
+                raise TagsError("Illegal character '{}' found in test tag".format(TAGS_UNALLOWED_RE.search(t).group()))
         if not hasattr(obj, 'test_tags'):
             obj.test_tags = set()
         obj.test_tags.update(tags)
@@ -505,9 +507,7 @@ class TagsTestSelector(object):
 
     def __init__(self, spec):
         """ Parse the spec to determine tags to include and exclude. """
-        clean_tags = {t.strip() for t in spec.split(',') if t.strip() != ''}
-        if clean_tags == set():
-            clean_tags = {'standard'}
+        clean_tags = {t.strip() for t in spec.split(',') if t.strip() != ''} or {'standard'}
         self.exclude = {t[1:] for t in clean_tags if t.startswith('-')}
         self.include = {t.replace('+', '') for t in clean_tags if not t.startswith('-')}
 
@@ -517,11 +517,11 @@ class TagsTestSelector(object):
         """
         tags = getattr(arg, 'test_tags', ('standard',))
         inter_no_test = self.exclude.intersection(tags)
-        if bool(inter_no_test):
+        if inter_no_test:
             _logger.debug("Test '{}' deselected because of following tag(s): '{}'".format(arg, inter_no_test))
             return False
         inter_to_test = self.include.intersection(tags)
-        if bool(inter_to_test) is False:
+        if not inter_to_test:
             _logger.debug("Test '{}' deselected because it was not tagged with '{}'".format(arg, self.include))
             return False
         return True
