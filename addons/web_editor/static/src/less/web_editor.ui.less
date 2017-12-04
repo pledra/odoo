@@ -949,7 +949,7 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
 
     .note-color {
         .dropdown-toggle {
-            width: auto;
+            width: auto !important;
         }
         .o_foreground_toggle > button:before {
             font-family: FontAwesome;
@@ -960,7 +960,10 @@ html[lang] > body.editor_enable [data-oe-translation-state] {
             content: '\f0c3';
         }
         .dropdown-menu {
-            min-width: 353px!important;
+            min-width: 180px !important;
+            .btn-group {
+                margin: 0px 5px !important;
+            }
         }
     }
 }

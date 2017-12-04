@@ -50,6 +50,23 @@ renderer.createPalette = function ($container, options) {
         groups = [$clpicker.find("button").empty()];
     }
 
+    var textBtn = tplButton('Text', {
+        className: 'btn btn-default o_text_button active',
+        title: 'Text',
+        event: 'textColor',
+    })
+
+    var highlightBtn = tplButton('Highlight', {
+        className: 'btn btn-default o_highlight_button',
+        title: 'Highlight',
+        event: 'highlightColor',
+    })
+    var $colorpalettes = $container.find('.note-color .dropdown-menu .btn-group');
+    var $btnContainer = $('<div/>').css('margin', '0px 25px').append(textBtn, highlightBtn);
+    $container.find('.note-color .dropdown-menu').prepend($btnContainer);
+
+    $colorpalettes.filter(":even").addClass('hidden');
+
     var html = "<h6>" + _t("Theme colors") + "</h6>" + _.map(groups, function ($group) {
         var $row = $("<div/>", {"class": "note-color-row mb8"}).append($group);
         var $after_breaks = $row.find(".o_small + :not(.o_small)");
@@ -77,6 +94,18 @@ renderer.createPalette = function ($container, options) {
         var className = 'text-' + $el.data('color');
         $el.attr('data-event', 'foreColor').attr('data-value', className).addClass('bg-' + $el.data('color'));
     });
+
+    $container.find('[data-event="highlightColor"], [data-event="textColor"]').on('click', function (event) {
+        event.stopPropagation();
+        if ($(this).hasClass('o_text_button')) {
+            $container.find('[data-event="textColor"]').addClass('active').siblings().removeClass('active');
+        } else {
+            $container.find('[data-event="highlightColor"]').addClass('active').siblings().removeClass('active');
+        }
+        $colorpalettes.filter(":even").toggleClass('hidden', $(this).hasClass('o_text_button'));
+        $colorpalettes.filter(":odd").toggleClass('hidden', $(this).hasClass('o_highlight_button'));
+    });
+
 };
 
 var fn_tplPopovers = renderer.tplPopovers;
