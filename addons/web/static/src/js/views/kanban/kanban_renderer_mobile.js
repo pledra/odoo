@@ -29,6 +29,7 @@ KanbanRenderer.include({
     init: function () {
         this._super.apply(this, arguments);
         this.activeColumnIndex = 0; // index of the currently displayed column
+        this.mobileScrollTo = 0;
     },
 
     //--------------------------------------------------------------------------
@@ -52,7 +53,7 @@ KanbanRenderer.include({
         var index = _.findIndex(this.widgets, {db_id: localID});
         var $column = this.widgets[index].$el;
         var left = $column.css('left');
-        var scrollTop = $column.scrollTop();
+        var scrollTop = $column.scrollTop() || self.mobileScrollTo;
         return this._super.apply(this, arguments).then(function () {
             $column = self.widgets[index].$el;
             $column.css({left: left});
@@ -149,6 +150,12 @@ KanbanRenderer.include({
      */
     _renderView: function () {
         var self = this;
+
+        var activeColumn = this.widgets[this.activeColumnIndex];
+        if (activeColumn) {
+            self.mobileScrollTo = activeColumn.mobileScrollTop;
+        }
+
         return this._super.apply(this, arguments).then(function () {
             if (self.state.groupedBy.length) {
                 return self._moveToGroup(self.activeColumnIndex);

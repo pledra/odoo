@@ -164,6 +164,7 @@ var KanbanRecord = Widget.extend({
      */
     _openRecord: function () {
         var editMode = this.$el.hasClass('oe_kanban_global_click_edit');
+        this.getParent().mobileScrollTop = this.$el.parent().scrollTop();
         this.trigger_up('open_record', {
             id: this.db_id,
             mode: editMode ? 'edit' : 'readonly',

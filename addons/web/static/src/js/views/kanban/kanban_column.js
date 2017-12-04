@@ -57,6 +57,7 @@ var KanbanColumn = Widget.extend({
         this.records_deletable = options.records_deletable;
         this.relation = options.relation;
         this.offset = 0;
+        this.mobileScrollTop = 0;
         this.remaining = data.count - this.data_records.length;
 
         if (options.hasProgressBar) {
