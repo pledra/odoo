@@ -74,6 +74,8 @@ var AbstractController = Widget.extend(ControlPanelMixin, {
      * @returns {Deferred}
      */
     start: function () {
+        this.$el.addClass('o_view_controller');
+
         // render the ControlPanel elements (buttons, pager, sidebar...)
         this.controlPanelElements = this._renderControlPanelElements();
 
