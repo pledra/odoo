@@ -2,9 +2,7 @@ odoo.define('account_portal_invoices.account_portal_invoices', function (require
 'use strict';
 
 require('web.dom_ready');
-var ajax = require('web.ajax');
 var config = require('web.config');
-var Widget = require('web.Widget');
 
 if(!$('.o_account_portal_invoices').length) {
     return $.Deferred().reject("DOM doesn't contain '.o_account_portal_invoices'");
