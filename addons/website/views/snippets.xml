@@ -793,7 +793,7 @@
     </div>
 
     <div data-js='background'
-        data-selector="section, :not(.o_gallery > .container) > .carousel, .parallax, .s_banner .carousel-content">
+        data-selector="section, :not(.o_gallery > .container) > .carousel, .parallax, .s_banner .carousel-content, [class*='col-md-']">
         <li class="dropdown-submenu">
             <a tabindex="-1" href="#"><i class="fa fa-picture-o"/>Background Image</a>
             <ul class="dropdown-menu">
@@ -822,7 +822,7 @@
     </div>
 
     <div data-js="colorpicker"
-        data-selector="section, :not(.o_gallery > .container) > .carousel"
+        data-selector="section, :not(.o_gallery > .container) > .carousel, [class*='col-md-']"
         data-exclude=".parallax">
         <li class="dropdown-submenu">
             <a tabindex="-1" href="#"><i class="fa fa-eyedropper"/>Background Color</a>
