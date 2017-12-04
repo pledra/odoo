@@ -188,6 +188,7 @@ var FormController = BasicController.extend({
      */
     saveRecord: function () {
         var self = this;
+        this.model.unfreezeOrder(this.handle);
         return this._super.apply(this, arguments).then(function (changedFields) {
             // the title could have been changed
             self.set('title', self.getTitle());
@@ -298,6 +299,17 @@ var FormController = BasicController.extend({
         var env = this.model.get(this.handle, {env: true});
         state.id = env.currentId;
         this._super(state);
+    },
+    /**
+     * call unfreezeOrder when change the mode
+     *
+     * @override
+     */
+    _setMode: function (mode, recordID) {
+        if ((recordID || this.handle) === this.handle) {
+            this.model.unfreezeOrder(this.handle);
+        }
+        return this._super.apply(this, arguments);
     },
     /**
      * Updates the controller's title according to the new state
@@ -453,6 +465,7 @@ var FormController = BasicController.extend({
      * @param {OdooEvent} event
      */
     _onFreezeOrder: function (event) {
+        event.stopPropagation();
         this.model.freezeOrder(event.data.id);
     },
     /**
@@ -529,6 +542,7 @@ var FormController = BasicController.extend({
     _onToggleColumnOrder: function (event) {
         event.stopPropagation();
         this.model.setSort(event.data.id, event.data.name);
+        this.model.unfreezeOrder(event.data.id);
         var field = event.data.field;
         var state = this.model.get(this.handle);
         this.renderer.confirmChange(state, state.id, [field]);
@@ -541,6 +555,7 @@ var FormController = BasicController.extend({
      * @param {OdooEvent} event
      */
     _onUnfreezeOrder: function (event) {
+        event.stopPropagation();
         this.model.unfreezeOrder(event.data.id);
     },
 });

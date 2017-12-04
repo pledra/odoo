@@ -2154,7 +2154,7 @@ QUnit.module('relational_fields', {
     });
 
     QUnit.test('embedded one2many with handle widget', function (assert) {
-        assert.expect(7);
+        assert.expect(8);
 
         this.data.partner.records[0].turtles = [1, 2, 3];
 
@@ -2204,6 +2204,15 @@ QUnit.module('relational_fields', {
             "should have the 3 rows in the new order");
 
         form.$buttons.find('.o_form_button_save').click();
+
+        assert.deepEqual(_.map(this.data.turtle.records, function(turtle) {
+            return _.pick(turtle, 'id', 'turtle_foo', 'turtle_int');
+        }), [
+            {id: 1, turtle_foo: "yop", turtle_int: 1},
+            {id: 2, turtle_foo: "blip", turtle_int:0},
+            {id: 3, turtle_foo: "kawa", turtle_int:21}
+        ], "should have save the changed sequence");
+
         assert.strictEqual(form.$('td.o_data_cell:not(.o_handle_cell)').text(), "blipyopkawa",
             "should still have the 3 rows in the new order");
 

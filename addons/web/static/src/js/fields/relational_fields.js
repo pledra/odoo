@@ -1090,8 +1090,11 @@ var FieldX2Many = AbstractField.extend({
                 id: rowID,
                 data: _.object([event.data.handleField], [event.data.offset + rowIDs.length]),
             }).then(function () {
-                self.trigger_up('toggle_column_order', {id: self.value.id, field: self.name, name: event.data.handleField});
-                self.trigger_up('unfreeze_order', {id: self.value.id});
+                self.trigger_up('toggle_column_order', {
+                    id: self.value.id,
+                    field: self.name,
+                    name: event.data.handleField
+                });
             });
         });
     },
@@ -1103,7 +1106,6 @@ var FieldX2Many = AbstractField.extend({
      * @param {OdooEvent} ev
      */
     _onToggleColumnOrder: function (ev) {
-        this.trigger_up('unfreeze_order', {id: this.value.id});
         ev.data.field = this.name;
     },
 });
