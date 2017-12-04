@@ -3,7 +3,7 @@ import pprint
 import logging
 from werkzeug import urls, utils
 
-from odoo import http
+from odoo import http, _
 from odoo.http import request
 from odoo.exceptions import ValidationError
 
@@ -45,6 +45,19 @@ class AuthorizeController(http.Controller):
         try:
             token = acquirer.s2s_process(kwargs)
         except ValidationError as e:
+            if isinstance(e.args[0], tuple):
+                msg = e.args[0][0] + ': ' + ', '.join(field for field in e.args[0][1])
+                if request.env.user == request.env.ref('base.public_user'):
+                    msg += _("</br>Please <a href='/web/login'>sign in</a> to complete your profile.")
+                    # update message if portal mode = b2b
+                    get_param = request.env['ir.config_parameter'].sudo().get_param
+                    if get_param('auth_signup.allow_uninvited', 'False').lower() == 'false':
+                        msg += "</br>If you don't have any account, please ask your salesperson to update your profile."
+                else:
+                    msg += _("</br>Please <a href='/my/account'>complete your profile.</a>")
+                return {
+                    'error': msg
+                }
             return {
                 'error': e.args[0]
             }
