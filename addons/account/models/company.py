@@ -64,6 +64,7 @@ Best Regards,''')
     account_setup_coa_done = fields.Boolean(string='Chart of Account Checked', help="Technical field holding the status of the chart of account setup step.")
     account_setup_bar_closed = fields.Boolean(string='Setup Bar Closed', help="Technical field set to True when setup bar has been closed by the user.")
 
+    code_digits = fields.Integer(string='# of Digits *', related='accounts_code_digits', help="No. of digits to use for account code")
     has_accounting_entries = fields.Boolean(compute='_compute_has_chart_of_accounts')
     has_chart_of_accounts = fields.Boolean(compute='_compute_has_chart_of_accounts', string='Company has a chart of accounts')
 
@@ -290,6 +291,22 @@ Best Regards,''')
     def mark_company_setup_as_done_action(self):
         """ Marks the 'company' setup step as completed."""
         self.account_setup_company_data_done = True
+        if self.chart_template_id and self.chart_template_id != False:
+            wizard = self.env['wizard.multi.charts.accounts'].create({
+                'company_id': self.id,
+                'chart_template_id': self.chart_template_id.id,
+                'transfer_account_id': self.chart_template_id.transfer_account_id.id,
+                'code_digits': self.code_digits or 6,
+                'sale_tax_rate': 15.0,
+                'purchase_tax_rate': 15.0,
+                'complete_tax_set': self.chart_template_id.complete_tax_set,
+                'currency_id': self.currency_id.id,
+                'bank_account_code_prefix': self.chart_template_id.bank_account_code_prefix,
+                'cash_account_code_prefix': self.chart_template_id.cash_account_code_prefix,
+            })
+            wizard.onchange_chart_template_id()
+            wizard.execute()
+
 
     def unmark_company_setup_as_done_action(self):
         """ Marks the 'company' setup step as uncompleted."""
