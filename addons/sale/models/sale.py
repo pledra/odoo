@@ -656,10 +656,6 @@ class SaleOrder(models.Model):
 
         return groups
 
-    @api.multi
-    def onchange(self, values, field_name, field_onchange):
-        return super(SaleOrder, self.with_context(prefetch_fields=False)).onchange(values, field_name, field_onchange)
-
 
 class SaleOrderLine(models.Model):
     _name = 'sale.order.line'
@@ -862,7 +858,8 @@ class SaleOrderLine(models.Model):
         ('analytic', 'Analytic From Expenses')
     ], string="Method to update delivered qty", compute='_compute_qty_delivered_method', compute_sudo=True, store=True, readonly=True,
         help="According to product configuration, the delivered quantity can be automatically computed by mecanism (timesheet, sock moves, ...).")
-    qty_delivered = fields.Float('Delivered', copy=False, compute='_compute_qty_delivered', inverse='_inverse_qty_delivered', compute_sudo=True, store=True, digits=dp.get_precision('Product Unit of Measure'), default=0.0)
+    qty_delivered = fields.Float('Delivered', compute='_compute_qty_delivered', inverse='_inverse_qty_delivered', compute_sudo=True)
+    qty_delivered_auto = fields.Float('Delivered Automatically', copy=False, compute='_compute_qty_delivered_auto', compute_sudo=True, store=True, digits=dp.get_precision('Product Unit of Measure'), default=0.0)
     qty_delivered_manual = fields.Float('Delivered Manually', copy=False, digits=dp.get_precision('Product Unit of Measure'), default=0.0)
     qty_to_invoice = fields.Float(
         compute='_get_to_invoice_qty', string='To Invoice', store=True, readonly=True,
@@ -917,8 +914,23 @@ class SaleOrderLine(models.Model):
                 line.qty_delivered_method = 'manual'  # ultimate fallback
 
     @api.multi
-    @api.depends('qty_delivered_method', 'qty_delivered_manual', 'analytic_line_ids.so_line', 'analytic_line_ids.unit_amount', 'analytic_line_ids.product_uom_id')
+    @api.depends('qty_delivered_method', 'qty_delivered_manual', 'qty_delivered_auto')
     def _compute_qty_delivered(self):
+        for line in self.filtered(lambda sol: sol.qty_delivered_method == 'manual'):
+            line.qty_delivered = line.qty_delivered_manual
+
+        for line in self.filtered(lambda sol: sol.qty_delivered_method != 'manual'):
+            line.qty_delivered = line.qty_delivered_auto
+
+    @api.multi
+    @api.onchange('qty_delivered', 'qty_delivered_manual')
+    def _inverse_qty_delivered(self):
+        for line in self.filtered(lambda sol: sol.qty_delivered_method == 'manual'):
+            line.qty_delivered_manual = line.qty_delivered
+
+    @api.multi
+    @api.depends('qty_delivered_method', 'analytic_line_ids.so_line', 'analytic_line_ids.unit_amount', 'analytic_line_ids.product_uom_id')
+    def _compute_qty_delivered_auto(self):
         """ This method compute the delivered quantity of the SO lines: it covers the case provide by sale module, aka
             expense/vendor bills (sum of unit_amount of AAL), and manual case.
             This method should be overriden to provide other way to automatically compute delivered qty. Overrides should
@@ -929,25 +941,11 @@ class SaleOrderLine(models.Model):
         # compute for analytic lines
         mapping = lines_by_analytic._analytic_compute_delivered_quantity([('amount', '<=', 0.0)])
         for so_line in lines_by_analytic:
-            so_line.qty_delivered = mapping.get(so_line.id, 0.0)
+            so_line.qty_delivered_auto = mapping.get(so_line.id, 0.0)
         # compute for manual lines
         lines_manual = self.filtered(lambda sol: sol.qty_delivered_method == 'manual')
         for line in lines_manual:
-            line.qty_delivered = line.qty_delivered_manual or 0.0
-
-    @api.multi
-    @api.onchange('qty_delivered', 'qty_delivered_manual')
-    def _inverse_qty_delivered(self):
-        """ When writing on qty_delivered, if the value should be modify manually (`qty_delivered_method` = 'manual' only),
-            then we put the value in `qty_delivered_manual`. Otherwise, `qty_delivered_manual` should be False since the
-            delivered qty is automatically compute by other mecanisms.
-        """
-        lines_manual = self.filtered(lambda sol: sol.qty_delivered_method == 'manual')
-        for line in lines_manual:
-            line.qty_delivered_manual = line.qty_delivered
-
-        for so_line in self - lines_manual:
-            so_line.qty_delivered_manual = False
+            line.qty_delivered_auto = 0.0
 
     @api.multi
     def _prepare_invoice_line(self, qty):

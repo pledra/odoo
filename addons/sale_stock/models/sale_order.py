@@ -109,7 +109,7 @@ class SaleOrderLine(models.Model):
     @api.multi
     @api.depends('move_ids.state', 'move_ids.scrapped', 'move_ids.product_uom_qty', 'move_ids.product_uom')
     # TODO JEM: should we add move_ids.location_dest_id.usage and move_ids.to_refund in dependencies ?
-    def _compute_qty_delivered(self):
+    def _compute_qty_delivered_auto(self):
         lines_by_stockmove = self.filtered(lambda sol: sol.qty_delivered_method == 'stock_move')
         for line in lines_by_stockmove:  # TODO: maybe one day, this should be done in SQL for performance sake
             qty = 0.0
@@ -120,7 +120,7 @@ class SaleOrderLine(models.Model):
                 elif move.location_dest_id.usage != "customer" and move.to_refund:
                     qty -= move.product_uom._compute_quantity(move.product_uom_qty, line.product_uom)
             line.qty_delivered = qty
-        super(SaleOrderLine, self - lines_by_stockmove)._compute_qty_delivered()
+        super(SaleOrderLine, self - lines_by_stockmove)._compute_qty_delivered_auto()
 
     @api.model
     def create(self, values):

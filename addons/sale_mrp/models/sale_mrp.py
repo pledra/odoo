@@ -17,7 +17,7 @@ class SaleOrderLine(models.Model):
 
     @api.multi
     @api.depends('product_id.bom_ids')  # NOTE JEM: might be not efficient ... do we really need this trigger ?
-    def _compute_qty_delivered(self):
+    def _compute_qty_delivered_auto(self):
         lines_by_mrp = self.env['sale.order.line']
         lines_by_stockmove = self.filtered(lambda sol: sol.qty_delivered_method == 'stock_move')
 
@@ -33,7 +33,7 @@ class SaleOrderLine(models.Model):
                     line.qty_delivered = 0.0
                 lines_by_mrp |= line
 
-        super(SaleOrderLine, self - lines_by_mrp)._compute_qty_delivered()
+        super(SaleOrderLine, self - lines_by_mrp)._compute_qty_delivered_auto()
 
     @api.multi
     def _get_bom_component_qty(self, bom):

@@ -309,7 +309,6 @@
                                     />
                                     <field name="qty_delivered"
                                         attrs="{'column_invisible': [('parent.state', 'not in', ['sale', 'done'])], 'readonly': [('qty_delivered_method', '!=', 'manual')]}"/>
-                                    <field name="qty_delivered_manual"/>
                                     <field name="qty_invoiced"
                                         attrs="{'column_invisible': [('parent.state', 'not in', ['sale', 'done'])]}"/>
                                     <field name="qty_to_invoice" invisible="1"/>
