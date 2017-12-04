@@ -656,6 +656,10 @@ class SaleOrder(models.Model):
 
         return groups
 
+    @api.multi
+    def onchange(self, values, field_name, field_onchange):
+        return super(SaleOrder, self.with_context(prefetch_fields=False)).onchange(values, field_name, field_onchange)
+
 
 class SaleOrderLine(models.Model):
     _name = 'sale.order.line'
@@ -932,8 +936,9 @@ class SaleOrderLine(models.Model):
             line.qty_delivered = line.qty_delivered_manual or 0.0
 
     @api.multi
+    @api.onchange('qty_delivered', 'qty_delivered_manual')
     def _inverse_qty_delivered(self):
-        """ When writing on qty_delevered, if the value should be modify manually (`qty_delivered_method` = 'manual' only),
+        """ When writing on qty_delivered, if the value should be modify manually (`qty_delivered_method` = 'manual' only),
             then we put the value in `qty_delivered_manual`. Otherwise, `qty_delivered_manual` should be False since the
             delivered qty is automatically compute by other mecanisms.
         """
