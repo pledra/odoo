@@ -53,7 +53,7 @@ class SaleReport(models.Model):
                     l.product_id as product_id,
                     t.uom_id as product_uom,
                     sum(l.product_uom_qty / u.factor * u2.factor) as product_uom_qty,
-                    sum(l.qty_delivered / u.factor * u2.factor) as qty_delivered,
+                    sum(CASE WHEN l.qty_delivered_method = 'manual' THEN l.qty_delivered_manual / u.factor * u2.factor ELSE l.qty_delivered_auto / u.factor * u2.factor END) as qty_delivered,
                     sum(l.qty_invoiced / u.factor * u2.factor) as qty_invoiced,
                     sum(l.qty_to_invoice / u.factor * u2.factor) as qty_to_invoice,
                     sum(l.price_total / COALESCE(cr.rate, 1.0)) as price_total,

@@ -662,7 +662,7 @@ class SaleOrderLine(models.Model):
     _description = 'Sales Order Line'
     _order = 'order_id, layout_category_id, sequence, id'
 
-    @api.depends('state', 'product_uom_qty', 'qty_delivered', 'qty_to_invoice', 'qty_invoiced')
+    @api.depends('state', 'product_uom_qty', 'qty_delivered_manual', 'qty_delivered_auto', 'qty_to_invoice', 'qty_invoiced')
     def _compute_invoice_status(self):
         """
         Compute the invoice status of a SO line. Possible statuses:
@@ -705,7 +705,7 @@ class SaleOrderLine(models.Model):
                 'price_subtotal': taxes['total_excluded'],
             })
 
-    @api.depends('product_id', 'order_id.state', 'qty_invoiced', 'qty_delivered')
+    @api.depends('product_id', 'order_id.state', 'qty_invoiced', 'qty_delivered_manual', 'qty_delivered_auto')
     def _compute_product_updatable(self):
         for line in self:
             if line.state in ['done', 'cancel'] or (line.state == 'sale' and (line.qty_invoiced > 0 or line.qty_delivered > 0)):
@@ -713,7 +713,7 @@ class SaleOrderLine(models.Model):
             else:
                 line.product_updatable = True
 
-    @api.depends('qty_invoiced', 'qty_delivered', 'product_uom_qty', 'order_id.state')
+    @api.depends('qty_invoiced', 'qty_delivered_manual', 'qty_delivered_auto', 'product_uom_qty', 'order_id.state')
     def _get_to_invoice_qty(self):
         """
         Compute the quantity to invoice. If the invoice policy is order, the quantity to invoice is
@@ -917,10 +917,10 @@ class SaleOrderLine(models.Model):
     @api.depends('qty_delivered_method', 'qty_delivered_manual', 'qty_delivered_auto')
     def _compute_qty_delivered(self):
         for line in self.filtered(lambda sol: sol.qty_delivered_method == 'manual'):
-            line.qty_delivered = line.qty_delivered_manual
+            line.qty_delivered = line.qty_delivered_manual or 0.0
 
         for line in self.filtered(lambda sol: sol.qty_delivered_method != 'manual'):
-            line.qty_delivered = line.qty_delivered_auto
+            line.qty_delivered = line.qty_delivered_auto or 0.0
 
     @api.multi
     @api.onchange('qty_delivered', 'qty_delivered_manual')

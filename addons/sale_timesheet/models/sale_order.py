@@ -155,13 +155,13 @@ class SaleOrderLine(models.Model):
         super(SaleOrderLine, (self - lines_by_timesheet).with_prefetch(self._prefetch))._compute_qty_delivered_method()
 
     @api.multi
-    @api.depends('analytic_line_ids.project_id')
+    @api.depends('analytic_line_ids.project_id', 'analytic_line_ids.unit_amount')
     def _compute_qty_delivered_auto(self):
         lines_by_timesheet = self.filtered(lambda sol: sol.qty_delivered_method == 'timesheet')
         domain = lines_by_timesheet._timesheet_compute_delivered_quantity_domain()
         mapping = lines_by_timesheet._analytic_compute_delivered_quantity(domain)
         for line in lines_by_timesheet:
-            line.qty_delivered = mapping.get(line.id, 0.0)
+            line.qty_delivered_auto = mapping.get(line.id, 0.0)
 
         super(SaleOrderLine, self - lines_by_timesheet)._compute_qty_delivered_auto()
 

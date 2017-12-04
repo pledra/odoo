@@ -119,7 +119,7 @@ class SaleOrderLine(models.Model):
                         qty += move.product_uom._compute_quantity(move.product_uom_qty, line.product_uom)
                 elif move.location_dest_id.usage != "customer" and move.to_refund:
                     qty -= move.product_uom._compute_quantity(move.product_uom_qty, line.product_uom)
-            line.qty_delivered = qty
+            line.qty_delivered_auto = qty
         super(SaleOrderLine, self - lines_by_stockmove)._compute_qty_delivered_auto()
 
     @api.model

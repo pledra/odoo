@@ -99,7 +99,7 @@ class AccountAnalyticLine(models.Model):
             'product_id': self.product_id.id,
             'product_uom': self.product_uom_id.id,
             'product_uom_qty': 0.0,
-            'qty_delivered': self.unit_amount,
+           # 'qty_delivered': self.unit_amount,
         }
 
     @api.multi
@@ -145,8 +145,6 @@ class AccountAnalyticLine(models.Model):
                 so_line_values = analytic_line._sale_prepare_sale_order_line_values(sale_order, price)
                 so_line = self.env['sale.order.line'].create(so_line_values)
                 so_line._compute_tax_id()
-            else:  # increment only the manual SO lines
-                so_line.write({'qty_delivered': so_line.qty_delivered + analytic_line.unit_amount})
 
             if so_line:  # if so line found or created, then update AAL (this will trigger the recomputation of qty delivered on SO line)
                 analytic_line.write({'so_line': so_line.id})

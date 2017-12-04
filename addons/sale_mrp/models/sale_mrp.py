@@ -28,9 +28,9 @@ class SaleOrderLine(models.Model):
             if bom and bom.type == 'phantom':
                 bom_delivered = all([move.state == 'done' for move in line.move_ids])
                 if bom_delivered:
-                    line.qty_delivered = line.product_uom_qty
+                    line.qty_delivered_auto = line.product_uom_qty
                 else:
-                    line.qty_delivered = 0.0
+                    line.qty_delivered_auto = 0.0
                 lines_by_mrp |= line
 
         super(SaleOrderLine, self - lines_by_mrp)._compute_qty_delivered_auto()

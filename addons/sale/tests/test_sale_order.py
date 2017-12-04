@@ -45,7 +45,7 @@ class TestSaleOrder(TestSale):
         self.assertFalse(so.order_line[0].product_updatable)
         # deliver lines except 'time and material' then invoice again
         for line in so.order_line:
-            line.qty_delivered = 2 if line.product_id.expense_policy=='no' else 0 # TODO JEM: change this tio check delivered_method instead
+            line.qty_delivered = 2 if line.qty_delivered_method == 'manual' else 0 # TODO JEM: change this tio check delivered_method instead
         self.assertTrue(so.invoice_status == 'to invoice', 'Sale: SO status after delivery should be "to invoice"')
         inv_id = so.action_invoice_create()
         inv = inv_obj.browse(inv_id)
@@ -55,18 +55,18 @@ class TestSaleOrder(TestSale):
         self.assertTrue(len(so.invoice_ids) == 2, 'Sale: invoice is missing')
         # go over the sold quantity
         for line in so.order_line:
-            if line.product_id == self.products['serv_order']:
+            if line.product_id == self.products['prod_order']:
                 line.qty_delivered = 10
         self.assertTrue(so.invoice_status == 'upselling', 'Sale: SO status after increasing delivered qty higher than ordered qty should be "upselling"')
 
         # upsell and invoice
         for line in so.order_line:
-            if line.product_id == self.products['serv_order']:
+            if line.product_id == self.products['prod_order']:
                 line.product_uom_qty = 10
         inv_id = so.action_invoice_create()
         inv = inv_obj.browse(inv_id)
         self.assertEqual(len(inv.invoice_line_ids), 1, 'Sale: third invoice is missing lines')
-        self.assertEqual(inv.amount_total, 8 * self.products['serv_order'].list_price, 'Sale: second invoice total amount is wrong')
+        self.assertEqual(inv.amount_total, 8 * self.products['prod_order'].list_price, 'Sale: second invoice total amount is wrong')
         self.assertTrue(so.invoice_status == 'invoiced', 'Sale: SO status after invoicing everything (including the upsel) should be "invoiced"')
 
     def test_unlink_cancel(self):
