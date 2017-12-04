@@ -434,6 +434,12 @@ class Applicant(models.Model):
         if employee:
             dict_act_window['res_id'] = employee.id
         dict_act_window['view_mode'] = 'form,tree'
+        dict_act_window['effect'] = {
+                'fadeout': 'slow',
+                'img_url': '/web/static/src/img/smile.svg',
+                'message': "Congratulations! You just configured it successfully!",
+                'type': "rainbow_man"
+        }
         return dict_act_window
 
     @api.multi
