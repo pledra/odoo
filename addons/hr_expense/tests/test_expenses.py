@@ -2,6 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from odoo.tests.common import TransactionCase
+from odoo.modules.module import get_module_resource
 
 
 class TestCheckJournalEntry(TransactionCase):
@@ -87,3 +88,33 @@ class TestCheckJournalEntry(TransactionCase):
                     self.assertAlmostEquals(line.debit, 636.36)
                 else:
                     self.assertAlmostEquals(line.debit, 63.64)
+
+    def test_crm_lead_message(self):
+        # Give the access rights of Salesman to communicate with customer
+        # Customer interested in our product, so he sends request by email to get more details.
+        # Mail script will fetch his request from mail server. Then I process that mail after read EML file.
+        request_file = open(get_module_resource('hr_expense', 'tests', 'expense_request.eml'), 'rb')
+        request_message = request_file.read()
+        # print ('\n\n\nrequest_message', request_message)
+        res = self.env['mail.thread'].sudo().message_process('hr.expense', request_message)
+        # print ('resssssssssssssssssssssssssss', res)
+        # return True
+        # After getting the mail, I check details of new lead of that customer
+        expense = self.env['hr.expense'].sudo().search([('email_from', '=', 'Mr. John Right <info@user.com>')], limit=1)
+        # print ('expenseeeeeeeeeeeeeeeeeeee', expense)
+        # self.assertTrue(lead.ids, 'Fail to create merge opportunity wizard')
+        # self.assertFalse(lead.partner_id, 'Customer should be a new one')
+        # self.assertEqual(lead.name, 'Fournir votre devis avec le meilleur prix.', 'Subject does not match')
+
+        # I reply his request with welcome message.
+        # TODO revert mail.mail to mail.compose.message (conversion to customer should be automatic).
+        lead = self.env['crm.lead'].search([('email_from', '=', 'Mr. John Right <info@customer.com>')], limit=1)
+        mail = self.env['mail.compose.message'].with_context(active_model='hr.expense', active_id=lead.id).create({
+            'body': "Merci de votre intérêt pour notre produit, nous vous contacterons bientôt. Bien à vous",
+            'email_from': 'expenses@mycompany.com'
+        })
+        # print ('mailllllllllllllllllllllllll', mail)
+        try:
+            mail.send_mail()
+        except:
+            pass
