@@ -15,11 +15,12 @@ class Partner(models.Model):
     meeting_count = fields.Integer("# Meetings", compute='_compute_meeting_count')
 
     @api.model
-    def create(self, vals):
-        parent_model = self.env.context.get('parent_model')
-        if parent_model == 'crm.lead':
-            lead = self.env[parent_model].browse(self.env.context.get('parent_res_id'))
-            vals.update(
+    def default_get(self, fields):
+        rec = super(Partner, self).default_get(fields)
+        active_model = self.env.context.get('active_model')
+        if active_model == 'crm.lead':
+            lead = self.env[active_model].browse(self.env.context.get('active_id'))
+            rec.update(
                 phone=lead.phone,
                 mobile=lead.mobile,
                 function=lead.function,
@@ -32,7 +33,7 @@ class Partner(models.Model):
                 country_id=lead.country_id.id,
                 zip=lead.zip,
             )
-        return super(Partner, self).create(vals)
+        return rec
 
     @api.multi
     def _compute_opportunity_count(self):
